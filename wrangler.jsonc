@@ -1,0 +1,17 @@
+{
+  // Cloudflare Workers 静态资源托管配置。
+  // 这个站点没有后端代码：构建产物 dist/ 直接作为 Worker 的静态资源上传，
+  // 因此不需要 main 入口，也就没有运行时费用和冷启动问题。
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "tsinghua-guide",
+  "compatibility_date": "2026-09-30",
+
+  "assets": {
+    // Astro 的构建输出目录
+    "directory": "./dist",
+    // 找不到的路径返回 404 页面（Astro 会生成 dist/404.html）
+    "not_found_handling": "404-page",
+    // URL 统一带结尾斜杠，与 astro.config.mjs 的 trailingSlash: 'always' 保持一致
+    "html_handling": "auto-trailing-slash"
+  }
+}

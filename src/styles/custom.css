@@ -1,0 +1,165 @@
+/* ==========================================================================
+   清华生存指南 —— 主题定制
+   只改颜色、字体和阅读体验，不动 Starlight 的结构。
+   ========================================================================== */
+
+/* ── 主题色：清华紫 ───────────────────────────────────────────────────── */
+:root {
+  /* 深色模式（Starlight 的默认 :root 就是深色） */
+  --sl-color-accent-low: hsl(288, 62%, 20%);
+  --sl-color-accent: hsl(288, 78%, 66%);
+  --sl-color-accent-high: hsl(288, 90%, 88%);
+}
+
+:root[data-theme='light'] {
+  /* 浅色模式 */
+  --sl-color-accent-low: hsl(288, 70%, 93%);
+  --sl-color-accent: hsl(288, 82%, 44%);
+  --sl-color-accent-high: hsl(288, 85%, 27%);
+}
+
+/* ── 中文字体栈与阅读体验 ─────────────────────────────────────────────── */
+:root {
+  --sl-font: 'PingFang SC', 'HarmonyOS Sans SC', 'Source Han Sans SC', 'Noto Sans SC',
+    'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --sl-font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono',
+    monospace;
+}
+
+/* 中文正文：行高放宽一点，字号略大，长段落更好读 */
+.sl-markdown-content {
+  line-height: 1.85;
+  letter-spacing: 0.01em;
+}
+
+.sl-markdown-content p,
+.sl-markdown-content li {
+  font-size: var(--sl-text-body);
+}
+
+/* 中文标题不需要那么紧的字距 */
+.sl-markdown-content :is(h1, h2, h3, h4) {
+  letter-spacing: 0;
+  line-height: 1.35;
+}
+
+/* 段落之间留白多一点，手机上看不压抑 */
+.sl-markdown-content p + p {
+  margin-top: 1.1em;
+}
+
+/* 中英混排时，行内代码不要挤在一起 */
+.sl-markdown-content code:not(:where(.not-content *)) {
+  padding: 0.15em 0.4em;
+  border-radius: 0.25rem;
+}
+
+/* ── 站内通用卡片：常用链接 / 资料下载 ───────────────────────────────── */
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: 0.9rem;
+  margin: 1.25rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guide-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.6rem;
+  background: var(--sl-color-black);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.guide-card:hover {
+  border-color: var(--sl-color-accent);
+  transform: translateY(-2px);
+}
+
+.guide-card__head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.guide-card__name {
+  font-weight: 600;
+  color: var(--sl-color-white);
+  text-decoration: none;
+  line-height: 1.4;
+}
+
+.guide-card__name:hover {
+  color: var(--sl-color-accent-high);
+  text-decoration: underline;
+}
+
+.guide-card__desc {
+  margin: 0;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-2);
+  line-height: 1.65;
+}
+
+.guide-card__meta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 0.35rem;
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-3);
+}
+
+/* 角标 */
+.guide-tag {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 999px;
+  font-size: var(--sl-text-xs);
+  line-height: 1.6;
+  color: var(--sl-color-gray-2);
+  white-space: nowrap;
+}
+
+.guide-tag--warn {
+  border-color: var(--sl-color-orange);
+  color: var(--sl-color-orange-high);
+}
+
+.guide-tag--campus {
+  border-color: var(--sl-color-accent);
+  color: var(--sl-color-accent-high);
+}
+
+/* ── 首页 Hero 的补充样式 ─────────────────────────────────────────────── */
+.hero .tagline {
+  max-width: 42rem;
+  margin-inline: auto;
+  line-height: 1.8;
+}
+
+/* ── 手机端 ──────────────────────────────────────────────────────────── */
+@media (max-width: 40rem) {
+  .guide-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sl-markdown-content {
+    line-height: 1.8;
+  }
+}
+
+/* 打印时把侧边栏卡片去掉，只留正文 */
+@media print {
+  .guide-card {
+    border: none;
+    padding: 0;
+  }
+}

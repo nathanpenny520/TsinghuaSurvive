@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# 构建产物、依赖和缓存不需要被索引
+Disallow: /_astro/
+Disallow: /pagefind/
+
+Sitemap: https://tsinghua-guide.nathanpenny520.workers.dev/sitemap-index.xml

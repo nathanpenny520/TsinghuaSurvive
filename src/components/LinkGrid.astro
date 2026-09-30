@@ -1,0 +1,35 @@
+---
+/**
+ * 渲染「校内常用链接」卡片墙。
+ * 数据来源：src/data/links.ts —— 加链接只需要改那个文件。
+ */
+import { linksByGroup } from '../data/links';
+
+const groups = linksByGroup();
+---
+
+{
+  groups.map(({ group, items }) => (
+    <section>
+      <h2>{group}</h2>
+      <ul class="guide-grid">
+        {items.map((item) => (
+          <li class="guide-card">
+            <div class="guide-card__head">
+              <a class="guide-card__name" href={item.url} target="_blank" rel="noopener noreferrer">
+                {item.name}
+              </a>
+              {item.campusOnly && <span class="guide-tag guide-tag--campus">需校内网</span>}
+              {!item.verified && <span class="guide-tag guide-tag--warn">待核对</span>}
+            </div>
+            <p class="guide-card__desc">{item.desc}</p>
+            <div class="guide-card__meta">
+              <span>{new URL(item.url).hostname}</span>
+              {item.verified && <span>核对于 {item.verified}</span>}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))
+}

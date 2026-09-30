@@ -1,0 +1,47 @@
+name: Deploy to Cloudflare Workers
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# 同一时间只跑一个部署，避免并发上传互相覆盖
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # 站点页脚显示"最后更新于"，依赖完整 git 历史
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 类型与内容校验
+        run: npm run check
+
+      - name: 构建
+        run: npm run build
+
+      - name: 部署到 Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+
+# 需要在仓库 Settings → Secrets and variables → Actions 里配置：
+#   CLOUDFLARE_API_TOKEN   —— Cloudflare 控制台创建，权限至少包含 Workers Scripts: Edit
+#   CLOUDFLARE_ACCOUNT_ID  —— 见 `npx wrangler whoami`

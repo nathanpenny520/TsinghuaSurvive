@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="清华生存指南">
+  <rect width="64" height="64" rx="14" fill="#660874"/>
+  <path d="M14 44V20h6.4l6.4 13.6L33.2 20H40v24h-5.6V29.2L28.8 42h-4.4L18.8 29.2V44H14z" fill="#fff"/>
+  <path d="M44 20h6v24h-6z" fill="#fff" opacity=".85"/>
+</svg>

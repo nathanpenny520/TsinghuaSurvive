@@ -1,0 +1,110 @@
+---
+title: 怎么贡献一篇经验帖
+description: 给想一起写的学长学姐：从 fork 到 PR 的完整流程，命名规范、frontmatter 模板和内容红线。
+stage: ['全阶段']
+tags: ['本站说明', '协作']
+status: stable
+sidebar:
+  label: 怎么贡献一篇经验帖
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+这个站希望一直有不同届、不同院系的人来写。流程刻意做得**不需要你会写代码**——会写微信长文就够了。
+
+## 你需要准备什么
+
+- 一个 GitHub 账号（提 PR 用）。
+- 一篇写好的稿子，Markdown 或纯文本都行。
+
+:::tip
+完全不想碰 Git 也没关系：把你的稿子发到 [GitHub Issues](https://github.com/nathanpenny520/tsinghua-guide/issues/new)，标题写「投稿：xxx」，有人会帮你排版进去。
+:::
+
+## 直接改（推荐）
+
+每篇页面底部都有「**编辑此页**」，点它会直接在 GitHub 上打开对应的 Markdown 文件。改完提交，自动生成一个 PR。
+
+如果要在本地预览效果：
+
+```bash
+git clone https://github.com/nathanpenny520/tsinghua-guide.git
+cd tsinghua-guide
+npm install
+npm run dev      # 打开 http://localhost:4321
+```
+
+改完 Markdown，浏览器会热更新，所见即所得。
+
+## 新增一篇文章
+
+<Steps>
+
+1. 在 `src/content/docs/` 下选一个目录，新建 `.md` 文件：
+
+   - `freshman/` 新生入学
+   - `academics/` 学业
+   - `research/` 科研与深造
+   - `campus/` 校园生活
+   - `mindset/` 心态与避坑
+
+2. **文件名用英文小写加连字符**，正文标题写中文。文件名会变成网址，中文网址在微信里转发出去会变成一长串 `%E5%AD%A6...`，很难看。
+
+   - ✅ `academics/course-selection.md` → `/academics/course-selection/`
+   - ❌ `academics/选课攻略.md`
+
+3. 复制下面的模板填好 frontmatter。
+
+4. 本地 `npm run dev` 看一眼，然后提 PR。
+
+</Steps>
+
+## Frontmatter 模板
+
+```yaml
+---
+title: 选课怎么排才不踩坑          # 页面标题
+description: 一句话摘要，会出现在搜索结果和分享卡片里
+stage: ['本科低年级']              # 本科新生/本科低年级/本科高年级/研究生/全阶段，可多选
+tags: ['选课', '培养方案']
+authors: ['你的昵称（xx 院系 xx 级）']
+status: stable                    # draft 草稿 / stable 已定稿 / outdated 已过期
+summary: 卡片上显示的一句话
+sidebar:
+  order: 10                       # 目录里的排序，小的在前
+---
+
+正文从这里开始……
+```
+
+`stage`、`tags`、`status` 这些字段写错了**构建会直接失败并告诉你是哪个文件**，所以不用怕写错，改对就行。
+
+## 写作上的几个约定
+
+1. **先给结论，再讲原因**。读者是在手机上找答案，不是在看论文。
+2. **写你亲历的**。"我大二找导师时发过 7 封邮件只回了 2 封"比"联系导师要有耐心"有用得多。
+3. **区分事实和建议**。规则类内容写明"以官方为准"，建议类内容允许有个人色彩。
+4. **别写绝对化的判断**。"这门课给分很好"最好改成"我那年这门课的成绩分布大概是这样"。
+5. **有具体时间点的内容要标年份**，因为规则会变。
+
+## 内容红线
+
+投稿前请自查，以下内容会被直接退回：
+
+- 内部系统的数据、截图、账号，或绕过权限的方法；
+- 对具体老师的指名评价；
+- 他人隐私（学号、成绩、联系方式、名单）；
+- 违反校规的做法；
+- 付费内容导流。
+
+完整说明见[免责声明与内容边界](/start/disclaimer/)。
+
+## 审稿约定
+
+- 每篇至少 **1 人 review** 后才能合并。
+- 涉及制度性事实（学分、截止日期、政策）的改动，reviewer 需要**自己去官方渠道核实一遍**，或者把相关内容标注成「待核对」。
+- 内容过期时，优先**更新并保留历史说明**，而不是直接删除。
+
+<Aside type="note" title="关于署名">
+你可以用真名、昵称，或者干脆匿名（`authors: ['匿名学长']`）。署名只是方便读者判断可信度，不是义务。
+</Aside>

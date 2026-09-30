@@ -1,0 +1,86 @@
+---
+/**
+ * 渲染「资料下载」列表。
+ * 数据来源：src/data/resources.ts。url 为空或 'TODO' 时显示「待补充」，不渲染死链。
+ */
+import { resources, type Resource } from '../data/resources';
+
+const available = resources.filter((r) => isReady(r));
+const pending = resources.filter((r) => !isReady(r));
+
+function isReady(r: Resource) {
+  return Boolean(r.url) && r.url !== 'TODO';
+}
+
+const groups = [...new Set(available.map((r) => r.group))];
+---
+
+{
+  groups.map((group) => (
+    <section>
+      <h2>{group}</h2>
+      <ul class="guide-grid">
+        {available
+          .filter((r) => r.group === group)
+          .map((item) => (
+            <li class="guide-card">
+              <div class="guide-card__head">
+                <a
+                  class="guide-card__name"
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {item.name}
+                </a>
+              </div>
+              <p class="guide-card__desc">{item.desc}</p>
+              <div class="guide-card__meta">
+                {item.format && <span class="guide-tag">{item.format}</span>}
+                {item.size && <span>{item.size}</span>}
+                {item.code && <span>提取码：{item.code}</span>}
+                {item.checkedAt && <span>链接核对于 {item.checkedAt}</span>}
+              </div>
+            </li>
+          ))}
+      </ul>
+    </section>
+  ))
+}
+
+{
+  pending.length > 0 && (
+    <section>
+      <h2>还在整理中</h2>
+      <p>
+        下面这些资料我们打算整理，但还没上传。如果你手上有现成的版本，非常欢迎
+        <a
+          href="https://github.com/nathanpenny520/tsinghua-guide/issues/new"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          提个 Issue
+        </a>
+        告诉我们。
+      </p>
+      <ul class="guide-grid">
+        {pending.map((item) => (
+          <li class="guide-card">
+            <div class="guide-card__head">
+              <span class="guide-card__name" style="color: var(--sl-color-gray-2)">
+                {item.name}
+              </span>
+              <span class="guide-tag guide-tag--warn">待补充</span>
+            </div>
+            <p class="guide-card__desc">{item.desc}</p>
+            {item.format && (
+              <div class="guide-card__meta">
+                <span class="guide-tag">{item.format}</span>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}

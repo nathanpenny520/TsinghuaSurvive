@@ -1,0 +1,56 @@
+---
+/**
+ * 覆盖 Starlight 默认页脚：保留「编辑此页 / 最近更新 / 上一页下一页」，
+ * 在下面追加一段全站统一的免责声明与纠错入口。
+ */
+import Default from '@astrojs/starlight/components/Footer.astro';
+
+const repo = 'https://github.com/nathanpenny520/tsinghua-guide';
+const year = new Date().getFullYear();
+---
+
+<Default />
+
+<div class="site-notice">
+  <p>
+    <strong>免责声明：</strong>本站是学生自发整理的经验分享，<strong>不代表清华大学官方立场</strong>。涉及培养方案、选课规则、绩点计算、保研政策等一切制度性内容，
+    请以教务、院系和学校官方通知为准。
+  </p>
+  <p>
+    发现内容有误、过期，或想补充一篇经验帖？欢迎到
+    <a href={`${repo}/issues/new`} target="_blank" rel="noopener">GitHub Issues</a>
+    提出，或直接<a href={`${repo}/edit/main/`} target="_blank" rel="noopener">编辑对应页面</a>提交 PR。
+  </p>
+  <p class="site-notice__copy">
+    © {year} 清华生存指南 · 内容采用 CC BY-NC-SA 4.0 许可 · 由
+    <a href={`${repo}`} target="_blank" rel="noopener">一群学长学姐</a>共同维护
+  </p>
+</div>
+
+<style>
+  .site-notice {
+    margin-top: 3rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--sl-color-gray-6);
+    font-size: var(--sl-text-xs);
+    line-height: 1.8;
+    color: var(--sl-color-gray-3);
+  }
+
+  .site-notice p {
+    margin: 0.4rem 0;
+  }
+
+  .site-notice strong {
+    color: var(--sl-color-gray-2);
+  }
+
+  .site-notice a {
+    color: var(--sl-color-text-accent);
+  }
+
+  .site-notice__copy {
+    margin-top: 0.75rem !important;
+    color: var(--sl-color-gray-4);
+  }
+</style>

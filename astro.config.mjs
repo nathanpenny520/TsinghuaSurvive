@@ -1,0 +1,100 @@
+// @ts-check
+import { defineConfig } from 'astro/config';
+import starlight from '@astrojs/starlight';
+import sitemap from '@astrojs/sitemap';
+
+/**
+ * 站点地址：部署到 Cloudflare Workers 后，把这里换成真实的 workers.dev 子域
+ * 或你自己的自定义域名。它决定 sitemap、canonical、OG 卡片里的绝对链接。
+ */
+const SITE = 'https://tsinghua-guide.nathanpenny520.workers.dev';
+
+/**
+ * 仓库地址：用于「编辑此页」链接，其他学长学姐可以直接跳去提 PR。
+ */
+const REPO = 'https://github.com/nathanpenny520/tsinghua-guide';
+
+export default defineConfig({
+  site: SITE,
+  // 纯静态站点：构建产物在 dist/，由 Cloudflare Workers 静态资源托管
+  output: 'static',
+  trailingSlash: 'always',
+
+  integrations: [
+    starlight({
+      title: '清华生存指南',
+      description:
+        '来自学长学姐的清华生存经验：选课、绩点、科研、保研、食堂、心态，以及那些没人会主动告诉你的事。',
+      // 中文默认语言，Pagefind 会按 zh-CN 索引并启用中文分词
+      defaultLocale: 'root',
+      locales: {
+        root: { label: '简体中文', lang: 'zh-CN' },
+      },
+      lastUpdated: true,
+      pagination: true,
+      tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 3 },
+      editLink: {
+        baseUrl: `${REPO}/edit/main/`,
+      },
+      // 右上角社交图标
+      social: [{ icon: 'github', label: 'GitHub', href: REPO }],
+      customCss: ['./src/styles/custom.css'],
+      // 组件覆盖：站点页脚 + 首页 Hero
+      components: {
+        Footer: './src/components/Footer.astro',
+      },
+      sidebar: [
+        {
+          label: '开始之前',
+          items: [
+            { label: '如何使用本站', slug: 'start/how-to-use' },
+            { label: '免责声明与内容边界', slug: 'start/disclaimer' },
+          ],
+        },
+        {
+          label: '新生入学',
+          items: [{ autogenerate: { directory: 'freshman' } }],
+        },
+        {
+          label: '学业',
+          items: [{ autogenerate: { directory: 'academics' } }],
+        },
+        {
+          label: '科研与深造',
+          items: [{ autogenerate: { directory: 'research' } }],
+        },
+        {
+          label: '校园生活',
+          items: [{ autogenerate: { directory: 'campus' } }],
+        },
+        {
+          label: '心态与避坑',
+          items: [{ autogenerate: { directory: 'mindset' } }],
+        },
+        {
+          label: '实用工具',
+          items: [
+            { label: '校内常用链接', slug: 'guides/links' },
+            { label: '资料下载', slug: 'guides/resources' },
+          ],
+        },
+        {
+          label: '参与写作',
+          items: [{ label: '怎么贡献一篇经验帖', slug: 'contribute' }],
+        },
+      ],
+      head: [
+        // 微信 / QQ 分享卡片
+        { tag: 'meta', attrs: { property: 'og:locale', content: 'zh_CN' } },
+        { tag: 'meta', attrs: { name: 'theme-color', content: '#660874' } },
+        {
+          tag: 'meta',
+          attrs: { name: 'keywords', content: '清华大学,清华生存指南,选课,绩点,保研,新生攻略,学长经验' },
+        },
+        // 百度/搜狗等中文搜索引擎的收录验证位（拿到验证码后填这里）
+        // { tag: 'meta', attrs: { name: 'baidu-site-verification', content: 'TODO' } },
+      ],
+    }),
+    sitemap(),
+  ],
+});
