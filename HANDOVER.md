@@ -30,8 +30,12 @@
 | 预览域名 | `https://preview.nathanpenny.fun` |
 | GitHub 仓库 | <https://github.com/nathanpenny520/TsinghuaSurvive>（public，main） |
 | 本地路径 | `TsinghuaSurvive/Tsinghua-guide/` |
+| OAuth 中转 Worker | `tsinghua-guide-auth`，自定义域名 `https://auth.nathanpenny.fun`（内容后台的 GitHub 登录用，见第 9 节）。**已部署**（2026-09-30，版本 `e9b944e1`），还差两个 secret（GitHub OAuth App 的 client id/secret） |
+| R2 桶（内容后台的图片/视频） | `tsinghua-guide-media`，公开域名 `https://media.nathanpenny.fun`。**已建好并接上域名 + CORS**（2026-09-30，`npm run r2:setup`），还差一个 R2 API 令牌填 `access_key_id` |
 
-Cloudflare 侧有**两个 Worker、两个自定义域名，没有任何 KV / R2 / D1 / Durable Object**。不需要担心有隐藏资源产生费用。
+Cloudflare 侧有**三个 Worker、三个自定义域名、一个 R2 桶**（内容后台的登录中转与媒体存储），
+没有任何 KV / D1 / Durable Object。三者的免费额度都远高于本站量级，不会产生费用。
+（前两个 Worker 和「零 R2」是 2026-09-30 之前的状态；那之后加了内容后台。）
 
 > 预览 Worker 是给 PR 用的独立环境，不是正式站。**如果确认不再需要预览功能**，
 > 可以删掉它：`npx wrangler delete --config wrangler.preview.jsonc`，并删除 `.github/workflows/preview.yml`。
@@ -48,6 +52,8 @@ Cloudflare 侧有**两个 Worker、两个自定义域名，没有任何 KV / R2 
 | 分享卡片图 | `public/og.png`，由 `scripts/generate-og.mjs` 生成 |
 | RSS | `src/pages/rss.xml.ts` |
 | 时效阈值单一来源 | `content-policy.json` |
+| 内容后台（改内容 / 插图 / 嵌视频） | `public/admin/`（Sveltia CMS，纯静态）+ R2 媒体库，见第 9 节 |
+| 视频嵌入语法糖 | `src/utils/media-embed.mjs` + `astro.config.mjs` 的 `markdown.processor`，见第 9 节 |
 
 仓库 Secrets 现状（**两个都已配好，CI 已实测跑通**）：
 
@@ -426,7 +432,10 @@ npm run measure:perf -- --base http://127.0.0.1:4321
 - **真正的重量是 Starlight 的 UI bundle（约 98–104 KB 未压缩）与 CSS（71–89 KB）**，
   两者都由框架提供（搜索、主题切换、目录、代码高亮）。gzip 后约 30 KB + 15 KB，可以接受。
   如果哪天要再快一档，方向是**按需加载 Expressive Code**（只有带代码块的页面才需要），而不是继续压 HTML。
-- **没有做图片优化**：本站几乎没有图片（只有 favicon 和分享卡片，都不在页面里加载），暂时不构成问题。
+- **图片走 R2，不走 Astro 的图片优化管线**：正文里的图片是 R2 的公网 URL，通过后台的媒体库上传（上传前在浏览器里就转成 WebP、长边 2048、剥掉 EXIF）。
+  代价是不会生成响应式 srcset / AVIF；收益是作者零心智负担、仓库永远不因为图片变重。
+  想改回「图片进仓库 + Astro 优化」的话，得同时改 `public/admin/config.yml` 的媒体库设置和 `scripts/check-media.mjs` 的白名单，别只改一半。
+  （Astro 确实会把正文里的**相对路径**图片优化成 WebP，这一点实测过；是 Sveltia 的 `public_folder` 不支持相对路径，所以两者不能同时要。）
 
 ---
 
@@ -435,10 +444,173 @@ npm run measure:perf -- --base http://127.0.0.1:4321
 - **境内访问是「可用」不是「快」**。整页 0.5–0.9s，因为走的是 Cloudflare 海外节点。要更快需要 **ICP 备案 + Cloudflare 中国网络（企业版）**，或换境内云厂商静态托管。这是产品决策，不是技术限制。
 - **`workers.dev` 入口已关闭**，不要把它写进任何对外宣传材料。
 - **没有评论系统**（按需求刻意不做）。纠错入口是页脚的 GitHub Issues 链接。
-- **没有 CMS**。其他学长学姐投稿要么会 Git，要么把稿子发到 Issues 由人代排。以后要降低门槛可以接 Decap/Sveltia CMS（基于 Git，零后端，与当前架构天然兼容）。
+- **有 CMS 了（2026-09-30 起）**：站内后台 `https://tsinghua.nathanpenny.fun/admin/`，浏览器里就能改内容、拖图、嵌视频，不需要会 Git。它是 Sveltia CMS（纯前端）+ 一个自建的 OAuth 中转 Worker（`auth-worker/`），每次保存自动开 PR 并走预览 + 全套 CI。登录用 GitHub 一键授权（**只有点登录那一下需要代理**，之后全在校园网内完成）。录入流程、OAuth 与 R2 的开通步骤、踩过的坑都在第 9 节。不会 Git 的人仍然可以发 Issue 由人代排。
 - **站点上没有任何课程文件**。`/courses/` 只是索引，链接指向第三方资料库；他们的许可、存活、下架都不由本站控制。
 - **链接实测依赖联网**，所以 `npm run check:links` 不进 CI 必跑步骤；结果过期时只给警告，不阻断构建。
 - **更新日志 / 贡献者页依赖完整 Git 历史**（CI 的 `fetch-depth: 0` 就是为它和 Starlight 的「最后更新」配的）。拿不到历史时这两个页面会降级显示一句说明，不会构建失败。
 - **构建依赖 Node 20+**，CI 用 Node 22。
 - **课程索引页刻意不用 Astro 的作用域样式**（`<style is:global>` + `cg-` 前缀）。作用域会给 2500 个元素各加一个 `astro-xxxx` 类，实测多出 40 KB；页面体积已从 269 KB 降到 209 KB。**不要"顺手"改回作用域样式**，那会把体积加回去。除了体积，还有一条更硬的理由：凡是**用 JS 二次渲染**的组件，作用域样式会直接失效（见第 4 节「写这类组件必须用 `is:global` 样式」）。
 - **JSON-LD 只在 `src/components/Head.astro` 输出**。页面里不要再写一份，否则同页两个 `@type` 会互相打架（`check:jsonld` 会拦住，但别故意踩）。
+
+---
+
+## 9. 站内后台（改内容不用碰代码）
+
+> 2026-09-30 新增。目标是「会用浏览器就能改内容」，同时**不放松**原有的质量门。
+
+### 9.1 它是什么
+
+| 项 | 内容 |
+| --- | --- |
+| 地址 | <https://tsinghua.nathanpenny.fun/admin/> |
+| 实现 | Sveltia CMS —— 纯前端单页应用，静态文件在 `public/admin/`（`index.html` + `config.yml`），随站点一起部署，**没有额外服务器** |
+| 配置 | `public/admin/config.yml`（12 个目录集合 + 1 个单文件集合，覆盖全部 44 个内容文件） |
+| 登录 | **默认 GitHub 一键登录（OAuth）**，走自建的轻量中转 `auth.nathanpenny.fun`（`auth-worker/`）；令牌登录保留作备用 |
+| 数据流 | 浏览器 →（登录时一次 OAuth 跳转）→ 之后所有读写直连 `api.github.com` → 提交到分支 → PR → `preview.nathanpenny.fun` + 全套 CI → 合并到 main → 自动部署 |
+| 保存方式 | `publish_mode: editorial_workflow`：**每次保存开一个 PR**，不直推 main |
+
+**为什么需要一个 OAuth 中转**：Sveltia CMS 是纯前端应用，浏览器里不能放 GitHub 的 client secret；
+GitHub 的 PKCE 纯前端流程目前还没开放（官方路线图暂停）。所以用一个 13KB 的 Cloudflare Worker
+（`auth-worker/`，内联了上游 `sveltia/sveltia-cms-auth`）做「授权码 → 访问令牌」的交换。
+
+**代理只在登录那一步要**：OAuth 授权页在 `github.com`（校园网实测打不开），所以点「Sign in with GitHub」时需要一个能打开
+github.com 的网络。授权完成后拿到的是长效令牌（存浏览器 localStorage），**之后改内容、传图、提交都不需要代理**
+（全走 `api.github.com`，实测通）。每隔很久（换浏览器/清缓存/令牌失效）才需要再登录一次。
+
+### 9.2 只做一次（A）：GitHub 登录的 OAuth 中转
+
+> 完整步骤也写在 `auth-worker/README.md`；这里只留运维视角的要点。
+>
+> **当前状态（2026-09-30）**：Worker 已经部署好了（`npm run auth:deploy`，自定义域名与证书都已生效，
+> 版本 `e9b944e1`），所以下面第 2 步的 `wrangler deploy` 不用再跑；**只差第 1 步的 OAuth App 和两个 secret**。
+> 在配好之前，`auth.nathanpenny.fun/auth` 会明确返回「OAuth app client ID or secret is not configured」。
+
+1. **注册 GitHub OAuth App**（需要代理）：<https://github.com/settings/applications/new>
+   - Homepage URL：`https://tsinghua.nathanpenny.fun/`
+   - **Authorization callback URL：`https://auth.nathanpenny.fun/callback`**（必须一字不差）
+   - 创建后记下 **Client ID**，再点 **Generate a new client secret** 记下 **Client Secret**
+2. **写密钥**（需要你自己的 Cloudflare 凭据；每条命令都会立即部署一个新版本）：
+   ```bash
+   cd auth-worker
+   npx wrangler secret put GITHUB_CLIENT_ID       # 粘贴 Client ID
+   npx wrangler secret put GITHUB_CLIENT_SECRET   # 粘贴 Client Secret
+   npx wrangler deploy                            # 首次部署才需要；已部署过可跳过
+   ```
+   想先看打包结果不部署：`npm run auth:dry`。域名和证书是首次部署时自动建的。
+3. **确认配置对得上**：`public/admin/config.yml` 里 `backend.base_url` 必须是 `https://auth.nathanpenny.fun`。
+   `npm run check:admin` 会比对它与 `auth-worker/wrangler.jsonc` 里的 routes，防止两边漂移。
+   Worker 里的 `ALLOWED_DOMAINS`（`wrangler.jsonc` 的 vars）决定**哪些站点可以用这个中转**，
+   当前是 `*.nathanpenny.fun,localhost` —— 不要改成 `*`。
+4. **验证**：开代理打开 `/admin/` → 点 **Sign in with GitHub** → 授权 → 应该回到后台并看到 9 个分类。
+
+**为什么用 `auth_scope: public_repo`**：本站是公开仓库，`public_repo` 足够读写文章与开 PR，
+比默认的 `repo`（含所有私有仓库读写）小得多。它只接受 `repo` 或 `public_repo` 两个值
+（写成 `public_repo,user` 会被 schema 直接拒绝 —— 这是实测踩过的坑）。
+
+### 9.3 只做一次（B）：R2 媒体库（图片、视频存这里）
+
+后台的图片/视频**不进 Git 仓库**，存在 R2 桶 `tsinghua-guide-media`，通过公开域名
+`https://media.nathanpenny.fun` 访问。
+
+**当前状态（2026-09-30）**：桶、公开域名、CORS **都已经配好并实测通过**
+（`curl` 取对象返回 200，且带正确的 `access-control-allow-origin` / `ETag` 头）。
+只剩最后一步 —— 建 R2 API 令牌、把 **Access Key ID** 填进 `public/admin/config.yml`。
+
+三步都已经脚本化，可重复执行（桶被删、换账号、别人 fork 都能一键复原）：
+
+```bash
+npm run r2:setup -- --check   # 只报告当前状态，不改任何东西
+npm run r2:setup              # 建桶 + 接公开域名 + 应用 CORS
+```
+
+对应关系：桶名 / 域名 / zone id / CORS 策略分别写在脚本顶部、`auth-worker` 同级的 `r2/cors.json` 里。
+
+**最后一步（脚本做不了，官方只提供控制台路径）**：创建 R2 API 令牌
+
+1. 打开 <https://dash.cloudflare.com/?to=/:account/r2/api-tokens> → **Create API token**
+2. Permission 选 **Object Read & Write**，桶**只勾 `tsinghua-guide-media`**
+3. 把 **Access Key ID** 填进 `public/admin/config.yml` 的
+   `media_libraries.cloudflare_r2.access_key_id`（它不是密钥，官方明确说可以公开放在配置里）
+4. **Secret Access Key 不要写进任何文件**：每个编辑者第一次打开后台媒体库时在界面上输入一次，
+   存在自己浏览器里。配置文件里根本没有它的位置。
+
+改完 `config.yml` 要提交并部署（后台读的是线上那份配置）。`npm run check:admin` 会告诉你还缺什么。
+
+**两个实施时踩到的坑**（都在上面脚本/文件里注释了）：
+
+- **CORS 的 JSON 形状是 R2 那套**：`{ "rules": [ { "allowed": { "origins": [...] } } ] }`，
+  不是 AWS S3 那种顶层 `AllowedOrigins`。写成 S3 形状 `wrangler` 会直接拒绝（`r2/cors.json` 里已按 R2 形状写好，
+  用 `npm run r2:setup` 应用，不要手动粘控制台那份 S3 例子）。
+- **`wrangler r2 object put/get` 默认操作本地模拟存储**：不加 `--remote` 时对象只写进 `.wrangler/state/`，
+  桶里其实是空的（表现是桶信息里 `object_count: 0`、公开域名取不到对象）。做真实上传/校验时记得加 `--remote`。
+
+### 9.4 日常维护后台
+
+| 我想…… | 怎么做 |
+| --- | --- |
+| 加一个字段 | 先在 `src/content.config.ts` 加 schema，再在 `public/admin/config.yml` 的字段表里加，然后 `npm run check:admin` |
+| 加一个集合（新目录） | 在 `astro.config.mjs` 的 sidebar 加一项（autogenerate），在 `config.yml` 加集合，`npm run check:admin` 会检查有没有文件漏在后台外面 |
+| 加一篇文章能在后台创建 | 集合默认 `create: true`，不用改配置 |
+| 改后台的字段说明 / 提示 | 直接改 `config.yml` 里的 `hint`、`description`（支持简单 Markdown） |
+| 升级 Sveltia CMS | **两处一起改**：`public/admin/index.html` 的 `VERSION` 与 `package.json` 的 `@sveltia/cms`（必须锁同一个固定版本）。依赖的那个版本提供官方 schema，`npm run check:admin` 拿它校验配置；两者不一致会被检查报错。改完 `npm install && npm run check:admin`，再打开后台点一遍确认字段没变 |
+| 校园网里 unpkg 不通、后台打不开 | `npm run admin:vendor`：把该版本的编辑器脚本放进 `public/admin/vendor/`（2.1MB / gzip 650KB，优先从 `node_modules` 复制，装不到才下载）并提交。后台页面「本地优先、CDN 兜底」，不用改代码 |
+| 改 OAuth 中转的域名 | 三处一起改：`auth-worker/wrangler.jsonc` 的 routes、GitHub OAuth App 的 callback URL、`config.yml` 的 `backend.base_url`。`check:admin` 能查到前两处不一致，GitHub 那边只能人工确认 |
+| 换 OAuth App / 密钥泄漏 | GitHub 上重新生成 client secret → `cd auth-worker && npx wrangler secret put GITHUB_CLIENT_SECRET`。旧的 secret 立即作废，不影响已登录的人（他们手里是访问令牌） |
+| 给新贡献者开权限 | GitHub 仓库 → Settings → Collaborators 加 Write 权限，然后把后台地址发给 TA，让他点 **Sign in with GitHub**（**不需要**再教怎么建令牌） |
+| 关掉整个后台 | 删除 `public/admin/`，把 `astro.config.mjs` 的 `markdown.processor` 换回默认（去掉 mediaEmbedPlugin），并 `npx wrangler delete --config auth-worker/wrangler.jsonc` |
+
+### 9.5 备用登录：访问令牌（一般用不到）
+
+`config.yml` 里保留 `token` 只是为了**中转 Worker 挂掉时不至于谁都进不来后台**；日常请用 GitHub 登录。
+真要用令牌时（例如临时没有代理）：
+
+1. 登录 GitHub → Settings → Developer settings → **Fine-grained tokens** → Generate new token
+2. Repository access：**Only select repositories** → 只勾 `nathanpenny520/TsinghuaSurvive`
+3. Permissions（Repository permissions）：
+   - **Contents: Read and write**（读写文章和图片）
+   - **Pull requests: Read and write**（编辑工作流要开 PR；少了这个权限，保存会卡在「开不了 PR」）
+4. 到期时间按需要选（最长 1 年）
+5. 回到 <https://tsinghua.nathanpenny.fun/admin/> → **Sign In Using Access Token** → 粘贴令牌
+
+⚠️ 令牌等于账号的写权限：不要写进文件、不要发群里、不要在机房公共电脑上保存。
+
+想彻底去掉这个备用入口：把 `config.yml` 的 `auth_methods` 改成 `[oauth]`（`check:admin` 允许两种写法）。
+
+### 9.6 踩过的坑（改动前先读）
+
+1. **Astro 的内容加载器出错时，`npm run build` 仍然返回 0，而且那一页正文会整个变空**（实测，2026-09-30）。
+   所以「构建成功」不代表内容都在。`npm run check:media:dist` 就是为这件事存在的：它会数产物里的视频容器
+   与源码里的语法糖是否对得上。**任何「markdown 改了但页面少一块」都先用它定位。**
+2. **`:::` 容器写法的视频指令没闭合，会把后面整篇正文吞掉**。语法糖推荐两个冒号的写法 `::bilibili[BV号]`。
+   `check:media` 会拦住没闭合的写法。
+3. **一个集合只能对应一种扩展名**（官方文档明确）。所以 `.mdx`（含 JSX 组件的页面）单独成集合，
+   并在 `description` 里写明「不要删 import 那几行」。编辑器默认打开「原文模式」，`:::` 提示块与组件都不会被改写。
+4. **Sveltia 保存时只写回配置里声明过的字段**，漏声明一个字段，作者保存一次就把它丢了。
+   `npm run check:admin` 做的是「源码里出现过的 frontmatter 字段是否都被声明」的覆盖率检查 —— 加字段时别绕过它。
+5. **后台不写 `slug` 字段**：文件名（网址）由作者在保存时手填，规则是小写英文/数字/连字符。
+   这是被 `check-content.ts` 的 ASCII slug 规则逼出来的 —— 中文标题自动生成的 slug 会被 CI 拦下。
+6. **Media 域名白名单在两处**：`public/admin/config.yml` 的 `public_url`（上传用）和
+   `scripts/check-media.mjs` 的 `allowedHosts`（校验用）。换域名时两处都要改。
+7. **后台是公开地址**，但里面没有任何密钥：仓库是 public，`config.yml` 里的 `access_key_id`/`bucket`/`account_id`
+   官方明确说可以公开；真正的写权限在 GitHub（没有令牌只能看到登录页）。
+   收录层面用三处一起挡：`public/robots.txt` 的 `Disallow: /admin/`、`public/_headers` 的 `X-Robots-Tag`、
+   页面里的 `<meta name="robots" content="noindex">`。
+8. **选项写在错误的层级 → CMS 静默忽略**（2026-09-30 实测，改完配置一定要在浏览器里打开一次后台看控制台）：
+   - `commit_messages` 属于 `backend`，写在顶层无效；
+   - `slug` 有**两套不同选项**：顶层只认编码/大小写这类，`editable`/`pattern`/`hint` 必须写在**每个集合**里；
+   - `automatic_deployments` 已被官方标记为过时（改用 `skip_ci`），我们就没写它。
+   这类问题现在由 `npm run check:admin` 用**官方 JSON Schema**（来自 `node_modules/@sveltia/cms`）在校验阶段挡掉。
+9. **`.mdx` 里不能写 `<https://…>` 这种自动链接**：MDX 会把它当 JSX 解析，构建直接失败
+   （报 `Unexpected character after <`）。`.mdx` 里请写 `[文字](https://…)`；`.md` 里两种都行。
+10. **改完内容看一眼浏览器控制台**：`check:admin` 覆盖的是 schema 与字段，但 CMS 的运行时警告
+    （比如某个选项被弃用）只有真打开后台才会打印。花 10 秒点一次，比事后排查省事。
+11. **OAuth 相关的三处地址必须一致**，否则表现是「点了登录、也授权了，但回到后台仍是未登录」：
+    `config.yml` 的 `backend.base_url`、`auth-worker/wrangler.jsonc` 的 routes、
+    GitHub OAuth App 的 callback URL。前两处 `check:admin` 会比对；第三处只能人工确认。
+12. **`auth_scope` 只接受 `repo` / `public_repo` 两个值**。写成 `public_repo,user` 这种 scope 列表会被
+    schema 直接拒绝（实测踩过：官方 schema 的 enum 就只有这两个）。
+13. **`auth-worker` 是第三个 Worker**，它不随主站 CI 部署（改动很少，手动 `npm run auth:deploy`）。
+    改它之前先 `npm run auth:dry` 看打包结果；`ALLOWED_DOMAINS` 不要写成 `*`，那是防滥用白名单。
+14. **内联的上游代码要保留来源注释与 LICENSE**：`auth-worker/src/index.js` 来自 MIT 许可的
+    `sveltia/sveltia-cms-auth`，文件头记录了 commit 与 sha256，升级方式写在 `auth-worker/README.md`。
+    `check:admin` 会检查这些注释和 LICENSE 还在不在。

@@ -12,8 +12,10 @@
 
 | 我想…… | 改哪里 | 怎么做 |
 | --- | --- | --- |
+| **改内容（推荐给不会 Git 的人）** | <https://tsinghua.nathanpenny.fun/admin/> | 站内后台：浏览器里改文字、拖图、嵌视频，保存后自动开 PR 并给预览链接。登录用 GitHub 令牌，配置见 [HANDOVER.md 第 9 节](./HANDOVER.md) |
+| **给文章插图 / 嵌视频** | 同上（后台媒体库） | 图片拖进去就会自动压成 WebP 并传到 R2（**不进 Git 仓库**）；视频写 `::bilibili[BV号]` 或 `::video[地址]` 各占一行 |
 | **写一篇新经验帖** | `src/content/docs/<分类>/` 新建 `.md` | 复制 [`src/content/docs/_template.md`](./src/content/docs/_template.md) 当模板。**文件名用英文小写加连字符**，中文标题写在 `title` 里 |
-| **改一篇已有文章** | 对应 `.md` 文件 | 本地改后 push；或用网页端点「编辑此页 / 纠错」（需代理，见下） |
+| **改一篇已有文章** | 对应 `.md` 文件 | 后台改（推荐）；或本地改后 push；或网页端点「编辑此页 / 纠错」（需代理，见下） |
 | **加一个校内网址** | `src/data/links.ts` | 加一条记录。**亲自点开确认后填 `verified: '2026-09-30'`**，页面上的「待核对」角标才会消失 |
 | **加一份可下载资料** | `src/data/resources.ts` | `url` 填网盘链接，`code` 填提取码。**文件本体不要进仓库**，只放外链 |
 | **加一门课 / 一个资料库** | `scripts/build-course-index.mjs` | 资料库目录变了就重新生成：`npm run courses`（详见下面「课程资料索引」一节） |
@@ -34,6 +36,12 @@
 
 **没有本地环境也能干活**（但要注意下面那条网络限制）：有了 GitHub 账号就能在网页上点「编辑此页」改内容，提交后会自动生成 PR，机器人会把预览链接评论到 PR 上，你确认没问题再合并。
 
+> ### ✅ 校园网内改内容：用站内后台（2026-09-30 起）
+> <https://tsinghua.nathanpenny.fun/admin/> —— 自域名，校园网可达，**不需要 Git、不需要装 Node**。
+> 登录是 **GitHub 一键授权**（自建的中转在 `auth-worker/`）：只有点登录那一下需要能打开 github.com（开代理或手机流量），
+> 授权后拿到长效令牌，**之后改内容、传图、提交全部在校园网内完成**（走 `api.github.com`，实测通）。
+> 部署中转、R2 媒体库的开通步骤见 [HANDOVER.md 第 9 节](./HANDOVER.md)。
+
 > ### ⚠️ 校园网里 GitHub 网页端打不开
 > 实测（2026-09-30，清华校园网）：
 >
@@ -41,19 +49,24 @@
 > | --- | --- |
 > | `git push` / `git clone`（SSH，22 或 443 端口） | ✅ 通 |
 > | `api.github.com` | ✅ 通（1.2s） |
+> | 站内后台读写内容（走 `api.github.com`） | ✅ 通 |
+> | `auth.nathanpenny.fun`（自建 OAuth 中转） | ✅ 通 |
+> | `github.com/login/oauth/authorize`（登录时要跳一次） | ❌ 需代理 |
 > | **`github.com` 网页端** | ❌ **超时** |
 > | `raw.githubusercontent.com` | ❌ 超时 |
 >
 > 所以**在校园网内，网页端那条路走不通，会卡在打开网页这一步**。可靠的做法是：
-> - **本地改 + `git push`**（本仓库的全部提交都是这么推上去的）
+> - **用站内后台改内容**（普通人推荐，浏览器即可；登录那一下开代理）
+> - **本地改 + `git push`**（要批量改、改代码时用）
 > - 或者开代理后再用网页端
 > - 站点上的「编辑此页 / 纠错」链接指向 `github.com`，**在校园网内点开也会超时**，不是链接写错了
 
-### 三种不同的改动方式，按你的习惯选
+### 四种不同的改动方式，按你的习惯选
 
 | 方式 | 适合 | 代价 |
 | --- | --- | --- |
-| **本地 `npm run dev` + `git push`** | 写长文、调排版、批量改链接 | **校园网里唯一稳定可用的方式**；要装 Node 和依赖（一次性） |
+| **站内后台 `/admin/`** | 改正文、插图、嵌视频（不会 Git 也完全没问题） | 登录那一步要能打开 github.com（开一次代理）；改含 JSX 组件的 `.mdx` 页面要小心（后台里已单独标注） |
+| **本地 `npm run dev` + `git push`** | 写长文、调排版、批量改链接、改代码 | 要装 Node 和依赖（一次性） |
 | **GitHub 网页直接改** | 改错别字、更新链接 | 需要代理；校内直连打不开 github.com |
 | **只提 Issue** | 不会 Git、只想提供素材 | 同样需要能打开 github.com（或让有代理的人代提） |
 
@@ -71,6 +84,9 @@
 | 文档主题 | **Starlight** | 自带侧边导航、目录、深色模式、搜索、i18n |
 | 全文搜索 | **Pagefind**（Starlight 内置） | 构建时生成静态索引，不需要任何服务；中文分词已启用 |
 | 内容格式 | Markdown / MDX + 强类型 frontmatter | 写错字段构建直接失败，不会静默生成坏页面 |
+| 内容后台 | **Sveltia CMS**（纯前端单页应用，静态托管在同一个 Worker 上） | 不用 Git 也能改内容、插图、嵌视频；提交仍然走 GitHub PR，原有校验一条不放松。配置用官方 JSON Schema 校验（`npm run check:admin`） |
+| 后台登录 | **GitHub OAuth**，中转是 `auth-worker/`（内联上游 `sveltia/sveltia-cms-auth`，13KB Worker，MIT） | 一键授权、不用管令牌。client secret 只存在 Worker 的加密环境变量里（前端应用不能放 secret，GitHub 的纯前端 PKCE 流程目前不可用） |
+| 图片 / 视频存储 | **Cloudflare R2**（`tsinghua-guide-media` 桶，公开域名访问） | 媒体不进 Git 仓库，clone 不会越来越慢；10GB 免费额度、出网免费。视频优先用 B 站嵌入，站上只放 iframe |
 | 托管 | **Cloudflare Workers 静态资源** | 构建产物直接当静态资源上传，无运行时费用、无冷启动 |
 
 ### 为什么是「Workers 静态资源」而不是别的
@@ -97,9 +113,11 @@ npm run build              # 构建到 dist/
 npm run preview            # 预览构建产物
 npm run check              # 类型检查（astro check）
 npm run check:content      # 内容检查：死链、中文文件名、占位符、过期核对日期、数据文件一致性
-npm run check:all          # 上面两个一起跑 ← 提 PR 前跑这个
+npm run check:admin        # 后台配置检查：字段覆盖率（漏字段会让后台保存时丢数据）、R2 占位符
+npm run check:media        # 媒体检查：视频语法糖写法、外链图片是否用了会失效的图床
+npm run check:all          # 上面几个一起跑 ← 提 PR 前跑这个
 npm run check:content:strict  # 连「债务警告」也当错误（发布前用）
-npm run verify             # 一键跑完：类型 + 内容 + 构建 + 结构化数据 + 资源 + 订阅守卫 ← 提 PR 前跑这个
+npm run verify             # 一键跑完：类型 + 内容 + 后台 + 媒体 + 构建 + 结构化数据 + 资源 + 订阅 + 产物比对 ← 提 PR 前跑这个
 npm run check:links        # 实测所有校外链接是否可访问（需要联网，写 link-status.json）
 npm run verify:links       # 语义核对：抓页面比对标题/关键词，判断「地址还指向那个服务吗」
 npm run verify:links -- --apply   # 把结论 ok 的条目写回 links.ts（reviewedAt + verifiedBy: 'auto'）
@@ -111,6 +129,12 @@ npm run courses:check      # 校验 course-index.json 与 reference/ 是否一�
 npm run check:feeds        # 校验 sitemap / RSS / robots（构建后跑）
 npm run check:jsonld       # 校验每页 JSON-LD（构建后跑）
 npm run check:assets       # 校验分享卡片尺寸与是否漏提交
+npm run check:media:dist   # 数产物里的视频容器和源码里的语法糖是否一致（构建后跑；Astro 出错时构建仍返回 0）
+npm run admin:vendor       # 可选：把后台编辑器脚本放进 public/admin/vendor/（校园网里 unpkg 不通时用）
+npm run auth:dry           # 看 OAuth 中转 Worker 的打包结果，不部署
+npm run auth:deploy        # 部署 OAuth 中转（内容后台的 GitHub 登录用；需要 Cloudflare 凭据）
+npm run r2:setup -- --check  # 看 R2 桶 / 公开域名 / CORS / 后台 public_url 是否都对得上（只读）
+npm run r2:setup           # 建桶 + 接公开域名 + 应用 r2/cors.json（可重复执行）
 npm run measure:perf       # 本地实测页面字节数与请求数（无头 Chrome，无新依赖）
 npm run og                 # 重新生成社交分享卡片图：共 4 张（全站 public/og.png + 课程 public/og/courses.png、技能 public/og/skills.png、链接 public/og/links.png）
 npm run deploy             # 构建并部署到 Cloudflare Workers
@@ -119,6 +143,12 @@ npm run deploy             # 构建并部署到 Cloudflare Workers
 > **提示**：如果 `wrangler` 报 `EPERM ... .wrangler/logs`，说明它没权限写用户目录。设置
 > `export WRANGLER_LOG_PATH="$PWD/.wrangler-logs"` 即可把日志重定向到项目内。
 > 同理 `npm` 报 `EPERM ... ~/.npm` 时，设置 `export npm_config_cache="$PWD/.npm-cache"`。
+> `wrangler login` 也会往用户目录写登录令牌（`~/Library/Preferences/.wrangler`），受限环境里把它一起重定向：
+> ```bash
+> export XDG_CONFIG_HOME="$PWD/.wrangler-config" XDG_CACHE_HOME="$PWD/.wrangler-cache"
+> npx wrangler login     # 令牌落在 .wrangler-config/ 里，已被 .gitignore 忽略
+> ```
+> 登录用的是账号级 OAuth（不是细粒度 API 令牌）。不用了可以 `npx wrangler logout` 或直接删掉该目录。
 
 ### 站点的几个自动化机制
 
