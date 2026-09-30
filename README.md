@@ -161,6 +161,7 @@ Tsinghua-guide/
 │  │  │  ├─ start/              本站说明
 │  │  │  ├─ freshman/           新生入学
 │  │  │  ├─ academics/          学业（选课、绩点、考试……）
+│  │  │  ├─ courses/            课程资料：每种资料怎么用（`materials.mdx`）
 │  │  │  ├─ research/           科研与深造
 │  │  │  ├─ campus/             校园生活
 │  │  │  ├─ mindset/            心态与避坑
@@ -184,6 +185,7 @@ Tsinghua-guide/
 │  │  ├─ CourseSkillMap.astro   ★ 课程 ↔ 技能映射表（数据来自课程索引）
 │  │  ├─ Checklist.astro        ★ 可勾选、会记住进度的清单（localStorage）
 │  │  ├─ CreditPlanner.astro    ★ 学分缺口拆解表（纯前端计算 + 导出 JSON）
+│  │  ├─ SelectionWorkbench.astro ★ 选课决策工作台（先修缺口 / 期末撞车 / 投入超载）
 │  │  ├─ ArchiveDirectory.astro ★ 外部资料库地图
 │  │  └─ ResourceList.astro     资料下载列表
 │  ├─ data/

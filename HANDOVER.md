@@ -131,6 +131,20 @@ git add -A && git commit -m "docs: 更新选课时间线" && git push
 
 推送到 `main` 会自动部署。
 
+#### 注意 `.md` 与 `.mdx` 的一个差别（踩过一次）
+
+正文里要写 JS（比如 `courses/materials.mdx` 那样从 `src/data/` 导入数据来渲染）时必须用 `.mdx`，
+而且**顶层的 `const` 要写成 `export const`**：
+
+```mdx
+export const kindsInUse = ALL_KINDS.filter(...);   // ✅
+const kindsInUse = ALL_KINDS.filter(...);          // ❌ 构建失败
+```
+
+裸 `const` 会让 `npm run build` 报
+`Could not parse expression with oxc: Expected ',' or ')' but found ':' (mdx-jsx:unexpected-character)`，
+但 **`astro check` 会通过** —— 所以这一类问题只有真跑一次 build 才能发现。别只看 `check:all`。
+
 ### 提交前的自动检查
 
 ```bash
@@ -238,14 +252,28 @@ npm run check:content && npm run build
 
 ### 站内互动工具（没有后端）
 
-两个纯前端工具，数据只存在读者自己的浏览器里（localStorage），**不采集、不上传**：
+三个纯前端工具，数据只存在读者自己的浏览器里（localStorage），**不采集、不上传**：
 
 | 工具 | 文件 | 存什么 |
 | --- | --- | --- |
 | 报到清单（可勾选） | `src/components/Checklist.astro`，用在 `/freshman/arrival-checklist/` | 勾选状态，键名 `tsinghua-guide-checklist:<id>` |
 | 学分缺口拆解表 | `src/components/CreditPlanner.astro`，用在 `/academics/credit-planner/` | 类别/学分/课程表，键名 `tsinghua-guide-credit-planner-v1` |
+| 选课决策工作台 | `src/components/SelectionWorkbench.astro`，用在 `/academics/course-decision/` | 候选课与承受基线，键名 `tsinghua-guide-selection-workbench-v1` |
 
-改动它们之后，务必跑一次交互冒烟测试（`npm run check:e2e`）——这两个组件的关键路径是「点一下会不会真算」。
+改动它们之后，务必跑一次交互冒烟测试（`npm run check:e2e`）——这几个组件的关键路径是「点一下会不会真算」。
+
+#### 写这类组件必须用 `is:global` 样式（踩过一次）
+
+这三个工具的形态都是「模板渲染一遍 + JS 用 innerHTML 再渲染一遍」。Astro 的 `<style>` **默认是作用域样式**，
+选择器会编译成 `.foo:where(.astro-xxxx) input:where(.astro-xxxx)`；而 `astro-xxxx` 只在构建时加到**模板元素**上，
+**JS 插入的元素没有这个类**，于是那部分样式整片失效——输入框退回浏览器默认的白底黑字、行分隔线消失，
+**而且没有任何报错或构建警告**。
+
+所以新组件的 `<style>` 一律写成 `<style is:global>`，靠类名前缀（`.planner` / `.wb-` / `.cg-`）做命名空间。
+`CreditPlanner` 原来就是踩了这个坑（2026-09-30 修掉），`CourseExplorer` / `SelectionWorkbench` 一开始就写对了。
+
+`scripts/e2e-smoke.mjs` 里为此加了断言：点「加一行」之后量新插入输入框的 `computedStyle`，边框不是 `solid` 就判失败。
+**再写新的互动组件时，照着加一条同样的断言。**
 
 ### 重新生成分享卡片图
 
@@ -377,6 +405,12 @@ npm run measure:perf -- --base http://127.0.0.1:4321
 
 **结论与后续可做的事**：
 
+- **读这张表之前先看服务器**：上面的数字是在 `npx http-server dist`（**不做压缩**）下测的，
+  所以 JS/CSS/原始 HTML 都偏大。用 `npm run preview`（Astro 自带服务器，会压缩）再测一遍，
+  同一页的 `HTML(gzip)` 基本不变，但 JS 从 ~98 KB 掉到 ~29 KB、CSS 从 ~71 KB 掉到 ~14 KB。
+  **换服务器测出来的数字不能和这张表直接比**，要更新就整表一起重测。
+- **2026-09-30 第二轮**：`校内常用链接` 从 39 条加到 47 条，该页 `HTML(gzip)` 约 +1.8 KB（18.9 → 20.7 KB）。
+  其余页面基本没动（新增的 `/academics/course-decision/` 与 `/courses/materials/` 是独立页面，不影响这些页）。
 - **HTML 不是瓶颈**。课程索引页虽然原始 204 KB，gzip 后只有 25.5 KB（8 倍压缩，因为卡片结构高度重复）。
   这一页曾经是 269 KB，2026-09-30 做过一次瘦身（去掉 Astro 作用域类 + `data-search` 副本 + 按资料库分组），
   详见第 8 节「已知限制」里那条「不要改回作用域样式」。
@@ -397,5 +431,5 @@ npm run measure:perf -- --base http://127.0.0.1:4321
 - **链接实测依赖联网**，所以 `npm run check:links` 不进 CI 必跑步骤；结果过期时只给警告，不阻断构建。
 - **更新日志 / 贡献者页依赖完整 Git 历史**（CI 的 `fetch-depth: 0` 就是为它和 Starlight 的「最后更新」配的）。拿不到历史时这两个页面会降级显示一句说明，不会构建失败。
 - **构建依赖 Node 20+**，CI 用 Node 22。
-- **课程索引页刻意不用 Astro 的作用域样式**（`<style is:global>` + `cg-` 前缀）。作用域会给 2500 个元素各加一个 `astro-xxxx` 类，实测多出 40 KB；页面体积已从 269 KB 降到 209 KB。**不要"顺手"改回作用域样式**，那会把体积加回去。
+- **课程索引页刻意不用 Astro 的作用域样式**（`<style is:global>` + `cg-` 前缀）。作用域会给 2500 个元素各加一个 `astro-xxxx` 类，实测多出 40 KB；页面体积已从 269 KB 降到 209 KB。**不要"顺手"改回作用域样式**，那会把体积加回去。除了体积，还有一条更硬的理由：凡是**用 JS 二次渲染**的组件，作用域样式会直接失效（见第 4 节「写这类组件必须用 `is:global` 样式」）。
 - **JSON-LD 只在 `src/components/Head.astro` 输出**。页面里不要再写一份，否则同页两个 `@type` 会互相打架（`check:jsonld` 会拦住，但别故意踩）。
