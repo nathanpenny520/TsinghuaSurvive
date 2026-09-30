@@ -1,0 +1,875 @@
+---
+/**
+ * 选课决策工作台（纯前端小工具）。
+ *
+ * 为什么需要它：`/academics/course-selection/` 告诉读者「先锁必修、查先修链、看投入曲线」，
+ * 但真要比较五六门候选课时，脑子里装不下。这个工具把这件事变成一张表。
+ *
+ * ⚠️ 这里**没有任何本校的制度性数字**，也没有任何课程的预设数据：
+ *   - 每周投入、给分确定性、成绩构成，全部由使用者自己填；
+ *   - 「承受基线」也是使用者自己填的（上学期实际能稳定投入几小时）。
+ *     **本站不提供「一周最多能上几学分」这类结论** —— 每届、每院系、每个人都不一样。
+ * 工具只做两件事：把用户自己填的信息加起来，再按固定规则提示风险。
+ *
+ * 为什么样式用 is:global：这门课卡片是 JS 用 innerHTML 第二次渲染出来的。
+ * Astro 默认的 `<style>` 是作用域样式（编译成 `.foo:where(.astro-xxxx)`），
+ * 而 JS 插入的元素**没有** astro-xxxx 类，样式会整片失效、且不报任何错。
+ * 所以这里跟 CourseExplorer 一样，用全局样式 + `wb-` 前缀避免撞车。
+ *
+ * 数据只存在浏览器 localStorage，不上传。
+ */
+---
+
+<section class="wb" data-wb>
+  <noscript>
+    <p class="wb__hint">
+      这个工具需要 JavaScript 才能用（它要实时算）。下面的判断规则不用脚本也能读，
+      你可以照着规则自己列一张表。
+    </p>
+  </noscript>
+
+  <div class="wb__bar" data-wb-controls hidden>
+    <button type="button" data-wb-add>+ 加一门候选课</button>
+    <button type="button" data-wb-export>导出 JSON</button>
+    <button type="button" data-wb-import>导入 JSON</button>
+    <button type="button" data-wb-print>打印 / 存 PDF</button>
+    <button type="button" data-wb-reset>清空</button>
+    <input type="file" accept="application/json" data-wb-file hidden />
+  </div>
+
+  <h3>一、先填你自己的基线</h3>
+  <p class="wb__hint">
+    问的是<strong>你自己</strong>的量，不是学校的标准：上学期你每周真正能稳定投入学习的小时数（估一个）。
+    工具拿它当参照，判断你这学期的候选课表是不是排超了。
+    <strong>填 0 就是不设参照，只统计总量。</strong>
+  </p>
+  <p class="wb__baseline">
+    <label>
+      我每周能稳定投入
+      <input type="number" min="0" max="120" step="1" value="0" data-wb-baseline-input />
+      小时
+    </label>
+  </p>
+
+  <h3>二、把候选课填进来</h3>
+  <p class="wb__hint">
+    一门课一张卡片。「投入曲线」是这门课的时间是均匀花掉，还是堆在开学前几周 / 学期后段。
+    「成绩构成」按你知道的勾，不确定就留空 —— 留空本身就是一个有用的信号。
+  </p>
+
+  <div class="wb__rows" data-wb-rows></div>
+  <p class="wb__empty" data-wb-empty>还没有候选课。点上面的「+ 加一门候选课」开始。</p>
+
+  <h3>三、汇总</h3>
+  <div class="wb__summary" data-wb-summary></div>
+
+  <h3>四、按规则提示</h3>
+  <p class="wb__hint">
+    下面是拿你填的信息套固定规则算出来的<strong>提示</strong>，不是对课程的评价，
+    也不代表这门课好或不好。规则的原文在页面下方，可以自己核对。
+  </p>
+  <ul class="wb__advice" data-wb-advice></ul>
+
+  <p class="wb__note">
+    数据只存在你这台设备的浏览器里（localStorage），<strong>不会上传到任何地方</strong>。
+    换设备或清缓存会丢，重要的话用「导出 JSON」存一份。
+  </p>
+</section>
+
+<style is:global>
+  /* 前缀统一 wb-（workbench）。全局样式：卡片由 JS 插入，作用域类不会出现在它们身上。 */
+  .wb {
+    margin: 1.25rem 0 2rem;
+  }
+
+  .wb__bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .wb__bar button {
+    border: 1px solid var(--sl-color-gray-5);
+    background: transparent;
+    color: var(--sl-color-text-accent);
+    font-size: var(--sl-text-sm);
+    padding: 0.3rem 0.7rem;
+    border-radius: 0.4rem;
+    cursor: pointer;
+  }
+
+  .wb__bar button:hover {
+    border-color: var(--sl-color-accent);
+  }
+
+  .wb__hint,
+  .wb__note,
+  .wb__empty {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+    line-height: 1.7;
+  }
+
+  .wb__baseline label {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: var(--sl-text-sm);
+  }
+
+  .wb__baseline input {
+    width: 5.5rem;
+    background: var(--sl-color-bg);
+    color: var(--sl-color-white);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.35rem;
+    padding: 0.25rem 0.4rem;
+    font: inherit;
+    text-align: right;
+  }
+
+  .wb__rows {
+    display: grid;
+    gap: 0.9rem;
+    margin: 0.75rem 0 1rem;
+  }
+
+  .wb-card {
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--sl-color-gray-6);
+    border-left: 3px solid var(--sl-color-accent);
+    border-radius: 0.5rem;
+    display: grid;
+    gap: 0.7rem;
+  }
+
+  .wb-card__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .wb-card__name {
+    flex: 1 1 12rem;
+    min-width: 8rem;
+    background: var(--sl-color-bg);
+    color: var(--sl-color-white);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.35rem;
+    padding: 0.3rem 0.5rem;
+    font: inherit;
+    font-weight: 600;
+  }
+
+  .wb-card select,
+  .wb-card input[type='text'],
+  .wb-card input[type='number'] {
+    background: var(--sl-color-bg);
+    color: var(--sl-color-white);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.35rem;
+    padding: 0.25rem 0.4rem;
+    font: inherit;
+    font-size: var(--sl-text-sm);
+  }
+
+  .wb-card input[type='number'] {
+    width: 4.5rem;
+    text-align: right;
+  }
+
+  .wb-card__remove {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.35rem;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+    padding: 0.25rem 0.55rem;
+    cursor: pointer;
+  }
+
+  .wb-card__remove:hover {
+    color: var(--sl-color-text-accent);
+    border-color: var(--sl-color-accent);
+  }
+
+  .wb-field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--sl-text-sm);
+  }
+
+  .wb-field__label {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+    min-width: 5rem;
+  }
+
+  .wb-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .wb-chip {
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-xs);
+    min-height: 1.9rem;
+    padding: 0.2rem 0.6rem;
+    cursor: pointer;
+  }
+
+  .wb-chip:hover {
+    border-color: var(--sl-color-accent);
+    color: var(--sl-color-accent-high);
+  }
+
+  .wb-chip:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
+  }
+
+  .wb-chip[aria-pressed='true'] {
+    border-color: var(--sl-color-accent);
+    background: var(--sl-color-accent-low);
+    color: var(--sl-color-accent-high);
+    font-weight: 600;
+  }
+
+  .wb-card__check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+  }
+
+  .wb-card__check input {
+    width: 1.05rem;
+    height: 1.05rem;
+    accent-color: var(--sl-color-accent);
+  }
+
+  .wb__summary {
+    display: grid;
+    gap: 0.55rem;
+    margin: 0.75rem 0 1rem;
+  }
+
+  .wb-stat {
+    display: grid;
+    grid-template-columns: 9rem 1fr 9rem;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: var(--sl-text-sm);
+  }
+
+  .wb-stat__track {
+    height: 8px;
+    border-radius: 99px;
+    background: var(--sl-color-gray-6);
+    overflow: hidden;
+  }
+
+  .wb-stat__track > i {
+    display: block;
+    height: 100%;
+    background: var(--sl-color-accent);
+  }
+
+  .wb-stat__track > i.is-over {
+    background: hsl(35, 80%, 55%);
+  }
+
+  .wb-stat__value {
+    text-align: right;
+    color: var(--sl-color-gray-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .wb-stat__value.is-over {
+    color: hsl(35, 80%, 70%);
+    font-weight: 600;
+  }
+
+  .wb__advice {
+    list-style: none;
+    margin: 0.6rem 0 1rem;
+    padding: 0;
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .wb-advice {
+    padding: 0.6rem 0.8rem;
+    border-radius: 0.4rem;
+    border-left: 3px solid var(--sl-color-gray-5);
+    background: var(--sl-color-gray-7, transparent);
+    font-size: var(--sl-text-sm);
+    line-height: 1.7;
+  }
+
+  .wb-advice--warn {
+    border-left-color: hsl(35, 80%, 55%);
+  }
+
+  .wb-advice--info {
+    border-left-color: var(--sl-color-accent);
+  }
+
+  .wb-advice__tag {
+    display: inline-block;
+    margin-right: 0.4rem;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+  }
+
+  :root[data-theme='light'] .wb-stat__value.is-over {
+    color: hsl(28, 80%, 32%);
+  }
+
+  @media print {
+    .wb__bar,
+    .wb-card__remove,
+    .wb__note {
+      display: none !important;
+    }
+
+    .wb-card input,
+    .wb-card select {
+      border: 0 !important;
+      padding: 0 !important;
+    }
+  }
+</style>
+
+<script>
+  const STORE_KEY = 'tsinghua-guide-selection-workbench-v1';
+
+  type Kind = '必修' | '限选' | '任选';
+  type Load = '前重' | '平稳' | '后重';
+  type Certainty = '高' | '中' | '低' | '不知道';
+
+  type Row = {
+    id: string;
+    name: string;
+    kind: Kind;
+    hours: number;
+    load: Load;
+    assessment: string[];
+    certainty: Certainty;
+    prereq: string;
+    prereqDone: boolean;
+  };
+
+  type State = { baseline: number; rows: Row[] };
+
+  /** 成绩构成的可选项。刻意不写「期末占 X%」——那是每门课每届都不同的东西。 */
+  const ASSESSMENTS = [
+    '出勤与课堂参与',
+    '平时作业',
+    '期中考试',
+    '期末考试',
+    '课程论文',
+    '大作业或项目',
+    '小组展示',
+    '实验报告',
+  ];
+
+  const KINDS: Kind[] = ['必修', '限选', '任选'];
+  const LOADS: Load[] = ['前重', '平稳', '后重'];
+  const CERTAINTIES: Certainty[] = ['高', '中', '低', '不知道'];
+
+  /**
+   * 把「可能来自 localStorage 或导入文件」的一条记录收敛成合法形状。
+   *
+   * 为什么必须做：这些值是**外部输入**。如果直接插进 `value="${row.hours}"`，
+   * 一个被改过的 JSON（`"hours": "1\" onfocus=alert(1) x=\""`）就能注入属性。
+   * 这里顺手也把「字段缺失 / 类型不对」的脏数据挡掉，避免导入一份旧文件就把页面画坏。
+   */
+  const asEnum = <T extends string>(value: unknown, allowed: T[], fallback: T): T =>
+    allowed.includes(value as T) ? (value as T) : fallback;
+
+  function normalizeRow(value: unknown): Row {
+    const raw = (value ?? {}) as Partial<Row>;
+    return {
+      id: typeof raw.id === 'string' ? raw.id : `wb-${Math.random().toString(36).slice(2)}`,
+      name: typeof raw.name === 'string' ? raw.name : '',
+      kind: asEnum(raw.kind, KINDS, '限选'),
+      hours: Math.max(0, Number(raw.hours) || 0),
+      load: asEnum(raw.load, LOADS, '平稳'),
+      assessment: Array.isArray(raw.assessment)
+        ? raw.assessment.filter((item): item is string => ASSESSMENTS.includes(item))
+        : [],
+      certainty: asEnum(raw.certainty, CERTAINTIES, '不知道'),
+      prereq: typeof raw.prereq === 'string' ? raw.prereq : '',
+      prereqDone: raw.prereqDone === true,
+    };
+  }
+
+  function normalizeState(value: unknown): State {
+    const raw = (value ?? {}) as Partial<State>;
+    return {
+      baseline: Math.max(0, Number(raw.baseline) || 0),
+      rows: Array.isArray(raw.rows) ? raw.rows.map(normalizeRow) : [],
+    };
+  }
+
+  /** 期末型：分数主要压在学期末的那一类环节 */
+  const FINAL_ITEMS = ['期末考试', '课程论文'];
+
+  const root = document.querySelector<HTMLElement>('[data-wb]');
+
+  if (root) {
+    const rowsHost = root.querySelector<HTMLElement>('[data-wb-rows]')!;
+    const summaryHost = root.querySelector<HTMLElement>('[data-wb-summary]')!;
+    const adviceHost = root.querySelector<HTMLElement>('[data-wb-advice]')!;
+    const emptyHint = root.querySelector<HTMLElement>('[data-wb-empty]')!;
+    const controls = root.querySelector<HTMLElement>('[data-wb-controls]')!;
+    const baselineInput = root.querySelector<HTMLInputElement>('[data-wb-baseline-input]')!;
+
+    const initial: State = { baseline: 0, rows: [] };
+
+    const load = (): State => {
+      try {
+        const raw = localStorage.getItem(STORE_KEY);
+        if (!raw) return initial;
+        const parsed = JSON.parse(raw) as State;
+        if (!Array.isArray(parsed.rows)) return initial;
+        return normalizeState(parsed);
+      } catch {
+        return initial;
+      }
+    };
+
+    let state = load();
+    let seq = 0;
+    const nextId = () => `wb-${Date.now()}-${seq++}`;
+
+    const save = () => {
+      try {
+        localStorage.setItem(STORE_KEY, JSON.stringify(state));
+      } catch {
+        /* 隐私模式忽略 */
+      }
+    };
+
+    const esc = (value: string) =>
+      value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+
+    /** 只渲染一次控件；之后靠局部更新，避免打字时输入框被替换、光标跳走 */
+    const renderRows = () => {
+      rowsHost.innerHTML = state.rows
+        .map(
+          (row, index) => `<article class="wb-card" data-wb-row="${index}">
+            <div class="wb-card__head">
+              <input
+                type="text"
+                class="wb-card__name"
+                placeholder="课程名"
+                aria-label="课程名"
+                value="${esc(row.name)}"
+                data-wb-name="${index}"
+              />
+              <select data-wb-kind="${index}" aria-label="课程类别">
+                ${KINDS.map(
+                  (kind) =>
+                    `<option value="${kind}"${row.kind === kind ? ' selected' : ''}>${kind}</option>`,
+                ).join('')}
+              </select>
+              <button type="button" class="wb-card__remove" data-wb-remove="${index}">删除</button>
+            </div>
+
+            <div class="wb-field">
+              <span class="wb-field__label">每周投入约</span>
+              <input
+                type="number"
+                min="0"
+                max="80"
+                step="0.5"
+                aria-label="每周投入小时数"
+                value="${row.hours || 0}"
+                data-wb-hours="${index}"
+              />
+              <span class="wb__hint">小时</span>
+              <span class="wb-field__label">投入曲线</span>
+              <select data-wb-load="${index}" aria-label="投入曲线">
+                ${LOADS.map(
+                  (item) =>
+                    `<option value="${item}"${row.load === item ? ' selected' : ''}>${item}</option>`,
+                ).join('')}
+              </select>
+              <span class="wb-field__label">给分逻辑</span>
+              <select data-wb-certainty="${index}" aria-label="对给分逻辑的了解程度">
+                ${CERTAINTIES.map(
+                  (item) =>
+                    `<option value="${item}"${row.certainty === item ? ' selected' : ''}>${item}</option>`,
+                ).join('')}
+              </select>
+            </div>
+
+            <div class="wb-field">
+              <span class="wb-field__label">成绩构成</span>
+              <span class="wb-chips">
+                ${ASSESSMENTS.map(
+                  (item) => `<button
+                    type="button"
+                    class="wb-chip"
+                    data-wb-assess="${index}"
+                    data-wb-assess-value="${esc(item)}"
+                    aria-pressed="${row.assessment.includes(item)}"
+                  >${item}</button>`,
+                ).join('')}
+              </span>
+            </div>
+
+            <div class="wb-field">
+              <span class="wb-field__label">先修课</span>
+              <input
+                type="text"
+                placeholder="这门课要求先修哪门课？（没有就留空）"
+                aria-label="先修课"
+                value="${esc(row.prereq)}"
+                data-wb-prereq="${index}"
+              />
+              <label class="wb-card__check">
+                <input type="checkbox" data-wb-prereq-done="${index}"${row.prereqDone ? ' checked' : ''} />
+                先修已修
+              </label>
+            </div>
+          </article>`,
+        )
+        .join('');
+
+      emptyHint.hidden = state.rows.length > 0;
+    };
+
+    type Advice = { level: 'warn' | 'info'; tag: string; text: string };
+
+    /** 全部规则都只用到「用户自己填的东西」，没有一条依赖本站提供的制度数字 */
+    const buildAdvice = (): Advice[] => {
+      const out: Advice[] = [];
+      const rows = state.rows;
+      if (!rows.length) return out;
+
+      const totalHours = rows.reduce((sum, row) => sum + (Number(row.hours) || 0), 0);
+      const named = (row: Row) => row.name.trim() || '（未命名）';
+
+      // 1) 先修链：选了课但先修没修 —— 这一条最硬，放最前面
+      const missingPrereq = rows.filter((row) => row.prereq.trim() && !row.prereqDone);
+      if (missingPrereq.length) {
+        out.push({
+          level: 'warn',
+          tag: '先修链',
+          text: `${missingPrereq
+            .map((row) => `「${named(row)}」要先修「${row.prereq.trim()}」`)
+            .join('，')}，但你标了还没修。先确认两件事：那门先修课是不是真的必须先上；如果不是，也要从课程大纲或开课院系那边确认今年不卡。`,
+        });
+      }
+
+      // 2) 学期后段撞车：期末型环节 + 后重型课程
+      const finalHeavy = rows.filter(
+        (row) =>
+          row.load === '后重' ||
+          (row.assessment.some((item) => FINAL_ITEMS.includes(item)) && row.load !== '前重'),
+      );
+      if (finalHeavy.length >= 3) {
+        out.push({
+          level: 'warn',
+          tag: '期末撞车',
+          text: `有 ${finalHeavy.length} 门课（${finalHeavy
+            .map(named)
+            .join('、')}）的重量都落在学期后段。两门课总投入一样时，能不能扛住取决于它们会不会压在同一周 —— 选课前把这几门的考核时间点问清楚。`,
+        });
+      }
+
+      // 3) 开学第一个月撞车：前重型课程
+      const frontHeavy = rows.filter((row) => row.load === '前重');
+      if (frontHeavy.length >= 3) {
+        out.push({
+          level: 'warn',
+          tag: '开学撞车',
+          text: `有 ${frontHeavy.length} 门课（${frontHeavy
+            .map(named)
+            .join('、')}）是前重型，开学第一个月会同时起步。这段时间还叠加了选课、退课、社团招新和刚开学的适应成本。`,
+        });
+      }
+
+      // 4) 一锤定音：分数只由期末型环节决定，没有平时分托底
+      const singlePoint = rows.filter((row) => {
+        const hasFinal = row.assessment.some((item) => FINAL_ITEMS.includes(item));
+        const hasCushion = row.assessment.some((item) =>
+          ['平时作业', '期中考试', '大作业或项目', '实验报告', '小组展示'].includes(item),
+        );
+        return hasFinal && !hasCushion;
+      });
+      if (singlePoint.length) {
+        out.push({
+          level: 'warn',
+          tag: '一锤定音',
+          text: `${singlePoint
+            .map(named)
+            .join('、')}的分数看起来主要押在期末环节上，没有平时分托底。一次失手的代价，比平时分占得多的课大得多 —— 如果你这学期同时还有别的硬仗，这一点要算进去。`,
+        });
+      }
+
+      // 5) 完全没勾成绩构成：不是错误，是「还没调研」
+      const unknownAssessment = rows.filter((row) => !row.assessment.length);
+      if (unknownAssessment.length) {
+        out.push({
+          level: 'info',
+          tag: '还没调研',
+          text: `${unknownAssessment
+            .map(named)
+            .join('、')}还没勾成绩构成。这不是填表的疏漏 —— 「不知道这门课怎么给分」本身就是选课前最该消掉的不确定性，去课程大纲或问上过课的人。`,
+        });
+      }
+
+      // 6) 给分逻辑没底
+      const shaky = rows.filter((row) => row.certainty === '低' || row.certainty === '不知道');
+      if (shaky.length) {
+        out.push({
+          level: 'info',
+          tag: '给分逻辑',
+          text: `${shaky
+            .map(named)
+            .join('、')}的给分逻辑你还没摸清。把「这门课的成绩是怎么构成的」问清楚，比打听「给分好不好」有用 —— 后者样本偏差大，而且换老师就失效。`,
+        });
+      }
+
+      // 7) 自己填的承受基线
+      if (state.baseline > 0 && totalHours > state.baseline) {
+        out.push({
+          level: 'warn',
+          tag: '排超了',
+          text: `你给自己排了约 ${totalHours} 小时/周的固定投入，比你自己填的承受基线（${state.baseline} 小时）多了 ${Math.round(
+            (totalHours - state.baseline) * 10,
+          ) / 10} 小时。基线是你自己估的，不准也没关系 —— 但它至少提醒你：这张表已经比上学期更满了。`,
+        });
+      }
+
+      // 8) 全是必修 = 没有备选
+      if (rows.every((row) => row.kind === '必修')) {
+        out.push({
+          level: 'info',
+          tag: '备选',
+          text: '候选里全是必修课。必修没有替代方案，但你的课表需要备选 —— 选不上、试听不合适、和必修冲突，这三件事每学期都会发生在某个人身上。至少给每门限选准备一门备选课。',
+        });
+      }
+
+      // 9) 固定收尾：不管填成什么样，都给下一步
+      out.push({
+        level: 'info',
+        tag: '下一步',
+        text: '这张表只整理你自己的判断。走之前做三件事：把必修锁死；把有先修风险的课去开课院系确认一遍；用「摸清一门课的 20 分钟」那套问题去问一两个上过课的人，再回来改这里的判断。',
+      });
+
+      return out;
+    };
+
+    const renderSummary = () => {
+      const rows = state.rows;
+      const totalHours = rows.reduce((sum, row) => sum + (Number(row.hours) || 0), 0);
+      const byKind = KINDS.map((kind) => ({
+        kind,
+        count: rows.filter((row) => row.kind === kind).length,
+      }));
+
+      if (!rows.length) {
+        summaryHost.innerHTML = '<p class="wb__hint">还没有候选课，先在上面加一门。</p>';
+      } else {
+        const baseline = state.baseline;
+        const ratio = baseline > 0 ? totalHours / baseline : 0;
+        const over = baseline > 0 && totalHours > baseline;
+        summaryHost.innerHTML = `
+          <div class="wb-stat">
+            <span>每周投入合计</span>
+            <span class="wb-stat__track"><i class="${over ? 'is-over' : ''}" style="width:${
+              baseline > 0 ? Math.min(100, ratio * 100) : totalHours > 0 ? 100 : 0
+            }%"></i></span>
+            <span class="wb-stat__value ${over ? 'is-over' : ''}">${totalHours} 小时${
+              baseline > 0 ? ` / 基线 ${baseline}` : ''
+            }</span>
+          </div>
+          <div class="wb-stat">
+            <span>候选课</span>
+            <span class="wb-stat__track"><i style="width:100%"></i></span>
+            <span class="wb-stat__value">${rows.length} 门（${byKind
+              .filter((item) => item.count > 0)
+              .map((item) => `${item.kind} ${item.count}`)
+              .join(' · ')}）</span>
+          </div>`;
+      }
+
+      const advice = buildAdvice();
+      adviceHost.innerHTML = advice
+        .map(
+          (item) =>
+            `<li class="wb-advice wb-advice--${item.level}"><span class="wb-advice__tag">[${esc(
+              item.tag,
+            )}]</span>${esc(item.text)}</li>`,
+        )
+        .join('');
+    };
+
+    const render = () => {
+      controls.hidden = false;
+      baselineInput.value = String(state.baseline || 0);
+      renderRows();
+      renderSummary();
+    };
+
+    // ── 事件 ────────────────────────────────────────────────────────────
+    // 文本/数字输入：只更新状态与提示，不重绘卡片（否则光标会跳走）
+    rowsHost.addEventListener('input', (event) => {
+      const target = event.target as HTMLInputElement;
+      const dataset = target.dataset;
+      const indexOf = (value?: string) => (value === undefined ? -1 : Number(value));
+
+      const nameIndex = indexOf(dataset.wbName);
+      if (nameIndex >= 0) {
+        state.rows[nameIndex]!.name = target.value;
+        save();
+        renderSummary();
+        return;
+      }
+
+      const hoursIndex = indexOf(dataset.wbHours);
+      if (hoursIndex >= 0) {
+        state.rows[hoursIndex]!.hours = Number(target.value) || 0;
+        save();
+        renderSummary();
+        return;
+      }
+
+      const prereqIndex = indexOf(dataset.wbPrereq);
+      if (prereqIndex >= 0) {
+        state.rows[prereqIndex]!.prereq = target.value;
+        save();
+        renderSummary();
+      }
+    });
+
+    // 下拉与勾选：改动后提示要跟着变，同样不整体重绘
+    rowsHost.addEventListener('change', (event) => {
+      const target = event.target as HTMLInputElement | HTMLSelectElement;
+      const dataset = (target as HTMLElement).dataset;
+
+      if (dataset.wbKind !== undefined) {
+        state.rows[Number(dataset.wbKind)]!.kind = target.value as Kind;
+      } else if (dataset.wbLoad !== undefined) {
+        state.rows[Number(dataset.wbLoad)]!.load = target.value as Load;
+      } else if (dataset.wbCertainty !== undefined) {
+        state.rows[Number(dataset.wbCertainty)]!.certainty = target.value as Certainty;
+      } else if (dataset.wbPrereqDone !== undefined) {
+        state.rows[Number(dataset.wbPrereqDone)]!.prereqDone = (target as HTMLInputElement).checked;
+      } else {
+        return;
+      }
+      save();
+      renderSummary();
+    });
+
+    // 成绩构成：按钮式多选
+    rowsHost.addEventListener('click', (event) => {
+      const target = event.target as HTMLElement;
+
+      const removeIndex = target.dataset.wbRemove;
+      if (removeIndex !== undefined) {
+        state.rows.splice(Number(removeIndex), 1);
+        save();
+        render();
+        return;
+      }
+
+      const assessIndex = target.dataset.wbAssess;
+      if (assessIndex !== undefined) {
+        const row = state.rows[Number(assessIndex)];
+        const value = target.dataset.wbAssessValue ?? '';
+        if (!row || !value) return;
+        const at = row.assessment.indexOf(value);
+        if (at >= 0) row.assessment.splice(at, 1);
+        else row.assessment.push(value);
+        target.setAttribute('aria-pressed', String(at < 0));
+        save();
+        renderSummary();
+      }
+    });
+
+    baselineInput.addEventListener('input', () => {
+      state.baseline = Number(baselineInput.value) || 0;
+      save();
+      renderSummary();
+    });
+
+    root.querySelector('[data-wb-add]')?.addEventListener('click', () => {
+      state.rows.push({
+        id: nextId(),
+        name: '',
+        kind: state.rows.length === 0 ? '必修' : '限选',
+        hours: 0,
+        load: '平稳',
+        assessment: [],
+        certainty: '不知道',
+        prereq: '',
+        prereqDone: false,
+      });
+      save();
+      render();
+      const names = rowsHost.querySelectorAll<HTMLInputElement>('[data-wb-name]');
+      names[names.length - 1]?.focus();
+    });
+
+    root.querySelector('[data-wb-reset]')?.addEventListener('click', () => {
+      if (!confirm('清空这张表？所有候选课都会没掉。')) return;
+      state = { baseline: 0, rows: [] };
+      save();
+      render();
+    });
+
+    root.querySelector('[data-wb-export]')?.addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'selection-workbench.json';
+      link.click();
+    });
+
+    root.querySelector('[data-wb-import]')?.addEventListener('click', () => {
+      root.querySelector<HTMLInputElement>('[data-wb-file]')?.click();
+    });
+
+    root.querySelector<HTMLInputElement>('[data-wb-file]')?.addEventListener('change', async (event) => {
+      const input = event.target as HTMLInputElement;
+      const file = input.files?.[0];
+      if (!file) return;
+      try {
+        const parsed = JSON.parse(await file.text()) as State;
+        if (!Array.isArray(parsed.rows)) throw new Error('格式不对：缺少 rows');
+        state = normalizeState(parsed);
+        save();
+        render();
+      } catch (error) {
+        alert(`导入失败：${(error as Error).message}`);
+      }
+      input.value = '';
+    });
+
+    root.querySelector('[data-wb-print]')?.addEventListener('click', () => window.print());
+
+    render();
+  }
+</script>

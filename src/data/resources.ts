@@ -58,6 +58,14 @@ export const resources: Resource[] = [
     internal: true,
   },
   {
+    name: '选课决策工作台（在线填 + 导出 JSON）',
+    url: '/academics/course-decision/',
+    desc: '把候选课填成一张表，自动算出先修缺口、期末撞车、开学撞车与每周投入是否超载。不预置课程数据，规则公开可核对。',
+    group: '学业与选课',
+    format: '站内工具',
+    internal: true,
+  },
+  {
     name: '联系导师 / 问老师事情的邮件怎么写',
     url: '/mindset/talking-to-advisors/',
     desc: '邮件只要四件事：你是谁、你要什么、为什么找他、怎么继续。附写法与追问节奏。',
