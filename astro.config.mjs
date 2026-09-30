@@ -69,6 +69,7 @@ export default defineConfig({
           label: '课程与资料',
           items: [
             { label: '课程资料索引', link: '/courses/' },
+            { label: '每种资料怎么用', slug: 'courses/materials' },
             { label: '课程参考书目', link: '/courses/books/' },
             { label: '外部资料库地图', slug: 'guides/archives' },
           ],
