@@ -44,6 +44,13 @@ export type CampusLink = {
   origin?: string;
   /** 需要额外提醒的事（比如「要先开 WebVPN」） */
   note?: string;
+  /**
+   * 该站对**非浏览器请求**返回反爬状态码（如 412），所以 `npm run check:links`
+   * 一定测不过，页面上会显示「脚本被拦」而不是「实测打不开」。
+   * 设了这个字段就**必须**有 reviewedAt：说「浏览器里正常」是一次人工判断，不能是猜的。
+   * 目前只有 cet-bm.neea.edu.cn 需要（WAF 返回 412）。
+   */
+  scriptBlocked?: boolean;
 };
 
 export type LinkGroup =
@@ -135,6 +142,7 @@ export const campusLinks: CampusLink[] = [
     reach: '公网',
     note: '报名与缴费时间以官方通知为准',
     origin: '维护者收藏夹',
+    scriptBlocked: true,
     // 由站点维护者人工确认（2026-09-30）：该站首页返回一个 412 状态、410 字节的空壳，标题和正文都是空的，
     // 真正的内容由页内 AJAX 去 resource.neea.edu.cn 取回来再注入 #mbox；这导致
     // `npm run verify:links` 抓不到任何佐证、按设计拒绝写回（结论见 .review/link-verification.json），

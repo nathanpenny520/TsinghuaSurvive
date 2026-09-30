@@ -94,7 +94,15 @@ const humanCount = campusLinks.filter((l) => l.reviewedAt && l.verifiedBy !== 'a
                     实测可访问
                   </span>
                 )}
-                {probe && probe.ok === false && (
+                {probe && probe.ok === false && item.scriptBlocked === true && (
+                  <span
+                    class="guide-tag guide-tag--blocked"
+                    title={`脚本实测被拦截（HTTP ${probe.status ?? '未知'}）：该站对非浏览器请求返回反爬状态码，浏览器里正常打开。已由人工核对 ${item.reviewedAt ?? ''}`}
+                  >
+                    脚本被拦
+                  </span>
+                )}
+                {probe && probe.ok === false && item.scriptBlocked !== true && (
                   <span
                     class="guide-tag guide-tag--bad"
                     title={`最近一次实测失败：${probe.error ?? probe.status ?? '未知原因'}`}
@@ -246,6 +254,13 @@ const humanCount = campusLinks.filter((l) => l.reviewedAt && l.verifiedBy !== 'a
   .guide-tag--bad {
     color: hsl(0, 70%, 72%);
     border-color: hsl(0, 45%, 45%);
+  }
+
+  /* 「脚本被拦」是区别于「打不开」的第三种状态：站点对非浏览器请求返回反爬状态码，
+     浏览器里正常。用中性的灰 + 虚线边框，否则读者会以为链接坏了。 */
+  .guide-tag--blocked {
+    color: var(--sl-color-gray-2);
+    border-style: dashed;
   }
 
   .meta--ok {

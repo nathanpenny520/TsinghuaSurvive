@@ -429,6 +429,16 @@ for (const link of campusLinks) {
       '没有核对日期，核对方式就没有意义',
     );
   }
+  // scriptBlocked 的含义是「脚本会被拦，但浏览器里正常」——后半句是人工判断，
+  // 所以必须有人工核对日期；否则就等于凭猜给一条没测过的链接盖了章。
+  if (link.scriptBlocked && !link.reviewedAt) {
+    error(
+      `links.ts：${link.name} 标了 scriptBlocked 但没有 reviewedAt`,
+      'src/data/links.ts',
+      undefined,
+      '「浏览器里正常」是人工判断，先点开确认再填 reviewedAt',
+    );
+  }
 }
 
 /** link-status.json 是 `npm run check:links` 的产物，过期或失败都要提醒 */
