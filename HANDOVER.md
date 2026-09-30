@@ -167,7 +167,7 @@ npx wrangler delete                 # 删除 Worker（自定义域名的 DNS 记
 | --- | --- |
 | `EPERM ... /Users/xxx/.npm/_logs` | 沙箱不允许写用户目录。设 `export npm_config_cache="$PWD/.npm-cache"` |
 | `EPERM ... .wrangler/logs` | 同上，设 `export WRANGLER_LOG_PATH="$PWD/.wrangler-logs"` |
-| 域名解析 NXDOMAIN | 校内解析器 `166.111.8.28` 的**负缓存**（SOA minimum=1800，约 30 分钟）。验证方式：`nslookup tsinghua.nathanpenny.fun anton.ns.cloudflare.com` 应返回 `104.21.61.85 / 172.67.207.247` |
+| 域名解析 NXDOMAIN | **先别急着改配置**。清华校园网会**透明劫持 53 端口的 DNS 查询**——你问 8.8.8.8、223.5.5.5、119.29.29.29 拿到的其实都是校内解析器的答案，所以看起来「所有公共 DNS 都挂了」。判断真伪要看 NXDOMAIN 响应里的 SOA serial 是否落后于当前 zone。**用 DoH（443 端口）绕开劫持验证**：`curl "https://dns.alidns.com/resolve?name=tsinghua.nathanpenny.fun&type=A"`。另一个铁证：`dig +short TXT o-o.myaddr.l.google.com @8.8.8.8` 返回的是什么 IP——返回校内地址就说明被劫持了。真正的原因通常只是校内解析器缓存了建记录之前的否定结果（SOA minimum=1800，约 30 分钟自动过期） |
 | 站点打不开但 Cloudflare 显示已部署 | 先分清是 DNS 问题还是部署问题：`curl --resolve tsinghua.nathanpenny.fun:443:172.67.207.247 https://tsinghua.nathanpenny.fun/` 绕过 DNS 直连 |
 | 搜索搜不到中文 | Pagefind 支持中文分词但**不做词干化**，所以「选课」和「选课规则」不会互相命中。搜短词（2–3 字），并靠 tags 补足 |
 | 构建报 frontmatter 错误 | 这是**设计如此**。按报错指出的文件修正字段，字段定义见 `src/content.config.ts` |
