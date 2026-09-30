@@ -5,4 +5,4 @@ Allow: /
 Disallow: /_astro/
 Disallow: /pagefind/
 
-Sitemap: https://tsinghua-guide.nathanpenny520.workers.dev/sitemap-index.xml
+Sitemap: https://tsinghua.nathanpenny.fun/sitemap-index.xml

@@ -51,7 +51,7 @@ sidebar:
 非常欢迎。三种方式，从轻到重：
 
 - 在页面底部点「编辑此页」，直接改完提 PR——**最快**。
-- 到 [GitHub Issues](https://github.com/nathanpenny520/tsinghua-guide/issues/new) 描述问题，我们来改。
+- 到 [GitHub Issues](https://github.com/nathanpenny520/TsinghuaSurvive/issues/new) 描述问题，我们来改。
 - 认识作者的话，直接微信拍他一下。
 
 具体流程见[怎么贡献一篇经验帖](/contribute/)。

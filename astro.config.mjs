@@ -4,15 +4,16 @@ import starlight from '@astrojs/starlight';
 import sitemap from '@astrojs/sitemap';
 
 /**
- * 站点地址：部署到 Cloudflare Workers 后，把这里换成真实的 workers.dev 子域
- * 或你自己的自定义域名。它决定 sitemap、canonical、OG 卡片里的绝对链接。
+ * 站点地址：决定 sitemap、canonical、OG 卡片里的绝对链接。
+ * 这是绑定在 Cloudflare Worker 上的自定义域名。
+ * ⚠️ 不要把这里改回 *.<账号>.workers.dev —— 该域名在境内被 DNS 污染，主域名不能用它。
  */
-const SITE = 'https://tsinghua-guide.nathanpenny520.workers.dev';
+const SITE = 'https://tsinghua.nathanpenny.fun';
 
 /**
  * 仓库地址：用于「编辑此页」链接，其他学长学姐可以直接跳去提 PR。
  */
-const REPO = 'https://github.com/nathanpenny520/tsinghua-guide';
+const REPO = 'https://github.com/nathanpenny520/TsinghuaSurvive';
 
 export default defineConfig({
   site: SITE,

@@ -13,5 +13,14 @@
     "not_found_handling": "404-page",
     // URL 统一带结尾斜杠，与 astro.config.mjs 的 trailingSlash: 'always' 保持一致
     "html_handling": "auto-trailing-slash"
-  }
+  },
+
+  // 自定义域名。部署时 Wrangler 会自动创建 DNS 记录并绑定到本 Worker。
+  // 必须用自定义域名的原因：*.<账号>.workers.dev 在境内被 DNS 污染，校园网打不开。
+  "routes": [
+    {
+      "pattern": "tsinghua.nathanpenny.fun",
+      "custom_domain": true
+    }
+  ]
 }

@@ -2,7 +2,7 @@
 
 面向清华在校学生的经验分享站。不是官方材料，是一群学长学姐把踩过的坑、绕过的路写下来。
 
-**线上地址**：<https://tsinghua-guide.nathanpenny520.workers.dev>
+**线上地址**：<https://tsinghua.nathanpenny.fun>
 
 ---
 
@@ -132,20 +132,35 @@ npm run deploy
 
 第一次部署前需要登录 Cloudflare（`npx wrangler login`），或者设置 `CLOUDFLARE_API_TOKEN`。
 
-### ⚠️ 已知问题：workers.dev 域名在境内访问不稳定
+### 域名：为什么必须用自定义域名，不能用 workers.dev
 
-实测：从清华校园网访问 `tsinghua-guide.nathanpenny520.workers.dev` 时，**DNS 被解析到美国 IP（208.101.21.43）后连接超时**——`*.workers.dev` 在国内属于常被污染的域名。
+实测结论（2026-09-30，清华校园网）：
 
-站点本身部署是正常的（Cloudflare 侧显示版本已 100% 生效），问题只出在域名解析这一层。
+| 域名 | 结果 |
+| --- | --- |
+| `tsinghua-guide.nathanpenny520.workers.dev` | ❌ DNS 被解析到美国 IP `208.101.21.43`，连接超时 —— `*.workers.dev` 属于境内常被污染的域名 |
+| `tsinghua.nathanpenny.fun` | ✅ HTTP 200，TLS 握手 0.17s，整页 0.5–0.9s |
 
-**解决办法：绑定自定义域名。** 在 Cloudflare 控制台给这个 Worker 加一个 Custom Domain（域名需托管在 Cloudflare），解析会走 Cloudflare 边缘节点，通常可正常访问。
+所以正式入口是 **<https://tsinghua.nathanpenny.fun>**，它通过 `wrangler.jsonc` 的 `routes` 以 Custom Domain 方式绑定：
 
-```bash
-# 也可以在 wrangler.jsonc 里声明，部署时自动绑定
-# "routes": [{ "pattern": "thu.example.com", "custom_domain": true }]
+```jsonc
+"routes": [{ "pattern": "tsinghua.nathanpenny.fun", "custom_domain": true }]
 ```
 
-如果你希望国内访问更快、更稳，那需要**域名完成 ICP 备案**并使用 Cloudflare 中国网络（企业版），或者换用境内云厂商的静态托管。这是一个产品决策，不是技术限制。
+`npm run deploy` 时 Wrangler 会自动创建 DNS 记录并签发证书，不需要手动去控制台点。
+
+> **注意：`workers.dev` 入口已被关闭。**
+> 一旦声明了 `routes` 而没写 `workers_dev`，Wrangler 会**默认关闭 workers.dev 入口**（同时关闭 Preview URL）。这是好事——避免同一个站点有两个域名、一份被污染的域名继续对外服务。如果哪天需要在海外调试，显式加 `"workers_dev": true` 再部署。
+
+> **刚绑定时校园网可能还打不开。**
+> 校内的 DNS 解析器（`166.111.8.28`）会缓存 NXDOMAIN，新域名可能要等负缓存过期（通常 30 分钟内）才生效。权威 NS 查询是正常的：
+>
+> ```bash
+> nslookup tsinghua.nathanpenny.fun anton.ns.cloudflare.com
+> # → 104.21.61.85 / 172.67.207.247，Cloudflare 任意播地址
+> ```
+
+如果想要境内访问再快一档（更低的延迟、更稳的链路），需要**域名完成 ICP 备案**并使用 Cloudflare 中国网络（企业版），或者换境内云厂商的静态托管。这是产品决策，不是技术限制——当前 0.5–0.9s 的整页耗时对学生浏览已经够用。
 
 ### 自动部署（可选）
 
