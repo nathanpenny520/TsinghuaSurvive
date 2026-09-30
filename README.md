@@ -51,10 +51,14 @@ npm run deploy     # 构建并部署到 Cloudflare Workers
 
 ## 目录结构
 
+> 📘 接手运维请先看 **[HANDOVER.md](./HANDOVER.md)**（资源 ID、部署、故障排查都在里面）；内容路线图见 **[OUTLINE.md](./OUTLINE.md)**。
+
 ```
 Tsinghua-guide/
 ├─ astro.config.mjs          站点配置：标题、侧边栏、社交链接、SEO
 ├─ wrangler.jsonc            Cloudflare Workers 静态资源部署配置
+├─ HANDOVER.md               运维交接文档
+├─ OUTLINE.md                内容大纲与待办
 ├─ src/
 │  ├─ content.config.ts      ★ 内容模型（frontmatter 校验规则）
 │  ├─ content/
