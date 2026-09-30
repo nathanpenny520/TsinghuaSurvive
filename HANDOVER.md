@@ -31,12 +31,16 @@
 
 Cloudflare 侧**只有一个 Worker、一个自定义域名，没有任何 KV / R2 / D1 / Durable Object**。不需要担心有隐藏资源产生费用。
 
-仓库 Secrets 现状：
+仓库 Secrets 现状（**两个都已配好，CI 已实测跑通**）：
 
 | Secret | 状态 |
 | --- | --- |
 | `CLOUDFLARE_ACCOUNT_ID` | ✅ 已配置 |
-| `CLOUDFLARE_API_TOKEN` | ❌ **待配置**（见第 5 节） |
+| `CLOUDFLARE_API_TOKEN` | ✅ 已配置（2026-09-30） |
+
+CI 验证记录：`workflow_dispatch` 运行 34s 全绿，Cloudflare 侧生成新版本 `2166042b-d87d-4c0a-9292-b5a95e0602dd`（02:51:52Z），自定义域名绑定未受影响，站点 HTTP 200。
+
+> Token 的权限清单与重建步骤见第 5 节。**如果 token 被吊销或过期**，推送会走凭证守卫分支：只构建不部署，并给出 `::warning::` 注解，不会静默失败。
 
 ---
 
@@ -128,9 +132,11 @@ npx wrangler delete                 # 删除 Worker（自定义域名的 DNS 记
 
 ---
 
-## 5. 待办：配置 CI 的 API Token
+## 5. CI 的 API Token（已配置；换 token 时看这里）
 
-**这一步必须人工做**，因为 wrangler 的 OAuth 凭证没有「管理 API Token」的权限（调用返回 `9109 Unauthorized`）。这是我唯一没能代做的步骤。
+**状态：已配好并实测通过。** 本节留给「token 过期 / 被吊销 / 要换账号」时使用。
+
+创建 token 这一步必须人工做——wrangler 的 OAuth 凭证没有「管理 API Token」的权限（调用返回 `9109 Unauthorized`），所以无法脚本化。
 
 1. 打开 <https://dash.cloudflare.com/profile/api-tokens> → **Create Token** → **Custom token**
 2. 按下表配置权限（这是能跑通部署的**最小集合**）：
@@ -155,9 +161,9 @@ npx wrangler delete                 # 删除 Worker（自定义域名的 DNS 记
 
 5. 验证：`gh workflow run deploy.yml --repo nathanpenny520/TsinghuaSurvive`，然后 `gh run watch`
 
-在 token 配好之前，工作流不会失败——它有一个凭证守卫步骤，会给出 `::warning::` 提示并**只构建不部署**。
+如果 token 有问题，工作流**不会红叉**——凭证守卫步骤会给出 `::warning::` 提示并只构建不部署。看到这条注解就说明 token 需要重建。
 
-> **更省事的替代方案**：用 Cloudflare 自带的 **Workers Builds**（Dashboard → Workers → `tsinghua-guide` → Settings → Builds → 连接 GitHub 仓库，构建命令 `npm run build`）。这样根本不需要 token，但需要在网页上授权 GitHub，我没法代做。如果你想换这条路，可以删掉 `.github/workflows/deploy.yml`。
+> **更省事的替代方案**：用 Cloudflare 自带的 **Workers Builds**（Dashboard → Workers → `tsinghua-guide` → Settings → Builds → 连接 GitHub 仓库，构建命令 `npm run build`）。这样根本不需要 token，但需要在网页上授权 GitHub。如果哪天受够了 token 轮换，可以删掉 `.github/workflows/deploy.yml` 换这条路。
 
 ---
 

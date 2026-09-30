@@ -166,14 +166,18 @@ npm run deploy
 
 如果想要境内访问再快一档（更低的延迟、更稳的链路），需要**域名完成 ICP 备案**并使用 Cloudflare 中国网络（企业版），或者换境内云厂商的静态托管。这是产品决策，不是技术限制——当前 0.5–0.9s 的整页耗时对学生浏览已经够用。
 
-### 自动部署（可选）
+### 自动部署
 
-`.github/workflows/deploy.yml` 已配好：推送到 `main` 时自动构建并部署。需要在 GitHub 仓库里设置两个 Secrets：
+**已配好并实测通过**：推送到 `main` 会自动构建并部署，不需要手动跑任何命令。流程是「安装依赖 → `npm run check` → `npm run build` → `wrangler deploy`」。
 
-| Secret | 说明 |
+| Secret | 状态 |
 | --- | --- |
-| `CLOUDFLARE_API_TOKEN` | 在 Cloudflare 控制台创建，权限需要 `Workers Scripts: Edit` |
-| `CLOUDFLARE_ACCOUNT_ID` | 见 `npx wrangler whoami` 输出 |
+| `CLOUDFLARE_ACCOUNT_ID` | ✅ 已配置 |
+| `CLOUDFLARE_API_TOKEN` | ✅ 已配置（权限最小集合见 [HANDOVER.md](./HANDOVER.md) 第 5 节） |
+
+token 失效时工作流会给出一条 `::warning::` 注解并只构建不部署，不会静默失败。
+
+要跳过 CI 手动发布，本地跑 `npm run deploy` 即可。
 
 ---
 
