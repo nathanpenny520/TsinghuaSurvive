@@ -6,6 +6,54 @@
 
 ---
 
+## 我想做 X，该改哪里？
+
+日常 90% 的操作都在下面这张表里。**改完提交推送，CI 会自动构建部署，不需要手动做任何部署动作。**
+
+| 我想…… | 改哪里 | 怎么做 |
+| --- | --- | --- |
+| **写一篇新经验帖** | `src/content/docs/<分类>/` 新建 `.md` | 复制 [`src/content/docs/_template.md`](./src/content/docs/_template.md) 当模板。**文件名用英文小写加连字符**，中文标题写在 `title` 里 |
+| **改一篇已有文章** | 对应 `.md` 文件 | 本地改后 push；或用网页端点「编辑此页 / 纠错」（需代理，见下） |
+| **加一个校内网址** | `src/data/links.ts` | 加一条记录。**亲自点开确认后填 `verified: '2026-09-30'`**，页面上的「待核对」角标才会消失 |
+| **加一份可下载资料** | `src/data/resources.ts` | `url` 填网盘链接，`code` 填提取码。**文件本体不要进仓库**，只放外链 |
+| **加一个新分类** | `astro.config.mjs` 的 `sidebar` | 在 `src/content/docs/` 下建目录，然后往 `sidebar` 数组里加一项 `{ autogenerate: { directory: '目录名' } }` |
+| **调侧边栏顺序** | 文章的 `sidebar.order` | 数字小的在前。**同目录内不要重复**，否则内容检查会报错 |
+| **改站点标题 / 描述 / 联系方式** | `astro.config.mjs` | 顶部有 `SITE`、`REPO` 等常量 |
+| **改分享卡片图** | `scripts/generate-og.mjs` 顶部文案 | 改完跑 `npm run og`，**记得提交 `public/og.png`** |
+| **标一篇内容过期了** | 文章 frontmatter | `status: outdated`（红色警告）或更新 `reviewedAt`（橙色自动提醒） |
+| **改「多久算过期」** | `content-policy.json` | 改 `staleAfterMonths`。**站点看门狗和 CI 检查同时生效** |
+| **看哪些内容还欠着** | 跑 `npm run check:content` | 会输出「债务总账」：待补作者 / 待核对页面 / 待核对链接 / 待补充资料 |
+| **回滚一次线上发布** | 本地跑 wrangler | `npx wrangler versions list` 找到版本 ID，再 `npx wrangler rollback <ID>` |
+
+**没有本地环境也能干活**（但要注意下面那条网络限制）：有了 GitHub 账号就能在网页上点「编辑此页」改内容，提交后会自动生成 PR，机器人会把预览链接评论到 PR 上，你确认没问题再合并。
+
+> ### ⚠️ 校园网里 GitHub 网页端打不开
+> 实测（2026-09-30，清华校园网）：
+>
+> | 通道 | 结果 |
+> | --- | --- |
+> | `git push` / `git clone`（SSH，22 或 443 端口） | ✅ 通 |
+> | `api.github.com` | ✅ 通（1.2s） |
+> | **`github.com` 网页端** | ❌ **超时** |
+> | `raw.githubusercontent.com` | ❌ 超时 |
+>
+> 所以**在校园网内，网页端那条路走不通，会卡在打开网页这一步**。可靠的做法是：
+> - **本地改 + `git push`**（本仓库的全部提交都是这么推上去的）
+> - 或者开代理后再用网页端
+> - 站点上的「编辑此页 / 纠错」链接指向 `github.com`，**在校园网内点开也会超时**，不是链接写错了
+
+### 三种不同的改动方式，按你的习惯选
+
+| 方式 | 适合 | 代价 |
+| --- | --- | --- |
+| **本地 `npm run dev` + `git push`** | 写长文、调排版、批量改链接 | **校园网里唯一稳定可用的方式**；要装 Node 和依赖（一次性） |
+| **GitHub 网页直接改** | 改错别字、更新链接 | 需要代理；校内直连打不开 github.com |
+| **只提 Issue** | 不会 Git、只想提供素材 | 同样需要能打开 github.com（或让有代理的人代提） |
+
+详细写作规范见站点上的[怎么贡献一篇经验帖](https://tsinghua.nathanpenny.fun/contribute/)，运维细节见 [HANDOVER.md](./HANDOVER.md)，内容路线图见 [OUTLINE.md](./OUTLINE.md)。
+
+---
+
 ## 技术栈
 
 刻意选了最省心的组合：**没有后端、没有数据库、没有用户系统**。
@@ -60,7 +108,7 @@ npm run deploy             # 构建并部署到 Cloudflare Workers
 | **按阶段 / 按标签浏览** | `src/pages/stages/`、`src/pages/tags/` | 从 frontmatter 的 `stage` / `tags` **自动聚合**，不需要手工维护分类 |
 | **内容检查** | `scripts/check-content.ts` | 抓构建抓不到的问题：站内死链、中文文件名、未来日期、order 冲突、占位符 |
 | **结构化数据** | `src/components/Head.astro` | 每页注入 JSON-LD `Article`。署名是占位符时署成「本站」这个组织，**不编造人名** |
-| **分享卡片图** | `scripts/generate-og.py` | 生成 1200×630 的 `public/og.png`，脚本可复现 |
+| **分享卡片图** | `scripts/generate-og.mjs` | 生成 1200×630 的 `public/og.png`，脚本可复现 |
 | **统一阈值** | `content-policy.json` | 看门狗和内容检查脚本读同一份配置，避免两边阈值漂移 |
 
 ---
@@ -109,7 +157,7 @@ Tsinghua-guide/
 │  └─ styles/custom.css      主题色（清华紫）与中文排版
 ├─ scripts/
 │  ├─ check-content.ts       内容检查（CI 里跑，会阻断部署）
-│  └─ generate-og.py         生成分享卡片图
+│  └─ generate-og.mjs        生成分享卡片图
 ├─ content-policy.json       ★ 时效阈值（看门狗与检查脚本共用）
 ├─ wrangler.jsonc            正式站配置
 └─ wrangler.preview.jsonc    PR 预览站配置

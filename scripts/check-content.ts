@@ -114,6 +114,10 @@ let currentFile = '';
 const docs: Doc[] = [];
 
 for (const file of walk(DOCS_DIR, (p) => ['.md', '.mdx'].includes(extname(p)))) {
+  // Starlight 会忽略以 _ 开头的文件（例如 _template.md 模板），
+  // 它们不参与构建，也不应该被当成文章检查。
+  if (basename(file).startsWith('_')) continue;
+
   currentFile = file;
   const raw = readFileSync(file, 'utf8');
   const { data } = parseFrontmatter(raw);

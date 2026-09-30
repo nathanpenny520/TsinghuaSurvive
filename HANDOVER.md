@@ -45,7 +45,7 @@ Cloudflare 侧有**两个 Worker、两个自定义域名，没有任何 KV / R2 
 | 时效看门狗 | `src/components/Banner.astro`（覆盖 Starlight 组件） |
 | 文章元信息（阶段/标签/作者/核对日期） | `src/components/ArticleMeta.astro`，由 Footer 调用 |
 | JSON-LD 结构化数据 | `src/components/Head.astro`（覆盖 Starlight 组件） |
-| 分享卡片图 | `public/og.png`，由 `scripts/generate-og.py` 生成 |
+| 分享卡片图 | `public/og.png`，由 `scripts/generate-og.mjs` 生成 |
 | RSS | `src/pages/rss.xml.ts` |
 | 时效阈值单一来源 | `content-policy.json` |
 
@@ -148,10 +148,10 @@ npm run check:content:strict   # 连「债务警告」也当错误（发布前�
 ### 重新生成分享卡片图
 
 ```bash
-npm run og             # 需要 python3 + Pillow
+npm run og             # 只要 npm install 过就能跑（用 sharp 渲染，无额外依赖）
 ```
 
-图片内容在 `scripts/generate-og.py` 顶部改。**中文标题改动后一定要重新生成**，否则分享出去的卡片还是旧标题。
+图片内容在 `scripts/generate-og.mjs` 顶部改。**中文标题改动后一定要重新生成**，否则分享出去的卡片还是旧标题。
 
 ### 部署
 
@@ -219,6 +219,7 @@ npx wrangler delete                 # 删除 Worker（自定义域名的 DNS 记
 | 域名解析 NXDOMAIN | **先别急着改配置**。清华校园网会**透明劫持 53 端口的 DNS 查询**——你问 8.8.8.8、223.5.5.5、119.29.29.29 拿到的其实都是校内解析器的答案，所以看起来「所有公共 DNS 都挂了」。判断真伪要看 NXDOMAIN 响应里的 SOA serial 是否落后于当前 zone。**用 DoH（443 端口）绕开劫持验证**：`curl "https://dns.alidns.com/resolve?name=tsinghua.nathanpenny.fun&type=A"`。另一个铁证：`dig +short TXT o-o.myaddr.l.google.com @8.8.8.8` 返回的是什么 IP——返回校内地址就说明被劫持了。真正的原因通常只是校内解析器缓存了建记录之前的否定结果（SOA minimum=1800，约 30 分钟自动过期） |
 | 站点打不开但 Cloudflare 显示已部署 | 先分清是 DNS 问题还是部署问题：`curl --resolve tsinghua.nathanpenny.fun:443:172.67.207.247 https://tsinghua.nathanpenny.fun/` 绕过 DNS 直连 |
 | 搜索搜不到中文 | Pagefind 支持中文分词但**不做词干化**，所以「选课」和「选课规则」不会互相命中。搜短词（2–3 字），并靠 tags 补足 |
+| **github.com 网页端打不开** | 清华校园网实测（2026-09-30）：`github.com` 与 `raw.githubusercontent.com` **超时**，但 **SSH 通道通**（22 与 `ssh.github.com:443` 都测过）、`api.github.com` 通（1.2s）。所以 **`git push` / `git clone` / `gh` CLI 全部正常，只有网页端不行**。结论：在校园网内走「本地改 + `git push`」，不要指望点网页上的「编辑此页」——**那些链接本身没写错，是网络问题**。`gh` CLI 走 API，所以 `gh pr`、`gh run`、`gh secret` 在校园网里都能用 |
 | 构建报 frontmatter 错误 | 这是**设计如此**。按报错指出的文件修正字段，字段定义见 `src/content.config.ts` |
 | 部署刚完成时个别页面 404 | **部署传播竞态**，几秒后自行恢复。我实测遇到过一次：`/freshman/dorm-and-network/` 在部署完成后立刻请求返回 404，重试即 200。确认方法：等 10 秒再请求一次，仍 404 才是真问题 |
 | 中文标签/阶段页返回 307 | **正常**。Cloudflare 把原始 UTF-8 路径（`/tags/选课/`）307 规范化到百分号编码形式，浏览器自动跟随，最终 200。爬虫和社交平台也能正确跟随 |

@@ -12,7 +12,7 @@
     "check:content": "tsx scripts/check-content.ts",
     "check:content:strict": "tsx scripts/check-content.ts --strict",
     "check:all": "npm run check && npm run check:content",
-    "og": "python3 scripts/generate-og.py",
+    "og": "node scripts/generate-og.mjs",
     "deploy": "npm run build && wrangler deploy",
     "deploy:dry": "npm run build && wrangler deploy --dry-run"
   },
