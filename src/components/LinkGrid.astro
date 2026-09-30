@@ -6,7 +6,9 @@
  *   src/data/link-status.json —— 自动生成：`npm run check:links` 的实测结果
  *
  * 两个信息分开显示，是有意的：
- *   「实测可访问」说明域名活着（机器测的），「已人工核对」说明入口还是干这件事（人测的）。
+ *   「实测可访问」说明域名活着（脚本测的）
+ *   「脚本核对」说明地址还指向那个服务（抓页面比对标题/关键词）
+ *   「人工核对」说明有人点进去用过 —— 只有这一层能确认功能还在。
  *   只有后者能证明这个链接没写错，所以缺了它会显示角标。
  */
 import { linksByGroup, campusLinks } from '../data/links';
@@ -34,6 +36,8 @@ const REACH_CLASS: Record<string, string> = {
 };
 
 const checkedCount = campusLinks.filter((l) => l.reviewedAt).length;
+const autoCount = campusLinks.filter((l) => l.reviewedAt && l.verifiedBy === 'auto').length;
+const humanCount = campusLinks.filter((l) => l.reviewedAt && l.verifiedBy !== 'auto').length;
 ---
 
 <div class="link-toolbar" data-link-toolbar hidden>
@@ -59,7 +63,8 @@ const checkedCount = campusLinks.filter((l) => l.reviewedAt).length;
 
 <div class="link-summary">
   <span>
-    共 {campusLinks.length} 条 · 已人工核对 <strong>{checkedCount}</strong> 条 · 链接实测
+    共 {campusLinks.length} 条 · 已核对 <strong>{checkedCount}</strong> 条
+    （脚本核对 {autoCount} · 人工核对 {humanCount}）· 链接实测
     <strong>{status.reachable}/{status.total}</strong> 可访问（{status.checkedAt}）
   </span>
 </div>
