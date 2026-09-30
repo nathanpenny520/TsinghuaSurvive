@@ -5,10 +5,15 @@
  * 为什么要覆盖 Head 而不是塞在页脚：JSON-LD 放在 <head> 里是规范做法，
  * 而且这里是唯一能同时拿到 route data 和 site 配置的注入点。
  *
+ * 这里负责**全站唯一的 JSON-LD**：页面自己不要再写一份，否则同一页会出现两个
+ * 互相矛盾的 @type（搜索引擎会自己挑一个，通常挑到你不想要的那个）。
+ * 校验方式：`npm run build && npm run check:jsonld`。
+ *
  * 注意：不生成 SearchAction —— 站内搜索是 Pagefind 客户端搜索，不响应查询参数，
  * 声明 SearchAction 会是假的。宁可不写。
  */
 import { formatISODate } from '../data/policy';
+import { courses } from '../data/courses';
 
 const { head, entry, lastUpdated, lang } = Astro.locals.starlightRoute;
 const data = entry.data;
@@ -46,8 +51,106 @@ const publisher = {
   url: siteUrl.href,
 };
 
-const jsonLd =
-  isSplash || is404
+const website = { '@type': 'WebSite', name: SITE_NAME, url: siteUrl.href };
+
+// 站点开了 trailingSlash: 'always'，构建后路径一定带尾斜杠；dev 下可能不带，所以统一补齐
+const pathname = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
+
+/**
+ * 面包屑：从左侧导航里找出「当前页在哪一组下」。
+ *
+ * 为什么从 sidebar 找而不是自己维护一张表：侧边栏是唯一已有的层级来源，
+ * 自己再写一份分组映射，改了 sidebar 就会和结构化数据漂移。
+ * 找不到就**不输出**面包屑，而不是编一条假的层级。
+ */
+type SidebarNode = {
+  type?: string;
+  label?: string;
+  href?: string;
+  entries?: SidebarNode[];
+};
+
+function findTrail(
+  nodes: SidebarNode[],
+  target: string,
+  trail: { label: string; href?: string }[] = [],
+): { label: string; href?: string }[] | null {
+  for (const node of nodes) {
+    const label = typeof node.label === 'string' ? node.label : undefined;
+    if (node.type === 'link' && node.href === target && label) {
+      return [...trail, { label, href: node.href }];
+    }
+    if (Array.isArray(node.entries) && node.entries.length) {
+      const found = findTrail(node.entries, target, label ? [...trail, { label }] : trail);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+const sidebar = (Astro.locals.starlightRoute as unknown as { sidebar?: SidebarNode[] }).sidebar ?? [];
+
+/**
+ * 聚合页（/tags/<标签>/、/stages/<阶段>/）不在左侧导航里，但它们确实有真实层级：
+ * 首页 → 按标签浏览 → 具体标签。这是站点自己的结构，不是编的，所以补上。
+ */
+function aggregateTrail(path: string): { label: string; href?: string }[] | null {
+  const tag = path.match(/^\/tags\/(.+)\/$/);
+  if (tag) {
+    return [
+      { label: '按标签浏览', href: '/tags/' },
+      { label: decodeURIComponent(tag[1]) },
+    ];
+  }
+  const stage = path.match(/^\/stages\/(.+)\/$/);
+  if (stage) {
+    return [
+      { label: '按阶段浏览', href: '/stages/' },
+      { label: decodeURIComponent(stage[1]) },
+    ];
+  }
+  return null;
+}
+
+const trail = isSplash || is404 ? null : (findTrail(sidebar, pathname) ?? aggregateTrail(pathname));
+
+const breadcrumbs =
+  trail && trail.length
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: '首页', item: siteUrl.href },
+          ...trail.map((node, index) => ({
+            '@type': 'ListItem',
+            position: index + 2,
+            name: node.label,
+            item: node.href ? new URL(node.href, siteUrl).href : canonical,
+          })),
+        ],
+      }
+    : null;
+
+const isCoursesIndex = pathname === '/courses/';
+
+const pageNode = isCoursesIndex
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: data.title,
+      description: data.description,
+      inLanguage: lang,
+      url: canonical,
+      isPartOf: website,
+      publisher,
+      // 索引页的「条目数」是真实数据（脚本从资料库扫出来的课数），不是估的
+      mainEntity: {
+        '@type': 'ItemList',
+        numberOfItems: courses.length,
+        name: '课程资料索引',
+      },
+    }
+  : isSplash || is404
     ? {
         '@context': 'https://schema.org',
         '@type': 'WebSite',
@@ -73,10 +176,55 @@ const jsonLd =
         ...(dateModified ? { dateModified } : {}),
         ...(tags.length ? { keywords: tags.join(', ') } : {}),
         ...(stage.length ? { about: stage.join('、') } : {}),
-        isPartOf: { '@type': 'WebSite', name: SITE_NAME, url: siteUrl.href },
+        isPartOf: website,
       };
+
+/** 一页里可以有多条互相补充的实体（正文 + 面包屑），但不能有两条抢同一个 @type */
+const jsonLd: Record<string, unknown>[] = breadcrumbs ? [pageNode, breadcrumbs] : [pageNode];
+
+/**
+ * 板块分享卡片图。
+ *
+ * 全站 og:image 是 astro.config.mjs 的 head 配置写死的 /og.png；这个组件是唯一
+ * 能按当前路径改写它的地方（改全局配置会和别人冲突，也会把其它页面一起带偏）。
+ * 这里只做「按路径替换」：命中下表就用板块卡片，没命中原样输出。
+ *
+ * 三张板块卡片由 `npm run og`（scripts/generate-og.mjs）生成，和全站图同一套版式。
+ *
+ * 为什么只精确匹配、不做前缀匹配：
+ *   - 站点的 og:image 是绝对地址，这里用 siteUrl 现算，不写死域名；
+ *   - /skills/* 子页、/courses/books/ 都没有自己的卡片，落回全站图比指到一张
+ *     说的其实是首页那件事的图更诚实。以后某个子页真要自己的卡片，往下表加一行。
+ */
+const OG_SECTIONS: Record<string, { image: string; alt: string }> = {
+  '/courses/': { image: '/og/courses.png', alt: '课程资料索引 —— 每门课在哪个公开资料库里有材料' },
+  '/skills/': { image: '/og/skills.png', alt: '技能入门 —— Git、LaTeX、命令行的最短上手路径' },
+  '/guides/links/': { image: '/og/links.png', alt: '校内常用链接 —— 带可达性与核对状态的入口清单' },
+};
+
+const ogSection = OG_SECTIONS[pathname];
+
+/** og:image 和 twitter:image 必须一起换 —— 只换一个，微信和 Twitter 会各显示一张不同的图 */
+const OG_IMAGE_KEYS = new Set(['og:image', 'twitter:image']);
+
+const headTags: typeof head = ogSection
+  ? head.map((item: (typeof head)[number]) => {
+      const attrs = item.attrs ?? {};
+      const key = typeof attrs.property === 'string' ? attrs.property : attrs.name;
+      if (typeof key !== 'string') return item;
+      if (!OG_IMAGE_KEYS.has(key) && key !== 'og:image:alt') return item;
+
+      const content = OG_IMAGE_KEYS.has(key)
+        ? new URL(ogSection.image, siteUrl).href
+        : ogSection.alt;
+
+      // content 写进 attrs（config 里的写法就是 attrs.content），同时把 item.content 清空，
+      // 避免它是「另一种写法」时渲染出 <meta content="新图">旧图的大图 URL</meta>
+      return { ...item, attrs: { ...attrs, content }, content: undefined };
+    })
+  : head;
 ---
 
-{head.map(({ tag: Tag, attrs, content }) => <Tag {...attrs} set:html={content} />)}
+{headTags.map(({ tag: Tag, attrs, content }) => <Tag {...attrs} set:html={content} />)}
 
 <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />

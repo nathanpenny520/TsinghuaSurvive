@@ -93,14 +93,25 @@ CI 验证记录：`workflow_dispatch` 运行 34s 全绿，Cloudflare 侧生成�
 
 ```
 src/content.config.ts    ★ 内容模型（frontmatter 字段定义）
-src/content/docs/        ★ 所有文章
+src/content/docs/        ★ 所有文章（按板块分目录）
 src/data/links.ts        ★ 校内常用链接（改这个文件就更新页面）
-src/data/resources.ts    ★ 资料下载清单（同上）
-src/components/          Footer（站脚免责声明）、LinkGrid、ResourceList
+src/data/link-status.json  链接实测结果（脚本生成，别手改）
+src/data/courses.ts      资料库档案 + 课程索引读取
+src/data/course-index.json 课程资料索引（脚本生成，别手改）
+src/data/archives.ts     不按课程组织的资源站 + 使用红线
+src/data/git.ts          git log 读取（更新日志 / 贡献者用）
+src/data/resources.ts    资料下载清单（同上）
+src/components/          Footer（站脚免责声明）、LinkGrid、CourseExplorer、ArchiveDirectory、ResourceList
+src/pages/courses/       ★ 课程资料索引页（可筛选）
+src/pages/changelog.astro、contributors.astro  构建时读 git log 生成
+scripts/check-feeds.mjs  sitemap / RSS / robots 校验（构建后）
+scripts/measure-perf.mjs 本地性能实测（写进本文档 7.5 节）
 src/styles/custom.css    清华紫主题 + 中文排版
 astro.config.mjs         侧边栏、SEO、域名、仓库地址
 wrangler.jsonc           Workers 部署配置
 OUTLINE.md               内容路线图（哪些写了、哪些没写）
+REFERENCE-NOTES.md       参考项目借鉴笔记（哪些抄了、哪些没抄、为什么）
+reference/               ⚠️ 本地参考资料，不进仓库（见 .gitignore）
 ```
 
 日常写作只需要碰 `src/content/docs/`。
@@ -132,18 +143,109 @@ npm run check:content:strict   # 连「债务警告」也当错误（发布前�
 
 | 级别 | 检查项 |
 | --- | --- |
-| **错误**（阻断部署） | 站内链接指向不存在的页面（带文件:行号）、文件名不是 ASCII slug、`reviewedAt` 写在未来、同目录 `sidebar.order` 冲突、`links.ts` 里有重名条目或非法网址、资料填了提取码却没链接 |
-| **警告**（只提示） | 作者还是占位符、`status: draft` 数量、链接没有 `verified` 或超过 12 个月未确认、资料还是 `TODO`、文章超过 6 个月未核对 |
+| **错误**（阻断部署） | 站内链接指向不存在的页面（带文件:行号）、文件名不是 ASCII slug、`reviewedAt` 写在未来、同目录 `sidebar.order` 冲突、`links.ts` 里有重名条目或非法网址、资料填了提取码却没链接、课程索引引用了未定义的资料库或拼不出链接 |
+| **警告**（只提示） | 作者还是占位符、`status: draft` 数量、链接没有 `reviewedAt`（人工核对）或超过 12 个月未确认、链接实测结果过期或有链接打不开、文章超过 6 个月未核对 |
 
-**这四项错误检测都做过注入测试验证过会真的触发**，不是写了没用。
+CI 里另外跑三项（本地 `npm run verify` 一次跑完）：
+
+| 脚本 | 时机 | 拦什么 |
+| --- | --- | --- |
+| `courses:check` | 构建前 | 课程索引与 `reference/` 不一致（没有 `reference/` 时自动跳过） |
+| `check:jsonld` | 构建后 | JSON-LD 语法/重复 `@type`/面包屑 position/占位署名 —— 这些错了不会报错，只会静默失效 |
+| `check:assets` | 构建后 | 分享卡片图尺寸不是 1200×630、文件是空的、页面引用的图在 `dist` 里不存在 |
+| `check:feeds` | 构建后 | sitemap 指向不存在的页面（含中文 URL 的百分号编码比对）、RSS 为空或缺字段、robots.txt 把整站 `Disallow` 掉 |
+
+**错误级检测都做过注入测试验证过会真的触发**，不是写了没用。
+
+### 实测链接是否还能打开
+
+```bash
+npm run check:links        # 逐个请求校外链接，写 src/data/link-status.json
+npm run check:links -- --fail   # 有链接打不开时以非 0 退出
+```
+
+站点上每条链接有**两个独立角标**：
+
+| 角标 | 来源 | 含义 |
+| --- | --- | --- |
+| 实测可访问 / 实测打不开 | `npm run check:links` | 网址活着（HTTP < 400）。**不证明入口还是干那件事** |
+| 人工核对 2026-09-30 / 人工核对：待补 | `links.ts` 的 `reviewedAt` | **有人点开确认过入口没写错**，这才是可信度的来源 |
+
+⚠️ 这个脚本**需要联网**，所以没有放进 CI 的必跑步骤（CI 里跑会因为某个学校系统抽风而误报）。
+建议每次内容批量更新后手动跑一次并提交 `link-status.json`。
+
+### 验证前端交互（改了 `/courses/` 或链接页之后）
+
+```bash
+npm run build
+npx astro preview --port 4321 &     # 或者任意静态服务器指向 dist/
+npm run check:e2e -- --base http://127.0.0.1:4321
+```
+
+它会用无头 Chrome 打开 `/courses/` 与 `/guides/links/`，真的输入搜索词、点筛选按钮，
+断言「卡片数会变、清除筛选能还原、无结果时给空状态」。找不到 Chrome 时会跳过而不是报错，
+所以它没有进 CI（CI 里装浏览器成本太高），属于本地改动后的自查手段。
+
+### 重新生成课程资料索引
+
+```bash
+npm run courses            # 扫描 reference/ 下的公开资料库 → src/data/course-index.json
+npm run courses:check      # 校验现有 JSON 与 reference/ 是否一致
+```
+
+`reference/` 与 `ssast-readme.github.io/` 是**本地参考资料**（克隆来的第三方资料库，合计十几 GB），
+已经写进 `.gitignore`，不要提交。没有它们时脚本会跳过对应资料库并打提示，
+`/courses/` 页面用已提交的 `course-index.json` 照常渲染。
+
+### 链接核对：先脚本、后人工
+
+```bash
+npm run verify:links              # 抓页面比对标题/关键词 → .review/link-verification.json
+npm run verify:links -- --apply   # ok 的条目写回 reviewedAt + verifiedBy: 'auto'
+```
+
+- 脚本判断依据有三类：标题命中期望词、正文命中、落到同机构认证端点/机构自有域名。
+  关键词表写在 `scripts/verify-links.ts` 的 `EXPECT_BY_HOST`（**要维护**：新增链接时补一行）。
+- 老系统是 GBK 编码、登录页没有标题，这两类**不是故障**，脚本已处理。
+- `verifiedBy: 'auto'` 与 `'human'` 在页面上分别显示「脚本核对」「人工核对」，
+  **不要**把脚本结论当成人工核对 —— 登录后的功能只有人能确认。
+
+### 人工核对链接（把「核对：待补」清掉）
+
+```bash
+npm run review:links -- --open      # 生成 .review/link-review.html 并打开
+#   在页面里逐条：打开（o）→ 看完 → ✓ 没问题（y）或 ✗ 有问题（n，填新地址/备注）
+#   进度存在浏览器 localStorage，关掉不丢；核对完点「导出 link-review.json」
+npm run review:links:apply -- ~/Downloads/link-review.json          # 看 diff
+npm run review:links:apply -- ~/Downloads/link-review.json --write  # 写回 links.ts
+npm run check:content && npm run build
+```
+
+- ✓ 的条目会被写上 `reviewedAt: '<导出日期>'`；
+- ✗ 但填了新地址的，会替换 `url` 并同样记上 `reviewedAt`；
+- ✗ 只写了备注的，写进 `.review/link-issues.md`，**不会自动改**，需要你决定怎么处理。
+- `.review/` 已经在 `.gitignore` 里：那是工作目录，不进仓库。
 
 ### 加一个校内链接
 
-编辑 `src/data/links.ts`，加一条记录。**填了 `verified: '2026-09-30'` 才会消掉页面上的「待核对」角标**——这是本站最重要的机制，别跳过。
+编辑 `src/data/links.ts`，加一条记录（含 `reach` 可达性与 `origin` 来源）。
+**只有填了 `reviewedAt: '2026-09-30'` 才会消掉页面上的「人工核对：待补」**——
+网址活着是机器能测的，入口有没有写错只有人能判断，这是本站最重要的机制，别跳过。
 
 ### 加一份资料
 
 编辑 `src/data/resources.ts`，`url` 填网盘链接。留空或写 `'TODO'` 时页面显示「待补充」，不会渲染死链。**文件本体不要进仓库。**
+
+### 站内互动工具（没有后端）
+
+两个纯前端工具，数据只存在读者自己的浏览器里（localStorage），**不采集、不上传**：
+
+| 工具 | 文件 | 存什么 |
+| --- | --- | --- |
+| 报到清单（可勾选） | `src/components/Checklist.astro`，用在 `/freshman/arrival-checklist/` | 勾选状态，键名 `tsinghua-guide-checklist:<id>` |
+| 学分缺口拆解表 | `src/components/CreditPlanner.astro`，用在 `/academics/credit-planner/` | 类别/学分/课程表，键名 `tsinghua-guide-credit-planner-v1` |
+
+改动它们之后，务必跑一次交互冒烟测试（`npm run check:e2e`）——这两个组件的关键路径是「点一下会不会真算」。
 
 ### 重新生成分享卡片图
 
@@ -237,7 +339,8 @@ npx wrangler delete                 # 删除 Worker（自定义域名的 DNS 记
 
 完整路线图见 [OUTLINE.md](./OUTLINE.md)。**发布前必须做的三件事**：
 
-1. **核对 9 条校内常用链接**（`src/data/links.ts`），逐条点开确认后填 `verified` 日期。
+1. **核对校内常用链接**（`src/data/links.ts`），逐条点开确认后填 `reviewedAt` 日期。
+   现在有 38 条，`npm run check:content` 的「债务总账」会告诉你还剩多少条没核对。
 2. **填或删 5 条资料条目**（`src/data/resources.ts`）。
 3. **替换署名**——所有文章现在作者都是 `待补充`。
 
@@ -253,10 +356,46 @@ npx wrangler delete                 # 删除 Worker（自定义域名的 DNS 记
 
 ---
 
+## 7.5 性能基线（2026-09-30 本地实测）
+
+用 `npm run measure:perf`（无头 Chrome + 浏览器计时 API，无新依赖）量了一次。**读数字前先看局限**：
+本机静态服务器不做 gzip（transferSize 偏大），所以额外算了 HTML 的 gzip 大小；单机、单次、无网络延迟模拟，
+这是**量级参考**，不是实验室数据。校园网内的真实体验还受出口与国际链路影响，这里测不出来。
+
+```bash
+npm run build
+npx http-server dist -p 4321 &
+npm run measure:perf -- --base http://127.0.0.1:4321
+```
+
+| 页面 | 请求数 | HTML(gzip) | HTML(原始) | JS | CSS | 资源合计 | DCL |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 首页 | 6 | 9.4 KB | 32.0 KB | 97.8 KB / 3 个 | 70.9 KB | 169.3 KB | 20 ms |
+| 课程资料索引（最重的一页） | 6 | 25.5 KB | 204.4 KB | 97.8 KB / 3 个 | 77.3 KB | 175.1 KB | 47 ms |
+| 校内常用链接 | 10 | 18.9 KB | 97.0 KB | 104.0 KB / 7 个 | 89.0 KB | 193.0 KB | 48 ms |
+| 技能入门 | 8 | 16.2 KB | 68.5 KB | 101.2 KB / 6 个 | 70.9 KB | 172.1 KB | 32 ms |
+
+**结论与后续可做的事**：
+
+- **HTML 不是瓶颈**。课程索引页虽然原始 204 KB，gzip 后只有 25.5 KB（8 倍压缩，因为卡片结构高度重复）。
+  这一页曾经是 269 KB，2026-09-30 做过一次瘦身（去掉 Astro 作用域类 + `data-search` 副本 + 按资料库分组），
+  详见第 8 节「已知限制」里那条「不要改回作用域样式」。
+- **真正的重量是 Starlight 的 UI bundle（约 98–104 KB 未压缩）与 CSS（71–89 KB）**，
+  两者都由框架提供（搜索、主题切换、目录、代码高亮）。gzip 后约 30 KB + 15 KB，可以接受。
+  如果哪天要再快一档，方向是**按需加载 Expressive Code**（只有带代码块的页面才需要），而不是继续压 HTML。
+- **没有做图片优化**：本站几乎没有图片（只有 favicon 和分享卡片，都不在页面里加载），暂时不构成问题。
+
+---
+
 ## 8. 已知限制
 
 - **境内访问是「可用」不是「快」**。整页 0.5–0.9s，因为走的是 Cloudflare 海外节点。要更快需要 **ICP 备案 + Cloudflare 中国网络（企业版）**，或换境内云厂商静态托管。这是产品决策，不是技术限制。
 - **`workers.dev` 入口已关闭**，不要把它写进任何对外宣传材料。
 - **没有评论系统**（按需求刻意不做）。纠错入口是页脚的 GitHub Issues 链接。
 - **没有 CMS**。其他学长学姐投稿要么会 Git，要么把稿子发到 Issues 由人代排。以后要降低门槛可以接 Decap/Sveltia CMS（基于 Git，零后端，与当前架构天然兼容）。
+- **站点上没有任何课程文件**。`/courses/` 只是索引，链接指向第三方资料库；他们的许可、存活、下架都不由本站控制。
+- **链接实测依赖联网**，所以 `npm run check:links` 不进 CI 必跑步骤；结果过期时只给警告，不阻断构建。
+- **更新日志 / 贡献者页依赖完整 Git 历史**（CI 的 `fetch-depth: 0` 就是为它和 Starlight 的「最后更新」配的）。拿不到历史时这两个页面会降级显示一句说明，不会构建失败。
 - **构建依赖 Node 20+**，CI 用 Node 22。
+- **课程索引页刻意不用 Astro 的作用域样式**（`<style is:global>` + `cg-` 前缀）。作用域会给 2500 个元素各加一个 `astro-xxxx` 类，实测多出 40 KB；页面体积已从 269 KB 降到 209 KB。**不要"顺手"改回作用域样式**，那会把体积加回去。
+- **JSON-LD 只在 `src/components/Head.astro` 输出**。页面里不要再写一份，否则同页两个 `@type` 会互相打架（`check:jsonld` 会拦住，但别故意踩）。

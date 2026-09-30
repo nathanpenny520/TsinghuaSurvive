@@ -1,0 +1,263 @@
+---
+/**
+ * 可打勾、会记住进度的清单。
+ *
+ * 为什么不用 Markdown 的 `- [ ]`：那个勾不了（或者说勾了不保存），而「报到清单」这类东西
+ * 是要在手机上一条条勾掉、过两天再回来看还剩什么的。
+ *
+ * 进度存在浏览器 localStorage，**不上传任何数据**。整页只有这一个脚本，没有第三方依赖。
+ */
+type ChecklistItem = { text: string; note?: string };
+type ChecklistGroup = { group: string; items: ChecklistItem[] };
+
+interface Props {
+  /** localStorage 里的键名后缀，同一页多个清单要区分开 */
+  id: string;
+  groups: ChecklistGroup[];
+  /** 清单标题（可省） */
+  title?: string;
+}
+
+const { id, groups, title } = Astro.props;
+
+const total = groups.reduce((sum, group) => sum + group.items.length, 0);
+---
+
+<section class="checklist" data-checklist data-checklist-id={id}>
+  <header class="checklist__head">
+    <div class="checklist__title">
+      {title && <strong>{title}</strong>}
+      <span class="checklist__count" data-checklist-count>
+        共 {total} 项
+      </span>
+    </div>
+    <div class="checklist__progress">
+      <i data-checklist-bar></i>
+    </div>
+    <div class="checklist__actions" data-checklist-actions hidden>
+      <button type="button" data-checklist-copy>复制未完成项</button>
+      <button type="button" data-checklist-reset>清空勾选</button>
+    </div>
+  </header>
+
+  {
+    groups.map((group, groupIndex) => (
+      <div class="checklist__group">
+        <h4>{group.group}</h4>
+        <ul>
+          {group.items.map((item, itemIndex) => (
+            <li>
+              <label>
+                <input
+                  type="checkbox"
+                  data-checklist-item
+                  data-checklist-key={`${id}:${groupIndex}:${itemIndex}`}
+                />
+                <span>
+                  {item.text}
+                  {item.note && <em>{item.note}</em>}
+                </span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  }
+
+  <p class="checklist__note" data-checklist-note hidden>
+    勾选状态只保存在你这台设备的浏览器里（换设备、清缓存会丢），不会上传到任何地方。
+  </p>
+</section>
+
+<style>
+  .checklist {
+    margin: 1.25rem 0 2rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.6rem;
+  }
+
+  .checklist__head {
+    display: grid;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .checklist__title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+
+  .checklist__count {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .checklist__progress {
+    height: 6px;
+    background: var(--sl-color-gray-6);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .checklist__progress > i {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--sl-color-accent);
+    transition: width 0.2s ease;
+  }
+
+  .checklist__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .checklist__actions button {
+    border: 1px solid var(--sl-color-gray-5);
+    background: transparent;
+    color: var(--sl-color-text-accent);
+    font-size: var(--sl-text-xs);
+    padding: 0.25rem 0.6rem;
+    border-radius: 0.4rem;
+    cursor: pointer;
+  }
+
+  .checklist__group h4 {
+    margin: 1rem 0 0.4rem;
+    font-size: var(--sl-text-h6);
+  }
+
+  .checklist__group ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .checklist__group label {
+    display: flex;
+    gap: 0.55rem;
+    align-items: flex-start;
+    font-size: var(--sl-text-sm);
+    line-height: 1.65;
+    cursor: pointer;
+    /* 整行可点，触控目标远大于 24px */
+    padding: 0.15rem 0;
+  }
+
+  .checklist__group input {
+    /* 13px 的原生勾选框在手机上很难点中；放大到 1.1rem，并让整行 label 都可点 */
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-top: 0.3rem;
+    accent-color: var(--sl-color-accent);
+    flex: none;
+  }
+
+  .checklist__group input:checked + span {
+    color: var(--sl-color-gray-4);
+    text-decoration: line-through;
+  }
+
+  .checklist__group em {
+    display: block;
+    margin-top: 0.1rem;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+    font-style: normal;
+  }
+
+  .checklist__note {
+    margin: 0.9rem 0 0;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+  }
+</style>
+
+<script>
+  const STORE_PREFIX = 'tsinghua-guide-checklist:';
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-checklist]')) {
+    const id = root.dataset.checklistId ?? 'default';
+    const boxes = [...root.querySelectorAll<HTMLInputElement>('[data-checklist-item]')];
+    const count = root.querySelector<HTMLElement>('[data-checklist-count]');
+    const bar = root.querySelector<HTMLElement>('[data-checklist-bar]');
+    const actions = root.querySelector<HTMLElement>('[data-checklist-actions]');
+    const note = root.querySelector<HTMLElement>('[data-checklist-note]');
+    const storageKey = STORE_PREFIX + id;
+
+    if (actions) actions.hidden = false;
+    if (note) note.hidden = false;
+
+    const load = (): Record<string, boolean> => {
+      try {
+        return JSON.parse(localStorage.getItem(storageKey) ?? '{}');
+      } catch {
+        return {};
+      }
+    };
+
+    const save = (state: Record<string, boolean>) => {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(state));
+      } catch {
+        /* 隐私模式下写不了，忽略即可 */
+      }
+    };
+
+    const state = load();
+    for (const box of boxes) {
+      box.checked = Boolean(state[box.dataset.checklistKey ?? '']);
+    }
+
+    const update = () => {
+      const done = boxes.filter((box) => box.checked).length;
+      if (count) count.textContent = `已完成 ${done} / ${boxes.length}`;
+      if (bar) bar.style.width = `${boxes.length ? (done / boxes.length) * 100 : 0}%`;
+    };
+
+    for (const box of boxes) {
+      box.addEventListener('change', () => {
+        state[box.dataset.checklistKey ?? ''] = box.checked;
+        save(state);
+        update();
+      });
+    }
+
+    root.querySelector('[data-checklist-reset]')?.addEventListener('click', () => {
+      for (const box of boxes) {
+        box.checked = false;
+        state[box.dataset.checklistKey ?? ''] = false;
+      }
+      save(state);
+      update();
+    });
+
+    root.querySelector('[data-checklist-copy]')?.addEventListener('click', async (event) => {
+      const pending = boxes
+        .filter((box) => !box.checked)
+        .map((box) => `- [ ] ${box.closest('label')?.innerText.trim() ?? ''}`)
+        .join('\n');
+      const text = pending || '（全部完成）';
+      try {
+        await navigator.clipboard.writeText(text);
+        (event.currentTarget as HTMLButtonElement).textContent = '已复制 ✓';
+      } catch {
+        window.prompt('复制下面这些未完成项：', text);
+      }
+      setTimeout(() => {
+        const button = event.currentTarget as HTMLButtonElement;
+        button.textContent = '复制未完成项';
+      }, 1500);
+    });
+
+    update();
+  }
+</script>

@@ -16,10 +16,17 @@
 | **改一篇已有文章** | 对应 `.md` 文件 | 本地改后 push；或用网页端点「编辑此页 / 纠错」（需代理，见下） |
 | **加一个校内网址** | `src/data/links.ts` | 加一条记录。**亲自点开确认后填 `verified: '2026-09-30'`**，页面上的「待核对」角标才会消失 |
 | **加一份可下载资料** | `src/data/resources.ts` | `url` 填网盘链接，`code` 填提取码。**文件本体不要进仓库**，只放外链 |
+| **加一门课 / 一个资料库** | `scripts/build-course-index.mjs` | 资料库目录变了就重新生成：`npm run courses`（详见下面「课程资料索引」一节） |
+| **加一个技能页** | `src/content/docs/skills/` 新建 `.md` | 结构和语气照抄同目录其他文章；侧边栏是 `autogenerate`，不用改配置 |
+| **检查网址还活着吗** | 跑 `npm run check:links` | 实测所有校内链接，结果写进 `src/data/link-status.json`，页面上会显示「实测可访问 / 打不开」 |
+| **人工核对链接入口** | 跑 `npm run review:links` | 生成一份本地核对清单（浏览器里逐条点「没问题 / 有问题」），导出后 `review:links:apply` 自动把日期写回 `links.ts` |
+| **课程书目 / 课程↔技能** | 自动派生 | `/courses/books/` 与技能页的映射表都从 `course-index.json` 读，不用手工维护 |
+| **改站内互动工具** | `src/components/Checklist.astro`、`CreditPlanner.astro` | 报到清单（可勾选）与学分缺口表（自动算）。数据只存浏览器 localStorage，**没有后端、不上传** |
+| **加一篇经验帖/骨架** | `src/content/docs/<分类>/` | 骨架页写 `status: draft` + `banner` 说明"未核实"，**不要填 reviewedAt** |
 | **加一个新分类** | `astro.config.mjs` 的 `sidebar` | 在 `src/content/docs/` 下建目录，然后往 `sidebar` 数组里加一项 `{ autogenerate: { directory: '目录名' } }` |
 | **调侧边栏顺序** | 文章的 `sidebar.order` | 数字小的在前。**同目录内不要重复**，否则内容检查会报错 |
 | **改站点标题 / 描述 / 联系方式** | `astro.config.mjs` | 顶部有 `SITE`、`REPO` 等常量 |
-| **改分享卡片图** | `scripts/generate-og.mjs` 顶部文案 | 改完跑 `npm run og`，**记得提交 `public/og.png`** |
+| **改分享卡片图** | `scripts/generate-og.mjs` 顶部文案 | 改完跑 `npm run og`，会生成 4 张（全站 + 课程/技能/链接），**记得一起提交** |
 | **标一篇内容过期了** | 文章 frontmatter | `status: outdated`（红色警告）或更新 `reviewedAt`（橙色自动提醒） |
 | **改「多久算过期」** | `content-policy.json` | 改 `staleAfterMonths`。**站点看门狗和 CI 检查同时生效** |
 | **看哪些内容还欠着** | 跑 `npm run check:content` | 会输出「债务总账」：待补作者 / 待核对页面 / 待核对链接 / 待补充资料 |
@@ -89,10 +96,23 @@ npm run dev        # http://localhost:4321
 npm run build              # 构建到 dist/
 npm run preview            # 预览构建产物
 npm run check              # 类型检查（astro check）
-npm run check:content      # 内容检查：死链、中文文件名、占位符、过期核对日期
+npm run check:content      # 内容检查：死链、中文文件名、占位符、过期核对日期、数据文件一致性
 npm run check:all          # 上面两个一起跑 ← 提 PR 前跑这个
 npm run check:content:strict  # 连「债务警告」也当错误（发布前用）
-npm run og                 # 重新生成社交分享卡片图（public/og.png）
+npm run verify             # 一键跑完：类型 + 内容 + 构建 + 结构化数据 + 资源 + 订阅守卫 ← 提 PR 前跑这个
+npm run check:links        # 实测所有校外链接是否可访问（需要联网，写 link-status.json）
+npm run verify:links       # 语义核对：抓页面比对标题/关键词，判断「地址还指向那个服务吗」
+npm run verify:links -- --apply   # 把结论 ok 的条目写回 links.ts（reviewedAt + verifiedBy: 'auto'）
+npm run check:e2e          # 用无头 Chrome 点一遍筛选/搜索 + Pagefind 中文检索（先 build + 起本地静态服务）
+npm run review:links       # 生成链接人工核对清单（.review/link-review.html，加 --open 直接打开）
+npm run review:links:apply -- <导出文件>          # 预览要写回的 reviewedAt（加 --write 才真的改）
+npm run courses            # 从 reference/ 重新生成课程资料索引（course-index.json）
+npm run courses:check      # 校验 course-index.json 与 reference/ 是否一致（CI 用）
+npm run check:feeds        # 校验 sitemap / RSS / robots（构建后跑）
+npm run check:jsonld       # 校验每页 JSON-LD（构建后跑）
+npm run check:assets       # 校验分享卡片尺寸与是否漏提交
+npm run measure:perf       # 本地实测页面字节数与请求数（无头 Chrome，无新依赖）
+npm run og                 # 重新生成社交分享卡片图：共 4 张（全站 public/og.png + 课程 public/og/courses.png、技能 public/og/skills.png、链接 public/og/links.png）
 npm run deploy             # 构建并部署到 Cloudflare Workers
 ```
 
@@ -110,6 +130,15 @@ npm run deploy             # 构建并部署到 Cloudflare Workers
 | **结构化数据** | `src/components/Head.astro` | 每页注入 JSON-LD `Article`。署名是占位符时署成「本站」这个组织，**不编造人名** |
 | **分享卡片图** | `scripts/generate-og.mjs` | 生成 1200×630 的 `public/og.png`，脚本可复现 |
 | **统一阈值** | `content-policy.json` | 看门狗和内容检查脚本读同一份配置，避免两边阈值漂移 |
+| **链接实测** | `scripts/check-links.ts` | 逐个请求所有校外链接，结果写进 `src/data/link-status.json`；页面上分成「实测可访问」（机器测的）和「人工核对」（人测的）两个角标 |
+| **课程资料索引** | `scripts/build-course-index.mjs` | 扫描 `reference/` 下几个公开资料库的目录结构，生成 `src/data/course-index.json`（142 门课 / 185 条资料），`/courses/` 页面的筛选数据全来自它 |
+| **更新日志与贡献者** | `src/pages/changelog.astro`、`src/pages/contributors.astro` | 构建时读 `git log` 生成，不需要手工维护名单；拿不到历史时页面自动降级 |
+| **交互冒烟测试** | `scripts/e2e-smoke.mjs` | 用无头 Chrome 真的点一遍课程筛选与链接搜索 —— 静态检查看不见「点了没反应」 |
+| **结构化数据校验** | `scripts/check-jsonld.mjs` | 构建后扫描每页 JSON-LD：必须是合法 JSON、同一页不能有两个抢同一 `@type` 的实体、面包屑 position 要连续、署名不能是占位符 |
+| **静态资源校验** | `scripts/check-assets.mjs` | 分享卡片图尺寸必须是 1200×630、文件不能是空的、页面引用的图必须真的存在 —— 防「图忘了提交，线上分享卡片 404」 |
+| **订阅与收录守卫** | `scripts/check-feeds.mjs` | sitemap 是否指向真实页面（含中文百分号编码的正确比对）、RSS 是否 0 条或缺字段、robots.txt 有没有 `Disallow: /` 把整站屏蔽 |
+| **性能基线** | `scripts/measure-perf.mjs` | 无头 Chrome 实测每页请求数、HTML gzip/原始字节、JS/CSS 体积与 DCL；数据记在 HANDOVER 的「性能基线」一节 |
+| **链接人工核对** | `scripts/review-links.ts` | 生成离线核对清单（localStorage 存进度），导出后自动把 `reviewedAt` 写回 `links.ts`；标记「有问题」的条目写进 `.review/link-issues.md` 等你处理 |
 
 ---
 
@@ -140,6 +169,9 @@ Tsinghua-guide/
 │  ├─ pages/                 自定义路由（不走 Starlight 的文档路由）
 │  │  ├─ stages/             按阶段浏览（自动聚合）
 │  │  ├─ tags/               按标签浏览（自动聚合）
+│  │  ├─ courses/            ★ 课程资料索引（可搜索、可筛选）+ 课程参考书目
+│  │  ├─ changelog.astro     更新日志（构建时读 git log）
+│  │  ├─ contributors.astro  贡献者（构建时读 git log）
 │  │  └─ rss.xml.ts          RSS feed
 │  ├─ components/
 │  │  ├─ Banner.astro           ★ 时效看门狗（覆盖 Starlight）
@@ -147,17 +179,38 @@ Tsinghua-guide/
 │  │  ├─ Footer.astro           文章元信息 + 免责声明（覆盖 Starlight）
 │  │  ├─ ArticleMeta.astro      阶段/标签/作者/核对日期
 │  │  ├─ ArticleGrid.astro      文章卡片网格
-│  │  ├─ LinkGrid.astro         常用链接卡片墙
+│  │  ├─ LinkGrid.astro         ★ 常用链接卡片墙（搜索 + 可达性角标）
+│  │  ├─ CourseExplorer.astro   ★ 课程索引的筛选界面（无 JS 也能读）
+│  │  ├─ CourseSkillMap.astro   ★ 课程 ↔ 技能映射表（数据来自课程索引）
+│  │  ├─ Checklist.astro        ★ 可勾选、会记住进度的清单（localStorage）
+│  │  ├─ CreditPlanner.astro    ★ 学分缺口拆解表（纯前端计算 + 导出 JSON）
+│  │  ├─ ArchiveDirectory.astro ★ 外部资料库地图
 │  │  └─ ResourceList.astro     资料下载列表
 │  ├─ data/
 │  │  ├─ links.ts            ★ 校内常用链接（改这里就更新页面）
+│  │  ├─ link-status.json    链接实测结果（`npm run check:links` 生成，别手改）
+│  │  ├─ courses.ts          ★ 资料库档案 + 课程索引的读取与链接组装
+│  │  ├─ course-index.json   课程资料索引（`npm run courses` 生成，别手改）
+│  │  ├─ archives.ts         不按课程组织的资源站 + 使用红线
+│  │  ├─ git.ts              git log 读取（更新日志 / 贡献者用）
 │  │  ├─ resources.ts        ★ 资料下载清单（改这里就更新页面）
 │  │  ├─ browse.ts           浏览页的 collection 查询（过滤规则只有一份）
 │  │  └─ policy.ts           时效策略（读 content-policy.json）
 │  └─ styles/custom.css      主题色（清华紫）与中文排版
 ├─ scripts/
 │  ├─ check-content.ts       内容检查（CI 里跑，会阻断部署）
+│  ├─ check-links.ts         校外链接实测（写 link-status.json）
+│  ├─ review-links.ts        人工核对清单生成 + 结果写回 links.ts
+│  ├─ e2e-smoke.mjs          交互冒烟测试（无头 Chrome）
+│  ├─ check-jsonld.mjs       结构化数据校验（构建后扫描 dist）
+│  ├─ check-assets.mjs       静态资源校验（分享卡片尺寸 / 是否漏提交）
+│  ├─ check-feeds.mjs        sitemap / RSS / robots 校验
+│  ├─ measure-perf.mjs       本地性能实测（无头 Chrome）
+│  ├─ build-course-index.mjs 课程资料索引生成（扫描 reference/）
 │  └─ generate-og.mjs        生成分享卡片图
+├─ reference/                ⚠️ 本地参考资料：克隆来的公开资料库（体积可达 10 GB，已在 .gitignore 里）
+├─ public/og.png             全站分享卡片图
+├─ public/og/                板块级分享卡片图（courses / skills / links）
 ├─ content-policy.json       ★ 时效阈值（看门狗与检查脚本共用）
 ├─ wrangler.jsonc            正式站配置
 └─ wrangler.preview.jsonc    PR 预览站配置
@@ -214,6 +267,110 @@ sidebar:
 - **资料下载**：编辑 `src/data/resources.ts`。`url` 留空或写 `'TODO'` 时页面显示「待补充」，不会渲染死链。
 
 **文件本体不要放进仓库**，只放第三方网盘外链。
+
+---
+
+## 课程资料索引是怎么来的
+
+`/courses/` 那一页的 142 门课、185 条资料**不是人肉抄的**，而是扫描出来的：
+
+```
+reference/REKCARC-TSC-UHT/         计算机系课程攻略（按学期分的课程目录）
+reference/WeiYangXueXi.github.io/  未央书院学习资料共享计划（mkdocs nav）
+reference/sast-skill-docs/         计算机系学生科协技能引导文档（课程↔技能映射）
+ssast-readme.github.io/            软件学院 ReadMe 互助文档（mkdocs nav）
+        │
+        │  npm run courses
+        ▼
+src/data/course-index.json         课程名 / 类别 / 学期 / 参考书目 / 资料库路径+类型
+        │
+        │  构建时读取（src/data/courses.ts 负责把路径拼成链接）
+        ▼
+/courses/                          可搜索、可按类别/类型/资料库筛选
+```
+
+几个刻意的设计：
+
+- **`reference/` 不进仓库。** 那几个资料库加起来十几 GB（大量 PDF），只在本地扫描用；
+  扫描结果 `course-index.json` 才提交，所以 CI 和别人的机器上都不需要它们。
+- **本站不镜像任何文件**，索引里存的是「资料库 + 库内路径」，链接指向原库。
+- **课程名会归一化**：上游目录里带老师姓名/昵称的（`面向对象程序设计基础-刘知远老师`）会被合并成课程名，
+  本站不出现对具体老师的指向。归一化规则写在 `scripts/build-course-index.mjs` 的 `NAME_OVERRIDES`。
+- **可达性优先**：校内 GitLab 镜像排在 GitHub 前面，因为校园网里 `github.com` 网页端打不开（实测结论见站点上的链接页）。
+
+资料库换了目录结构，跑一次 `npm run courses` 重新生成，然后提交 `src/data/course-index.json` 即可。
+
+## 链接为什么会自己变「打不开」
+
+`src/data/links.ts` 里的每条链接有两个独立的状态：
+
+链接的可信度分三层，页面上分三个角标显示，**别混成一个「可信 / 不可信」**：
+
+| 字段 / 产物 | 谁产生 | 能证明什么 |
+| --- | --- | --- |
+| `link-status.json` | `npm run check:links` | 网址能打开（HTTP < 400）。**只证明域名活着** |
+| `reviewedAt` + `verifiedBy: 'auto'` | `npm run verify:links` | 抓页面比对标题与关键词，确认**地址还指向那个服务**（看不到登录后的内容） |
+| `reviewedAt` + `verifiedBy: 'human'` | 人 | 有人真的点开用过。**只有这一层能确认入口没写错、功能还在** |
+
+页面上因此有三个角标，缺哪个就标哪个。`npm run check:content` 会提醒你：实测结果超过 12 个月没更新、
+某条链接实测失败、或者还有多少条没人人工核对过（进「债务总账」）。
+
+### 先跑脚本核对（能省掉大部分人工）
+
+```bash
+npm run verify:links              # 只核对：抓 39 个页面，比对标题与期望关键词，输出 ok / suspect / fail
+npm run verify:links -- --apply   # 把 ok 的写回 links.ts（reviewedAt + verifiedBy: 'auto'）
+```
+
+它会处理校园系统那些「看起来像坏了」的正常情况：GBK 老页面按声明编码解码、
+登录页没有 `<title>`、跳转到 `/users/sign_in` 之类的认证端点。证据留在
+`.review/link-verification.json`（状态码、最终地址、标题、命中与未命中的关键词），
+`suspect` / `fail` 的条目**不会**被写回，留给人看。
+
+:::caution[脚本核对 ≠ 人工核对]
+脚本能确认「这个地址打开的是清华的网络学堂」，但**看不到登录后的内容**，
+也发现不了「页面里功能挪了位置」。所以写回时标的是 `verifiedBy: 'auto'`，
+页面上显示「脚本核对」，与人工点开确认的「人工核对」区分开。
+:::
+
+### 人工核对链接（`npm run review:links`）
+
+「这个入口现在还是干这件事吗」只有人能判断。为此准备了一个**本地离线核对清单**：
+不用手改文件，也不用一条条复制网址。
+
+```bash
+npm run review:links -- --open        # 生成 .review/link-review.html 并自动打开
+```
+
+打开的页面里每条链接是一张卡片，显示名称、说明、网址、可达性、**脚本实测状态**和来源：
+
+| 操作 | 快捷键 | 说明 |
+| --- | --- | --- |
+| 打开链接 | <kbd>o</kbd> | 在新标签页打开，自己看内容对不对 |
+| 记「没问题」 | <kbd>y</kbd> | 这条就算人工核对过了 |
+| 记「有问题」 | <kbd>n</kbd> | 展开输入框：填**新地址**（搬走了）或**备注**（说清哪里不对） |
+| 上下移动 | <kbd>j</kbd> / <kbd>k</kbd> | |
+
+- 进度存在浏览器 **localStorage**，关掉页面不会丢；
+- 标记过的卡片**留在原位变暗**，不会因为消失而顶位、让你连着标错下一条；
+- 核对完点「导出 link-review.json」，然后：
+
+```bash
+npm run review:links:apply -- ~/Downloads/link-review.json          # 只看 diff，不改文件
+npm run review:links:apply -- ~/Downloads/link-review.json --write  # 写回 links.ts
+npm run check:content && npm run build
+```
+
+写回的规则：
+
+| 你的标记 | 结果 |
+| --- | --- |
+| ✓ 没问题 | 条目上写入 `reviewedAt: '<导出日期>'`，页面上的「人工核对：待补」消失 |
+| ✗ 有问题 + 填了新地址 | 替换 `url`，并同样记上 `reviewedAt`（你已经确认过新地址） |
+| ✗ 有问题 + 只写备注 | **不自动改**，写进 `.review/link-issues.md`，需要你自己决定怎么处理 |
+
+`review:links` 生成的东西都在 `.review/`（已在 `.gitignore` 里），不进仓库。
+判断标准只有一条：**点开后，这个入口还是不是干说明里的那件事**。
 
 ---
 

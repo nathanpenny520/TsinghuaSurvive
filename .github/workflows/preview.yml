@@ -49,9 +49,15 @@ jobs:
         id: content
         run: npm run check:content
 
+      - name: 课程索引一致性
+        run: npm run courses:check
+
       - name: 构建
         id: build
         run: npm run build
+
+      - name: 结构化数据与资源检查
+        run: npm run check:jsonld && npm run check:assets
 
       # 判断能不能拿到凭证。fork PR 与未配置 token 的仓库都会走到这里。
       - name: 检查预览凭证

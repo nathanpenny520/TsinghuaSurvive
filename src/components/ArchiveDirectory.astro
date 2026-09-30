@@ -1,0 +1,234 @@
+---
+/**
+ * 资料库地图：把 4 个「能按课程查」的资料库和 7 个「不按课程组织」的资源站
+ * 用同一套卡片渲染出来，都带可达性角标 —— 在校园网里能不能打开，比链接本身更重要。
+ */
+import { archives, archiveOrder, courseIndexSummary } from '../data/courses';
+import { extraArchives, usageRules } from '../data/archives';
+
+const stats = courseIndexSummary();
+
+const REACH_CLASS: Record<string, string> = {
+  校园网: 'campus',
+  公网: 'public',
+  需代理: 'proxy',
+  未实测: 'unknown',
+};
+const reachClass = (reach: string) => REACH_CLASS[reach] ?? 'unknown';
+---
+
+<section class="directory">
+  <h2>能按课程查的四个资料库</h2>
+  <p class="directory__lead">
+    这四个库的目录已经被扫成了<a href="/courses/">课程资料索引</a>，可以按课程名、
+    资料类型直接筛。下面写的是各自的来头与边界。
+  </p>
+
+  <div class="cards">
+    {archiveOrder.map((id) => {
+      const archive = archives[id];
+      return (
+        <article class="card">
+          <header class="card__head">
+            <h3>{archive.short}</h3>
+            <span class="card__count">{stats.perArchive[id]} 门课</span>
+          </header>
+          <p class="card__org">{archive.org}</p>
+          <p>{archive.desc}</p>
+          <p>
+            <strong>强项：</strong>
+            {archive.strength}
+          </p>
+          <p class="card__caution">
+            <strong>注意：</strong>
+            {archive.caution}
+          </p>
+          <p class="card__license">许可：{archive.license}</p>
+          <ul class="card__links">
+            {archive.links.map((link) => (
+              <li>
+                <a href={link.url} target="_blank" rel="noopener noreferrer">
+                  {link.label}
+                </a>
+                <span class={`reach reach--${reachClass(link.reach)}`}>{link.reach}</span>
+                {link.note && <span class="card__note">{link.note}</span>}
+              </li>
+            ))}
+          </ul>
+        </article>
+      );
+    })}
+  </div>
+
+  <h2>其他值得知道的资源站</h2>
+  <p class="directory__lead">这些不按课程组织，但在特定场景下更好用。</p>
+
+  <div class="cards">
+    {extraArchives.map((archive) => (
+      <article class="card">
+        <header class="card__head">
+          <h3>{archive.short}</h3>
+        </header>
+        <p class="card__org">
+          {archive.org} · <span class="card__full">{archive.name}</span>
+        </p>
+        <p>{archive.desc}</p>
+        <p>
+          <strong>什么时候用：</strong>
+          {archive.strength}
+        </p>
+        <p class="card__caution">
+          <strong>注意：</strong>
+          {archive.caution}
+        </p>
+        <p class="card__license">许可：{archive.license}</p>
+        <ul class="card__links">
+          {archive.links.map((link) => (
+            <li>
+              <a href={link.url} target="_blank" rel="noopener noreferrer">
+                {link.label}
+              </a>
+              <span class={`reach reach--${reachClass(link.reach)}`}>{link.reach}</span>
+              {link.note && <span class="card__note">{link.note}</span>}
+            </li>
+          ))}
+        </ul>
+      </article>
+    ))}
+  </div>
+
+  <h2>用这些资料时，不能越过的那几条线</h2>
+  <ol class="rules">
+    {usageRules.map((rule) => (
+      <li>
+        <strong>{rule.title}</strong>
+        <p>{rule.body}</p>
+      </li>
+    ))}
+  </ol>
+</section>
+
+<style>
+  .directory__lead {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+    gap: 0.9rem;
+    margin: 1rem 0 2rem;
+  }
+
+  .card {
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--sl-color-gray-6);
+    border-radius: 0.5rem;
+  }
+
+  .card__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .card__head h3 {
+    margin: 0;
+    font-size: var(--sl-text-h5);
+  }
+
+  .card__count {
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-accent-high);
+  }
+
+  .card p {
+    margin: 0.4rem 0;
+    font-size: var(--sl-text-sm);
+    line-height: 1.7;
+  }
+
+  .card__org,
+  .card__license,
+  .card__note,
+  .card__full {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+  }
+
+  .card__caution {
+    padding-left: 0.6rem;
+    border-left: 2px solid var(--sl-color-gray-5);
+  }
+
+  .card__links {
+    list-style: none;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.3rem;
+    font-size: var(--sl-text-sm);
+  }
+
+  .card__links li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+
+  .reach {
+    font-size: var(--sl-text-xs);
+    border-radius: 0.3rem;
+    padding: 0 0.35rem;
+    border: 1px solid var(--sl-color-gray-5);
+    color: var(--sl-color-gray-3);
+    white-space: nowrap;
+  }
+
+  .reach--campus {
+    color: hsl(150, 60%, 70%);
+    border-color: hsl(150, 40%, 35%);
+  }
+
+  .reach--public {
+    color: hsl(210, 60%, 72%);
+    border-color: hsl(210, 40%, 40%);
+  }
+
+  .reach--proxy {
+    color: hsl(35, 80%, 70%);
+    border-color: hsl(35, 50%, 40%);
+  }
+
+  :global(:root[data-theme='light']) .reach--campus {
+    color: hsl(155, 70%, 25%);
+    border-color: hsl(155, 40%, 60%);
+  }
+
+  :global(:root[data-theme='light']) .reach--public {
+    color: hsl(212, 70%, 32%);
+    border-color: hsl(212, 40%, 62%);
+  }
+
+  :global(:root[data-theme='light']) .reach--proxy {
+    color: hsl(28, 80%, 32%);
+    border-color: hsl(28, 50%, 60%);
+  }
+
+  .rules {
+    display: grid;
+    gap: 0.8rem;
+    padding-left: 1.2rem;
+  }
+
+  .rules li p {
+    margin: 0.25rem 0 0;
+    font-size: var(--sl-text-sm);
+    line-height: 1.75;
+    color: var(--sl-color-gray-2);
+  }
+</style>

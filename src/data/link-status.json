@@ -1,0 +1,165 @@
+{
+  "$comment": "由 npm run check:links 生成，请勿手工编辑。只证明网址当前可访问（HTTP < 400），不代表页面内容已人工核对。",
+  "checkedAt": "2026-09-30",
+  "network": "未标注（本地网络）",
+  "total": 39,
+  "reachable": 39,
+  "results": {
+    "https://zhjw.cic.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://zhjwxk.cic.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://learn.tsinghua.edu.cn/f/wlxt/index/course/student/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://www.yuketang.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://transcript.student.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://szsj.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://info.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://mails.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://id.tsinghua.edu.cn/f/welcome": {
+      "ok": true,
+      "status": 200
+    },
+    "https://cloud.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://its.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://usereg.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://webvpn.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://lib.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://ecollection.lib.tsinghua.edu.cn/databasenav/entrance/databaseNav": {
+      "ok": true,
+      "status": 200
+    },
+    "https://ecollection.lib.tsinghua.edu.cn/journalnav/home": {
+      "ok": true,
+      "status": 200
+    },
+    "https://workshop.learning.tsinghua.edu.cn/web/index.php/materials/index": {
+      "ok": true,
+      "status": 200
+    },
+    "https://overleaf.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://git.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://mirrors.tuna.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://dsa.cs.tsinghua.edu.cn/oj/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://thos.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://oa.student.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://student.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://www.sports.tsinghua.edu.cn/venue/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://sa.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://yuketang.tsinghua.edu.cn/ai/learning-center": {
+      "ok": true,
+      "status": 200
+    },
+    "https://www.maic.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://madmodel.cs.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://thu.services/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://career.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://www.chsi.com.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://www.bjyouth.net/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://www.join-tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://www.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://news.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://www.tsinghua.edu.cn/yxsz.htm": {
+      "ok": true,
+      "status": 200
+    },
+    "https://vi.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://www.cnki.net/": {
+      "ok": true,
+      "status": 200
+    }
+  }
+}

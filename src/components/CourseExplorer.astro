@@ -1,0 +1,438 @@
+---
+/**
+ * 课程资料索引浏览器。
+ *
+ * 三个刻意的设计：
+ * 1. **不用 JavaScript 也能读**：所有卡片构建时渲染成静态 HTML，筛选只是「把不匹配的藏起来」，
+ *    控件由 JS 打开时才显示。关掉 JS 就是一张完整的课程清单。
+ * 2. **样式走全局，不用 Astro 的作用域类**：作用域会给页面上每个元素加一个
+ *    astro-xxxxxxxx 类，142 张卡片 + 185 条资料 ≈ 2500 个元素，光这些类名就有 40 KB。
+ *    这里的类名统一带 cg- 前缀，不会和别处撞车。
+ * 3. **搜索靠卡片自身文本**：不再往每个卡片上写一份 data-search 副本（那又是 14 KB），
+ *    JS 启动时把 textContent 读一次并缓存。
+ */
+import {
+  archives,
+  archiveOrder,
+  courses,
+  kindsOfCourse,
+  sourceLink,
+  sourceGithubLink,
+  sortKinds,
+  ALL_KINDS,
+} from '../data/courses';
+
+const kindsInUse = ALL_KINDS.filter((kind) => courses.some((c) => kindsOfCourse(c).includes(kind)));
+
+/** 收敛一下长文本，避免卡片被参考书目撑爆 */
+const clamp = (items: string[], max: number) => ({
+  shown: items.slice(0, max),
+  rest: Math.max(0, items.length - max),
+});
+
+const reachClass: Record<string, string> = {
+  校园网: 'campus',
+  公网: 'public',
+  需代理: 'proxy',
+  未实测: 'unknown',
+};
+
+/** 同一门课的资料按资料库分组：资料库名只出现一次（原来每条资料都重复一遍） */
+function groupSources(course: (typeof courses)[number]) {
+  const map = new Map<string, typeof course.sources>();
+  for (const source of course.sources) {
+    map.set(source.archive, [...(map.get(source.archive) ?? []), source]);
+  }
+  return [...map.entries()].map(([archive, items]) => ({
+    archive,
+    label: archives[archive as keyof typeof archives].short,
+    items,
+  }));
+}
+---
+
+<div class="explorer" data-course-explorer>
+  <div class="explorer__controls" hidden>
+    <div class="explorer__row">
+      <label class="explorer__search">
+        <span class="explorer__search-icon" aria-hidden="true">⌕</span>
+        <input
+          type="search"
+          data-course-search
+          placeholder="搜课程名、资料类型、资料库……"
+          aria-label="搜索课程"
+          autocomplete="off"
+        />
+      </label>
+      <button type="button" class="cg-chip explorer__reset" data-course-reset hidden>清除筛选</button>
+      <span class="explorer__count" data-course-count aria-live="polite"></span>
+    </div>
+
+    <div class="explorer__filters">
+      <div class="explorer__filter">
+        <span class="explorer__filter-label">课程类别</span>
+        <div class="explorer__chips">
+          {courses
+            .map((c) => c.category)
+            .filter((value, i, arr) => arr.indexOf(value) === i)
+            .map((category) => (
+              <button
+                type="button"
+                class="cg-chip"
+                data-filter="category"
+                data-value={category}
+                aria-pressed="false"
+              >
+                {category}
+              </button>
+            ))}
+        </div>
+      </div>
+
+      <div class="explorer__filter">
+        <span class="explorer__filter-label">资料类型</span>
+        <div class="explorer__chips">
+          {kindsInUse.map((kind) => (
+            <button type="button" class="cg-chip" data-filter="kind" data-value={kind} aria-pressed="false">
+              {kind}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div class="explorer__filter">
+        <span class="explorer__filter-label">在哪个资料库</span>
+        <div class="explorer__chips">
+          {archiveOrder.map((id) => (
+            <button
+              type="button"
+              class="cg-chip"
+              data-filter="archive"
+              data-value={id}
+              aria-pressed="false"
+              title={archives[id].name}
+            >
+              {archives[id].short}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="explorer__empty" data-course-empty hidden>
+    没有匹配的课程。换个关键词，或者点「清除筛选」。
+  </p>
+
+  <ul class="cg-list">
+    {courses.map((course) => {
+      const kinds = sortKinds(kindsOfCourse(course));
+      const books = clamp(course.books, 2);
+      const groups = groupSources(course);
+      return (
+        <li
+          class="cg-course"
+          data-course
+          data-category={course.category}
+          data-kinds={kinds.join(' ')}
+          data-archives={course.sources.map((s) => s.archive).join(' ')}
+        >
+          <div class="cg-head">
+            <h3 class="cg-name">{course.name}</h3>
+            <span class="cg-meta">{course.category}</span>
+            {course.terms.map((term) => (
+              <span class="cg-meta">{term}</span>
+            ))}
+          </div>
+
+          {kinds.length > 0 && (
+            <div class="cg-kinds">
+              {kinds.map((kind) => (
+                <span class="cg-kind">{kind}</span>
+              ))}
+            </div>
+          )}
+
+          <ul class="cg-sources">
+            {groups.map((group) => (
+              <li class="cg-group">
+                <span class="cg-archive">{group.label}</span>
+                <span class="cg-links">
+                  {group.items.map((source) => {
+                    const link = sourceLink(source);
+                    const github = sourceGithubLink(source);
+                    return (
+                      <span class="cg-link">
+                        <a href={link.url} target="_blank" rel="noopener">
+                          {source.topics?.length
+                            ? source.topics.join('、')
+                            : (source.label ?? source.path.split('/').slice(-1)[0])}
+                        </a>
+                        <span class={`cg-reach cg-reach--${reachClass[link.reach] ?? 'unknown'}`}>
+                          {link.reach}
+                        </span>
+                        {source.files !== undefined && (
+                          <span class="cg-file">{source.files} 个文件</span>
+                        )}
+                        {github && (
+                          <a class="cg-alt" href={github} target="_blank" rel="noopener">
+                            GitHub
+                          </a>
+                        )}
+                      </span>
+                    );
+                  })}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          {course.books.length > 0 && (
+            <details class="cg-books">
+              <summary>参考书目（{course.books.length}）</summary>
+              <ul>
+                {books.shown.map((book) => (
+                  <li>{book}</li>
+                ))}
+              </ul>
+              {books.rest > 0 && <p class="cg-books-more">还有 {books.rest} 条，见资料库原文。</p>}
+            </details>
+          )}
+        </li>
+      );
+    })}
+  </ul>
+</div>
+
+<style is:global>
+  /* 类名统一 cg- 前缀（course guide）。用全局样式，避免 Astro 给每个元素加作用域类。 */
+  .explorer { margin-top: 1.25rem; }
+
+  .explorer__controls {
+    margin: 0 0 1.75rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.6rem;
+    background: var(--sl-color-gray-7, transparent);
+  }
+
+  .explorer__row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+
+  .explorer__search {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex: 1 1 16rem;
+    padding: 0.35rem 0.7rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.45rem;
+    background: var(--sl-color-bg);
+  }
+
+  .explorer__search-icon { color: var(--sl-color-gray-3); }
+
+  .explorer__search input {
+    flex: 1;
+    border: 0;
+    background: transparent;
+    color: var(--sl-color-white);
+    font-size: var(--sl-text-sm);
+    padding: 0.25rem 0;
+    outline: none;
+  }
+
+  .explorer__reset { min-height: 2rem; }
+
+  .explorer__count {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .explorer__filters { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.9rem; }
+
+  .explorer__filter { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; }
+
+  .explorer__filter-label {
+    min-width: 4.5rem;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+  }
+
+  .explorer__chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+
+  .cg-chip {
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-xs);
+    min-height: 1.9rem;
+    padding: 0.2rem 0.6rem;
+    cursor: pointer;
+  }
+
+  .cg-chip:hover { border-color: var(--sl-color-accent); color: var(--sl-color-accent-high); }
+
+  .cg-chip:focus-visible { outline: 2px solid var(--sl-color-accent); outline-offset: 2px; }
+
+  .cg-chip[aria-pressed='true'] {
+    border-color: var(--sl-color-accent);
+    background: var(--sl-color-accent-low);
+    color: var(--sl-color-accent-high);
+    font-weight: 600;
+  }
+
+  .explorer__empty {
+    padding: 1.5rem;
+    border: 1px dashed var(--sl-color-gray-5);
+    border-radius: 0.6rem;
+    color: var(--sl-color-gray-3);
+    text-align: center;
+  }
+
+  .cg-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.9rem; }
+
+  .cg-course {
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--sl-color-gray-6);
+    border-left: 3px solid var(--sl-color-accent);
+    border-radius: 0.5rem;
+  }
+
+  .cg-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.45rem; }
+
+  .cg-name { margin: 0; font-size: var(--sl-text-h5); font-weight: 600; }
+
+  .cg-meta {
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.3rem;
+    padding: 0 0.35rem;
+  }
+
+  .cg-kinds { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.5rem; }
+
+  .cg-kind {
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-accent-high);
+    background: var(--sl-color-accent-low);
+    border-radius: 0.3rem;
+    padding: 0.05rem 0.4rem;
+  }
+
+  .cg-sources { list-style: none; margin: 0.7rem 0 0; padding: 0; display: grid; gap: 0.35rem; }
+
+  .cg-group { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; font-size: var(--sl-text-sm); }
+
+  .cg-archive { color: var(--sl-color-gray-3); font-size: var(--sl-text-xs); min-width: 7.5rem; }
+
+  .cg-links { display: inline-flex; flex-wrap: wrap; gap: 0.9rem; }
+
+  .cg-link { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 0.35rem; }
+
+  .cg-alt, .cg-file { color: var(--sl-color-gray-3); font-size: var(--sl-text-xs); }
+
+  .cg-reach {
+    font-size: var(--sl-text-xs);
+    border-radius: 0.3rem;
+    padding: 0 0.35rem;
+    border: 1px solid var(--sl-color-gray-5);
+    color: var(--sl-color-gray-3);
+    white-space: nowrap;
+  }
+
+  .cg-reach--campus { color: hsl(150, 60%, 70%); border-color: hsl(150, 40%, 35%); }
+  .cg-reach--public { color: hsl(210, 60%, 72%); border-color: hsl(210, 40%, 40%); }
+  .cg-reach--proxy { color: hsl(35, 80%, 70%); border-color: hsl(35, 50%, 40%); }
+
+  .cg-books { margin-top: 0.6rem; font-size: var(--sl-text-sm); }
+  .cg-books summary {
+    cursor: pointer;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+    /* 触控目标下限：23px 高太窄，补到 24px 以上 */
+    min-height: 1.6rem;
+    padding: 0.2rem 0;
+  }
+  .cg-books ul { margin: 0.4rem 0 0; padding-left: 1.1rem; color: var(--sl-color-gray-2); }
+  .cg-books-more { margin: 0.3rem 0 0; color: var(--sl-color-gray-3); font-size: var(--sl-text-xs); }
+
+  :root[data-theme='light'] .cg-reach--campus { color: hsl(155, 70%, 25%); border-color: hsl(155, 40%, 60%); }
+  :root[data-theme='light'] .cg-reach--public { color: hsl(212, 70%, 32%); border-color: hsl(212, 40%, 62%); }
+  :root[data-theme='light'] .cg-reach--proxy { color: hsl(28, 80%, 32%); border-color: hsl(28, 50%, 60%); }
+</style>
+
+<script>
+  /**
+   * 筛选：卡片全部已渲染，这里只负责显示/隐藏。
+   * 多个筛选条件之间是「与」关系；搜索词按空格拆开，每个词都要命中。
+   * 匹配目标读卡片自身的 textContent（启动时缓存一份），不再往 DOM 上塞副本。
+   */
+  const explorer = document.querySelector<HTMLElement>('[data-course-explorer]');
+  if (explorer) {
+    const cards = [...explorer.querySelectorAll<HTMLElement>('[data-course]')];
+    const haystack = cards.map((card) => card.textContent?.toLowerCase() ?? '');
+    const controls = explorer.querySelector<HTMLElement>('.explorer__controls');
+    const input = explorer.querySelector<HTMLInputElement>('[data-course-search]');
+    const count = explorer.querySelector<HTMLElement>('[data-course-count]');
+    const reset = explorer.querySelector<HTMLButtonElement>('[data-course-reset]');
+    const empty = explorer.querySelector<HTMLElement>('[data-course-empty]');
+    const chips = [...explorer.querySelectorAll<HTMLButtonElement>('.cg-chip')];
+
+    if (controls) controls.hidden = false;
+
+    const active = { category: new Set<string>(), kind: new Set<string>(), archive: new Set<string>() };
+
+    const apply = () => {
+      const query = (input?.value ?? '').trim().toLowerCase();
+      const words = query ? query.split(/\s+/) : [];
+      let visible = 0;
+
+      cards.forEach((card, index) => {
+        const text = haystack[index] ?? '';
+        const matchQuery = words.every((word) => text.includes(word));
+        const matchCategory = !active.category.size || active.category.has(card.dataset.category ?? '');
+        const kinds = (card.dataset.kinds ?? '').split(' ');
+        const archives = (card.dataset.archives ?? '').split(' ');
+        const matchKind = !active.kind.size || [...active.kind].every((k) => kinds.includes(k));
+        const matchArchive =
+          !active.archive.size || [...active.archive].every((a) => archives.includes(a));
+
+        const show = matchQuery && matchCategory && matchKind && matchArchive;
+        card.hidden = !show;
+        if (show) visible += 1;
+      });
+
+      if (count) count.textContent = `显示 ${visible} / ${cards.length} 门课`;
+      if (empty) empty.hidden = visible !== 0;
+      const hasFilter = Boolean(query) || Object.values(active).some((set) => set.size);
+      if (reset) reset.hidden = !hasFilter;
+    };
+
+    input?.addEventListener('input', apply);
+
+    for (const chip of chips) {
+      chip.addEventListener('click', () => {
+        const filter = chip.dataset.filter as keyof typeof active;
+        const value = chip.dataset.value ?? '';
+        if (!filter || !value) return;
+        const set = active[filter];
+        if (set.has(value)) set.delete(value);
+        else set.add(value);
+        chip.setAttribute('aria-pressed', String(set.has(value)));
+        apply();
+      });
+    }
+
+    reset?.addEventListener('click', () => {
+      if (input) input.value = '';
+      for (const set of Object.values(active)) set.clear();
+      for (const chip of chips) chip.setAttribute('aria-pressed', 'false');
+      apply();
+    });
+
+    apply();
+  }
+</script>

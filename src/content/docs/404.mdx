@@ -1,0 +1,59 @@
+---
+title: 页面不存在
+description: 这个地址没有对应的内容，可能是链接过期或者网址打错了。这里有几个最常被找的入口。
+template: splash
+sidebar:
+  hidden: true
+pagefind: false
+---
+
+import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
+
+这个页面不见了。可能是链接过期了（我们会调整文章的网址），也可能是网址打错了。
+
+先试试右上角的**搜索**（或按 <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd>）——搜两三个字的关键词命中率最高，比如「绩点」「选课」「报销」。
+
+或者直接从下面这些最常被找的入口进去：
+
+<CardGrid>
+  <LinkCard
+    title="课程资料索引"
+    href="/courses/"
+    description="142 门课分别在哪个公开资料库有往年题、笔记、答案。"
+  />
+  <LinkCard
+    title="校内常用链接"
+    href="/guides/links/"
+    description="选课、成绩、邮箱、图书馆、报销、场馆——带可达性角标。"
+  />
+  <LinkCard
+    title="技能入门"
+    href="/skills/"
+    description="Git、LaTeX、命令行、文献管理，从「第一次真正用到」讲起。"
+  />
+  <LinkCard
+    title="新生报到清单"
+    href="/freshman/arrival-checklist/"
+    description="出发前、到校当天、第一周，可在线勾选。"
+  />
+  <LinkCard
+    title="学分缺口拆解表"
+    href="/academics/credit-planner/"
+    description="把培养方案拆成一张表，自动算还差多少学分。"
+  />
+  <LinkCard
+    title="按标签浏览"
+    href="/tags/"
+    description="已经知道要找什么（选课、绩点、保研、食堂……）时最快。"
+  />
+</CardGrid>
+
+## 想帮忙修一下
+
+如果你确定这个地址以前是好的，欢迎到 [GitHub Issues](https://github.com/nathanpenny520/TsinghuaSurvive/issues/new) 说一声，
+顺便告诉我们**是从哪里点进来的**——这样我们能找到是哪一页的链接过期了。
+
+<Aside type="tip" title="站内链接是我们自己查的">
+每次构建前，`scripts/check-content.ts` 会检查所有站内链接指向的页面是否存在；
+如果这一页是站内某篇文章链接过来的，那说明它漏过了检查，告诉我们我们会补上。
+</Aside>

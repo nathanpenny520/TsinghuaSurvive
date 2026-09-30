@@ -1,0 +1,3155 @@
+{
+  "$comment": "由 scripts/build-course-index.mjs 从 reference/ 下的公开资料库生成，请勿手工编辑。重新生成：node scripts/build-course-index.mjs",
+  "categories": [
+    "数学",
+    "物理",
+    "化学与生物",
+    "计算机与信息",
+    "思政",
+    "外语",
+    "通识与人文",
+    "体育",
+    "其他"
+  ],
+  "courses": [
+    {
+      "name": "常微分方程",
+      "category": "数学",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/professional/maths/ordinary_differential_equation",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "常微分方程"
+        }
+      ]
+    },
+    {
+      "name": "抽象代数学",
+      "category": "数学",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "readme",
+          "path": "note/abstract_algebra/abstract_algebra_notes",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "抽象代数学课程笔记"
+        }
+      ]
+    },
+    {
+      "name": "初等概率论",
+      "category": "数学",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "readme",
+          "path": "note/probability/probability",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "初等概率论课程笔记"
+        }
+      ]
+    },
+    {
+      "name": "初等数论",
+      "category": "数学",
+      "terms": [
+        "大二下"
+      ],
+      "books": [
+        "H.Rosen,Elementary number theory and its applications, sixth edition,Pearson education Asia limited and China machine press,2010"
+      ],
+      "sources": [
+        {
+          "archive": "readme",
+          "path": "note/number-theory/theoryL1",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "第一章"
+        },
+        {
+          "archive": "readme",
+          "path": "note/number-theory/theoryL2",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "第二章"
+        },
+        {
+          "archive": "readme",
+          "path": "note/number-theory/theoryL3",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "第三章"
+        },
+        {
+          "archive": "rekcarc",
+          "path": "大二下/初等数论",
+          "kinds": [
+            "往年题",
+            "笔记",
+            "答案"
+          ],
+          "files": 17
+        }
+      ]
+    },
+    {
+      "name": "复变函数引论",
+      "category": "数学",
+      "terms": [
+        "大二上"
+      ],
+      "books": [
+        "复变函数(西安交通大学编)"
+      ],
+      "sources": [
+        {
+          "archive": "readme",
+          "path": "note/complex-function/readme",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "复变笔记"
+        },
+        {
+          "archive": "rekcarc",
+          "path": "大二上/复变函数引论",
+          "kinds": [
+            "往年题",
+            "答案",
+            "笔记",
+            "作业",
+            "速查表"
+          ],
+          "files": 74
+        },
+        {
+          "archive": "weiyang",
+          "path": "courses/basic/maths/complex_func",
+          "kinds": [
+            "课程资料",
+            "答案",
+            "作业"
+          ],
+          "label": "介绍"
+        }
+      ]
+    },
+    {
+      "name": "概率论",
+      "category": "数学",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/basic/maths/probability",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "概率论"
+        }
+      ]
+    },
+    {
+      "name": "概率论数理统计",
+      "category": "数学",
+      "terms": [
+        "大二下"
+      ],
+      "books": [
+        "概率论与数理统计，陈希孺"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大二下/概率论数理统计",
+          "kinds": [
+            "往年题",
+            "答案",
+            "笔记",
+            "作业",
+            "课件"
+          ],
+          "files": 144
+        }
+      ]
+    },
+    {
+      "name": "高等数值分析",
+      "category": "数学",
+      "terms": [
+        "研究生"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "研究生/高等数值分析",
+          "kinds": [
+            "往年题",
+            "作业",
+            "课件"
+          ],
+          "files": 23
+        }
+      ]
+    },
+    {
+      "name": "高等微积分",
+      "category": "数学",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/professional/maths/advanced_calculus",
+          "kinds": [
+            "课程资料",
+            "答案",
+            "作业"
+          ],
+          "label": "介绍"
+        }
+      ]
+    },
+    {
+      "name": "高等线性代数选讲",
+      "category": "数学",
+      "terms": [
+        "大一下"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一下/高等线性代数选讲",
+          "kinds": [
+            "往年题",
+            "答案",
+            "作业",
+            "大作业",
+            "课件",
+            "笔记"
+          ],
+          "files": 86
+        }
+      ]
+    },
+    {
+      "name": "高等线性代数选讲（英）",
+      "category": "数学",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/professional/maths/advanced_algebra_selected",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "高等线性代数选讲（英）"
+        }
+      ]
+    },
+    {
+      "name": "基础泛函分析",
+      "category": "数学",
+      "terms": [
+        "研究生"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "研究生/基础泛函分析",
+          "kinds": [
+            "课程资料"
+          ],
+          "files": 1
+        }
+      ]
+    },
+    {
+      "name": "基础拓扑学",
+      "category": "数学",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/professional/maths/fundamental_topology",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "基础拓扑学"
+        }
+      ]
+    },
+    {
+      "name": "离散数学",
+      "category": "数学",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/basic/engineer_info/discrete_mathematics",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "离散数学"
+        }
+      ]
+    },
+    {
+      "name": "离散数学(1)",
+      "category": "数学",
+      "terms": [
+        "大一上"
+      ],
+      "books": [
+        "数理逻辑与集合论(第2版)，石纯一等编著，清华大学出版社."
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一上/离散数学(1)",
+          "kinds": [
+            "往年题",
+            "答案",
+            "笔记",
+            "课件",
+            "作业"
+          ],
+          "files": 51
+        }
+      ]
+    },
+    {
+      "name": "离散数学(2)",
+      "category": "数学",
+      "terms": [
+        "大一下"
+      ],
+      "books": [
+        "戴一奇 胡冠章 陈卫，《图论与代数结构》，清华大学出版社"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一下/离散数学(2)",
+          "kinds": [
+            "往年题",
+            "作业",
+            "答案",
+            "课件",
+            "实验"
+          ],
+          "files": 29
+        },
+        {
+          "archive": "weiyang",
+          "path": "courses/basic/engineer_info/discrete_mathematics_2",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "离散数学(2)"
+        }
+      ]
+    },
+    {
+      "name": "数学实验",
+      "category": "数学",
+      "terms": [
+        "大三下"
+      ],
+      "books": [
+        "大学数学实验 姜启源等 清华大学出版社,2005."
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三下/数学实验",
+          "kinds": [
+            "往年题",
+            "答案",
+            "实验",
+            "作业"
+          ],
+          "files": 16
+        }
+      ]
+    },
+    {
+      "name": "数值分析",
+      "category": "数学",
+      "terms": [
+        "大三下"
+      ],
+      "books": [
+        "数值分析与算法（第2版，第3次印刷）喻文健 编著，清华大学出版社，2015年"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三下/数值分析",
+          "kinds": [
+            "速查表",
+            "往年题",
+            "答案",
+            "笔记",
+            "课件",
+            "作业",
+            "实验"
+          ],
+          "files": 34
+        }
+      ]
+    },
+    {
+      "name": "随机数学方法",
+      "category": "数学",
+      "terms": [
+        "大二下"
+      ],
+      "books": [
+        "大学数学：随机数学（第二版），萧铁树主编；钱敏平、叶俊编著，高等教育出版社，2004年"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大二下/随机数学方法",
+          "kinds": [
+            "往年题",
+            "速查表",
+            "答案"
+          ],
+          "files": 104
+        }
+      ]
+    },
+    {
+      "name": "微积分",
+      "category": "数学",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/basic/maths/calculus",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "微积分"
+        }
+      ]
+    },
+    {
+      "name": "微积分A(1)",
+      "category": "数学",
+      "terms": [
+        "大一上"
+      ],
+      "books": [
+        "高等微积分教程（上），刘智新，闫浩，章纪民编著，清华大学出版社"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一上/微积分A(1)",
+          "kinds": [
+            "大作业",
+            "往年题",
+            "答案",
+            "笔记",
+            "作业",
+            "课件"
+          ],
+          "files": 147
+        }
+      ]
+    },
+    {
+      "name": "微积分A(2)",
+      "category": "数学",
+      "terms": [
+        "大一下"
+      ],
+      "books": [
+        "高等微积分教程（下），刘智新，闫浩，章纪民编著，清华大学出版社"
+      ],
+      "sources": [
+        {
+          "archive": "readme",
+          "path": "note/calculus/A2L1",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "第一讲多元函数的连续性"
+        },
+        {
+          "archive": "readme",
+          "path": "note/calculus/A2L2",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "第二讲多元函数的极限"
+        },
+        {
+          "archive": "readme",
+          "path": "note/calculus/A2L3",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "第三讲多元函数的导数和微分"
+        },
+        {
+          "archive": "readme",
+          "path": "note/calculus/A2L4",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "第四讲高阶导数与泰勒公式"
+        },
+        {
+          "archive": "readme",
+          "path": "note/calculus/A2L5",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "第五讲极值、临界点"
+        },
+        {
+          "archive": "rekcarc",
+          "path": "大一下/微积分A(2)",
+          "kinds": [
+            "往年题",
+            "答案",
+            "笔记",
+            "课件",
+            "作业"
+          ],
+          "files": 109
+        }
+      ]
+    },
+    {
+      "name": "线性代数",
+      "category": "数学",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/basic/maths/linear_algebra",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "线性代数"
+        }
+      ]
+    },
+    {
+      "name": "线性代数(1)",
+      "category": "数学",
+      "terms": [
+        "大一上"
+      ],
+      "books": [
+        "Introduction to Linear Algebra，Gilbert Strang，清华大学出版社"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一上/线性代数(1)",
+          "kinds": [
+            "大作业",
+            "笔记",
+            "往年题",
+            "答案",
+            "课件",
+            "书目"
+          ],
+          "files": 66
+        }
+      ]
+    },
+    {
+      "name": "线性代数(2)",
+      "category": "数学",
+      "terms": [
+        "大一下"
+      ],
+      "books": [
+        "俞正光，林润亮，鲁自群，《线性代数与几何(下)》"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一下/线性代数(2)",
+          "kinds": [
+            "往年题",
+            "答案",
+            "作业"
+          ],
+          "files": 54
+        }
+      ]
+    },
+    {
+      "name": "应用近世代数",
+      "category": "数学",
+      "terms": [
+        "研究生"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "研究生/应用近世代数",
+          "kinds": [
+            "往年题",
+            "作业"
+          ],
+          "files": 15
+        }
+      ]
+    },
+    {
+      "name": "应用随机过程",
+      "category": "数学",
+      "terms": [
+        "研究生"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "研究生/应用随机过程",
+          "kinds": [
+            "往年题"
+          ],
+          "files": 8
+        }
+      ]
+    },
+    {
+      "name": "最优化方法",
+      "category": "数学",
+      "terms": [
+        "研究生"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "研究生/最优化方法",
+          "kinds": [
+            "课程资料"
+          ],
+          "files": 1
+        }
+      ]
+    },
+    {
+      "name": "大学物理（英文教学班）",
+      "category": "物理",
+      "terms": [
+        "大一下",
+        "大二上"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一下/大学物理英-老毕",
+          "kinds": [
+            "往年题"
+          ],
+          "files": 85
+        },
+        {
+          "archive": "rekcarc",
+          "path": "大二上/大学物理英-老毕",
+          "kinds": [
+            "往年题",
+            "答案"
+          ],
+          "files": 64
+        }
+      ]
+    },
+    {
+      "name": "大学物理B(1)",
+      "category": "物理",
+      "terms": [
+        "大一下"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一下/大学物理B(1)",
+          "kinds": [
+            "往年题",
+            "答案",
+            "笔记"
+          ],
+          "files": 70
+        }
+      ]
+    },
+    {
+      "name": "大学物理B(2)",
+      "category": "物理",
+      "terms": [
+        "大二上"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "readme",
+          "path": "note/physics/physics",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "大学物理 B2 笔记整理"
+        },
+        {
+          "archive": "rekcarc",
+          "path": "大二上/大学物理B(2)",
+          "kinds": [
+            "往年题",
+            "答案",
+            "课件",
+            "笔记"
+          ],
+          "files": 28
+        }
+      ]
+    },
+    {
+      "name": "电动力学",
+      "category": "物理",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/professional/physics/electrodynamics",
+          "kinds": [
+            "课程资料",
+            "答案",
+            "作业"
+          ],
+          "label": "介绍"
+        }
+      ]
+    },
+    {
+      "name": "基础物理学",
+      "category": "物理",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/basic/physics/fundamental_physics",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "基础物理学"
+        }
+      ]
+    },
+    {
+      "name": "量子计算研讨",
+      "category": "物理",
+      "terms": [
+        "大二下"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大二下/量子计算研讨",
+          "kinds": [
+            "课程资料"
+          ],
+          "files": 1
+        }
+      ]
+    },
+    {
+      "name": "量子力学(1)",
+      "category": "物理",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/basic/physics/quantum_mechanics",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "量子力学(1)"
+        }
+      ]
+    },
+    {
+      "name": "数学物理方程",
+      "category": "物理",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/basic/maths/mathematical_physics_equations",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "数学物理方程"
+        }
+      ]
+    },
+    {
+      "name": "统计力学",
+      "category": "物理",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/professional/physics/statistical_mechanics",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "统计力学"
+        }
+      ]
+    },
+    {
+      "name": "物理实验",
+      "category": "物理",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/basic/labs/lab_of_physics",
+          "kinds": [
+            "实验"
+          ],
+          "label": "物理实验"
+        }
+      ]
+    },
+    {
+      "name": "物理实验B(1)",
+      "category": "物理",
+      "terms": [
+        "大二上"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大二上/物理实验B(1)",
+          "kinds": [
+            "作业",
+            "书目",
+            "实验",
+            "答案",
+            "课件"
+          ],
+          "files": 109
+        }
+      ]
+    },
+    {
+      "name": "物理实验B(2)",
+      "category": "物理",
+      "terms": [
+        "大二下"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大二下/物理实验B(2)",
+          "kinds": [
+            "往年题",
+            "作业",
+            "实验",
+            "课件"
+          ],
+          "files": 57
+        }
+      ]
+    },
+    {
+      "name": "大学化学A",
+      "category": "化学与生物",
+      "terms": [
+        "大一上"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一上/大学化学A",
+          "kinds": [
+            "往年题"
+          ],
+          "files": 3
+        }
+      ]
+    },
+    {
+      "name": "大学化学B",
+      "category": "化学与生物",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/basic/chem_bio/university_chemistry_b",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "大学化学B"
+        }
+      ]
+    },
+    {
+      "name": "物理化学B",
+      "category": "化学与生物",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/basic/chem_bio/physical_chemistry_b",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "物理化学B"
+        }
+      ]
+    },
+    {
+      "name": "现代生物学导论",
+      "category": "化学与生物",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/basic/chem_bio/intro_to_modern_biology",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "现代生物学导论"
+        }
+      ]
+    },
+    {
+      "name": "编译原理",
+      "category": "计算机与信息",
+      "terms": [
+        "大三上"
+      ],
+      "books": [
+        "Compilers:Principles, Techniques, and Tools -- Alfred V.Aho, Ravi Sethi, Jeffrey D.Ullman, Addison Wesley, 2007 (龙书)"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三上/编译原理",
+          "kinds": [
+            "往年题",
+            "笔记",
+            "答案",
+            "作业",
+            "实验",
+            "速查表",
+            "课件"
+          ],
+          "files": 91
+        }
+      ]
+    },
+    {
+      "name": "编译原理专题训练",
+      "category": "计算机与信息",
+      "terms": [
+        "大四上"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大四上/编译原理专题训练",
+          "kinds": [
+            "课程资料"
+          ],
+          "files": 1
+        }
+      ]
+    },
+    {
+      "name": "并行计算机体系结构与编程",
+      "category": "计算机与信息",
+      "terms": [
+        "大三小学期"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三小学期/并行计算机体系结构与编程",
+          "kinds": [
+            "作业",
+            "答案"
+          ],
+          "files": 11
+        }
+      ]
+    },
+    {
+      "name": "操作系统",
+      "category": "计算机与信息",
+      "terms": [
+        "大三下"
+      ],
+      "books": [
+        "MOOC：http://www.xuetangx.com/courses/course-v1:TsinghuaX+30240243X+sp/about"
+      ],
+      "sources": [
+        {
+          "archive": "readme",
+          "path": "homework/OS-music/content",
+          "kinds": [
+            "作业"
+          ],
+          "label": "在 xv6 中实现音频播放"
+        },
+        {
+          "archive": "readme",
+          "path": "note/os/os",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "复习提纲"
+        },
+        {
+          "archive": "readme",
+          "path": "note/os/操作系统期末复习笔记_2024春",
+          "kinds": [
+            "往年题",
+            "笔记"
+          ],
+          "label": "2024春复习提纲"
+        },
+        {
+          "archive": "rekcarc",
+          "path": "大三下/操作系统",
+          "kinds": [
+            "往年题",
+            "答案",
+            "作业"
+          ],
+          "files": 31
+        },
+        {
+          "archive": "sast",
+          "path": "courses",
+          "kinds": [
+            "入门文档"
+          ],
+          "topics": [
+            "编程语言 / Rust 语言基础"
+          ],
+          "detail": "技能引导文档里与这门课相关的入门章节"
+        }
+      ]
+    },
+    {
+      "name": "程序设计基础",
+      "category": "计算机与信息",
+      "terms": [
+        "大一上"
+      ],
+      "books": [
+        "程序设计基础（第3版），吴文虎、徐明星 编著"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一上/程序设计基础",
+          "kinds": [
+            "往年题",
+            "笔记",
+            "作业",
+            "大作业",
+            "课件"
+          ],
+          "files": 18
+        },
+        {
+          "archive": "sast",
+          "path": "courses",
+          "kinds": [
+            "入门文档"
+          ],
+          "topics": [
+            "基本技能 / Linux 入门",
+            "基本技能 / VSCode 配置",
+            "基本技能 / 如何使用搜索引擎",
+            "编程语言 / C 语言基础",
+            "编程语言 / 现代 C++ 语言"
+          ],
+          "detail": "技能引导文档里与这门课相关的入门章节"
+        },
+        {
+          "archive": "weiyang",
+          "path": "courses/basic/engineer_info/programming",
+          "kinds": [
+            "课程资料",
+            "笔记"
+          ],
+          "label": "主页"
+        }
+      ]
+    },
+    {
+      "name": "程序设计训练",
+      "category": "计算机与信息",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "sast",
+          "path": "courses",
+          "kinds": [
+            "入门文档"
+          ],
+          "topics": [
+            "编程语言 / Python 语言基础",
+            "编程语言 / Java 语言基础",
+            "编程语言 / JavaScript 语言基础"
+          ],
+          "detail": "技能引导文档里与这门课相关的入门章节"
+        }
+      ]
+    },
+    {
+      "name": "存储技术基础",
+      "category": "计算机与信息",
+      "terms": [
+        "大三下"
+      ],
+      "books": [
+        "暂缺"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三下/存储技术基础",
+          "kinds": [
+            "作业",
+            "实验"
+          ],
+          "files": 12
+        }
+      ]
+    },
+    {
+      "name": "电工与电子技术",
+      "category": "计算机与信息",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/professional/electricity/electrical_and_electronic_technology",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "电工与电子技术"
+        }
+      ]
+    },
+    {
+      "name": "电力电子技术",
+      "category": "计算机与信息",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/professional/electricity/power_electronics",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "电力电子技术"
+        }
+      ]
+    },
+    {
+      "name": "电路原理",
+      "category": "计算机与信息",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/professional/electricity/principles_of_circuits",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "电路原理"
+        }
+      ]
+    },
+    {
+      "name": "电子学基础",
+      "category": "计算机与信息",
+      "terms": [
+        "大二上"
+      ],
+      "books": [
+        "电路原理,于歆杰、朱桂萍、陆文娟,清华大学出版社,2007 Fundamentals of Microelectronics, Behzad Razavi, Wiley, 2008"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大二上/电子学基础",
+          "kinds": [
+            "速查表",
+            "往年题",
+            "答案",
+            "笔记",
+            "课件",
+            "作业",
+            "实验"
+          ],
+          "files": 44
+        }
+      ]
+    },
+    {
+      "name": "电子学基础实验",
+      "category": "计算机与信息",
+      "terms": [
+        "大二上"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大二上/电子学基础实验",
+          "kinds": [
+            "往年题",
+            "实验",
+            "作业"
+          ],
+          "files": 22
+        }
+      ]
+    },
+    {
+      "name": "多媒体技术",
+      "category": "计算机与信息",
+      "terms": [
+        "大三下"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三下/多媒体技术",
+          "kinds": [
+            "作业",
+            "实验",
+            "课件"
+          ],
+          "files": 25
+        }
+      ]
+    },
+    {
+      "name": "多媒体技术基础及应用",
+      "category": "计算机与信息",
+      "terms": [
+        "大三下"
+      ],
+      "books": [
+        "多媒体技术基础及应用，钟玉琢等，高教出版社"
+      ],
+      "sources": []
+    },
+    {
+      "name": "高性能计算导论",
+      "category": "计算机与信息",
+      "terms": [
+        "大二下"
+      ],
+      "books": [
+        "An Introduction to Parallel Programming，Peter Pacheco，Morgan Kaufmann Inc. (Elsevier), 2011"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大二下/高性能计算导论",
+          "kinds": [
+            "往年题",
+            "作业",
+            "答案",
+            "课件",
+            "书目"
+          ],
+          "files": 17
+        }
+      ]
+    },
+    {
+      "name": "汇编与编译原理",
+      "category": "计算机与信息",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "readme",
+          "path": "homework/VS-Assembly/VS-Assembly",
+          "kinds": [
+            "作业"
+          ],
+          "label": "VS2022 配置汇编高亮"
+        }
+      ]
+    },
+    {
+      "name": "汇编语言程序设计",
+      "category": "计算机与信息",
+      "terms": [
+        "大二上"
+      ],
+      "books": [
+        "《深入理解计算机系统》(Computer Systems: A Programmer‘s Perspective),第三版"
+      ],
+      "sources": []
+    },
+    {
+      "name": "机器学习",
+      "category": "计算机与信息",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "readme",
+          "path": "note/ml/计算学习理论 (1)",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "计算学习理论 (1)"
+        },
+        {
+          "archive": "readme",
+          "path": "note/ml/计算学习理论 (2)",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "计算学习理论 (2)"
+        }
+      ]
+    },
+    {
+      "name": "机器学习概论",
+      "category": "计算机与信息",
+      "terms": [
+        "大三下"
+      ],
+      "books": [
+        "Tom Mitchell, Machine Learning. McGraw-Hill (China machine press, English version)"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三下/机器学习概论",
+          "kinds": [
+            "往年题",
+            "答案",
+            "作业",
+            "实验"
+          ],
+          "files": 24
+        }
+      ]
+    },
+    {
+      "name": "计算机科学导论",
+      "category": "计算机与信息",
+      "terms": [
+        "大一上"
+      ],
+      "books": [
+        "Computer Science: An Overview"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一上/计算机科学导论",
+          "kinds": [
+            "往年题"
+          ],
+          "files": 9
+        }
+      ]
+    },
+    {
+      "name": "计算机图形学基础",
+      "category": "计算机与信息",
+      "terms": [
+        "大二下"
+      ],
+      "books": [
+        "计算机图形学基础教程，孙家广、胡事民，清华大学出版社"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大二下/计算机图形学基础",
+          "kinds": [
+            "作业"
+          ],
+          "files": 3
+        }
+      ]
+    },
+    {
+      "name": "计算机网络安全技术",
+      "category": "计算机与信息",
+      "terms": [
+        "大三上"
+      ],
+      "books": [
+        "网络安全基础教程，William Stallings，清华大学出版社 影印版"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三上/计算机网络安全技术",
+          "kinds": [
+            "往年题",
+            "笔记",
+            "作业",
+            "实验"
+          ],
+          "files": 34
+        }
+      ]
+    },
+    {
+      "name": "计算机网络原理",
+      "category": "计算机与信息",
+      "terms": [
+        "大三上"
+      ],
+      "books": [
+        "A.S Tanebaum, Computer Networks,4/5nd Edition, Prentice Hall, 2003/2011"
+      ],
+      "sources": [
+        {
+          "archive": "readme",
+          "path": "homework/network/run_ubuntu16.04_on_mac",
+          "kinds": [
+            "作业"
+          ],
+          "label": "mac配置Ubuntu16.04环境"
+        },
+        {
+          "archive": "rekcarc",
+          "path": "大三上/计算机网络原理",
+          "kinds": [
+            "往年题",
+            "笔记",
+            "答案",
+            "课件",
+            "实验",
+            "作业",
+            "速查表"
+          ],
+          "files": 73
+        }
+      ]
+    },
+    {
+      "name": "计算机网络专题训练",
+      "category": "计算机与信息",
+      "terms": [
+        "大三下"
+      ],
+      "books": [
+        "暂缺"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三下/计算机网络专题训练",
+          "kinds": [
+            "作业",
+            "实验"
+          ],
+          "files": 17
+        }
+      ]
+    },
+    {
+      "name": "计算机系统概论",
+      "category": "计算机与信息",
+      "terms": [
+        "大二上"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大二上/计算机系统概论",
+          "kinds": [
+            "往年题",
+            "答案",
+            "作业",
+            "实验"
+          ],
+          "files": 42
+        }
+      ]
+    },
+    {
+      "name": "计算机系统结构",
+      "category": "计算机与信息",
+      "terms": [
+        "大三下"
+      ],
+      "books": [
+        "计算机系统结构(第2版) 张晨曦等, 2014.8"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三下/计算机系统结构",
+          "kinds": [
+            "往年题",
+            "课件",
+            "答案",
+            "作业",
+            "实验"
+          ],
+          "files": 12
+        }
+      ]
+    },
+    {
+      "name": "计算机原理与应用",
+      "category": "计算机与信息",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/professional/computing/princ_and_app_of_computer",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "计算机原理与应用"
+        }
+      ]
+    },
+    {
+      "name": "计算机组成原理",
+      "category": "计算机与信息",
+      "terms": [
+        "大三上"
+      ],
+      "books": [
+        "Computer Organization & Design: the Hardware/Software Interface, 4th 5th, 6th, RISC-V Edition 机械工业出版社 《计算机硬件系统实验教程》刘卫东 李山山著 清华大学出版社"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三上/计算机组成原理",
+          "kinds": [
+            "往年题",
+            "答案",
+            "笔记",
+            "作业"
+          ],
+          "files": 23
+        }
+      ]
+    },
+    {
+      "name": "计算理论导引",
+      "category": "计算机与信息",
+      "terms": [
+        "大三下"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三下/计算理论导引",
+          "kinds": [
+            "往年题"
+          ],
+          "files": 2
+        }
+      ]
+    },
+    {
+      "name": "理论计算机科学导论",
+      "category": "计算机与信息",
+      "terms": [
+        "大二下"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大二下/理论计算机科学导论",
+          "kinds": [
+            "答案",
+            "作业"
+          ],
+          "files": 13
+        }
+      ]
+    },
+    {
+      "name": "媒体计算",
+      "category": "计算机与信息",
+      "terms": [
+        "大四上"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大四上/媒体计算",
+          "kinds": [
+            "课程资料"
+          ],
+          "files": 1
+        }
+      ]
+    },
+    {
+      "name": "面向对象程序设计基础",
+      "category": "计算机与信息",
+      "terms": [
+        "大一下"
+      ],
+      "books": [
+        "Thinking in C++, 2nd Edition（英文版）, Bruce Eckel 机械工业出版社, 2010"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一下/面向对象程序设计基础-刘知远老师",
+          "kinds": [
+            "作业",
+            "笔记",
+            "往年题",
+            "答案"
+          ],
+          "files": 17
+        },
+        {
+          "archive": "rekcarc",
+          "path": "大一下/面向对象程序设计基础-姚海龙老师",
+          "kinds": [
+            "往年题",
+            "作业",
+            "笔记",
+            "课件"
+          ],
+          "files": 53
+        },
+        {
+          "archive": "sast",
+          "path": "courses",
+          "kinds": [
+            "入门文档"
+          ],
+          "topics": [
+            "编程语言 / C 语言基础",
+            "编程语言 / 现代 C++ 语言"
+          ],
+          "detail": "技能引导文档里与这门课相关的入门章节"
+        }
+      ]
+    },
+    {
+      "name": "嵌入式系统",
+      "category": "计算机与信息",
+      "terms": [
+        "大四上"
+      ],
+      "books": [
+        "《嵌入式计算系统设计原理》 Wayne Wolf著，孙玉芳等译"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大四上/嵌入式系统",
+          "kinds": [
+            "课程资料"
+          ],
+          "files": 1
+        }
+      ]
+    },
+    {
+      "name": "人工神经网络",
+      "category": "计算机与信息",
+      "terms": [
+        "大三上"
+      ],
+      "books": [
+        "Simon Haykin, Neural Networks and Learning Machines (Third Edition), 机械工业出版社"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三上/人工神经网络",
+          "kinds": [
+            "作业"
+          ],
+          "files": 5
+        }
+      ]
+    },
+    {
+      "name": "人工智能导论",
+      "category": "计算机与信息",
+      "terms": [
+        "大二下"
+      ],
+      "books": [
+        "林尧瑞、马少平，《人工智能导论》，清华大学出版社"
+      ],
+      "sources": [
+        {
+          "archive": "readme",
+          "path": "note/IAI/AI-learning1",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "Learning(1)"
+        },
+        {
+          "archive": "rekcarc",
+          "path": "大二下/人工智能导论",
+          "kinds": [
+            "往年题",
+            "笔记",
+            "作业",
+            "大作业",
+            "实验"
+          ],
+          "files": 21
+        },
+        {
+          "archive": "sast",
+          "path": "courses",
+          "kinds": [
+            "入门文档"
+          ],
+          "topics": [
+            "人工智能 & 机器学习 / Pytorch 入门"
+          ],
+          "detail": "技能引导文档里与这门课相关的入门章节"
+        }
+      ]
+    },
+    {
+      "name": "人机交互理论与技术",
+      "category": "计算机与信息",
+      "terms": [
+        "大三上"
+      ],
+      "books": [
+        "Jef Raskin.The Humane Interface: New Directions for Designing Interactive Systems Stuart K. Card,etc. The Psychology of Human-Computer Interaction"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三上/人机交互理论与技术",
+          "kinds": [
+            "作业",
+            "大作业"
+          ],
+          "files": 1
+        }
+      ]
+    },
+    {
+      "name": "软件工程",
+      "category": "计算机与信息",
+      "terms": [
+        "大三上"
+      ],
+      "books": [
+        "(1)“Software Engineering”, Ian Summerville, 2000, Addison-Wesley, ISBN 020139815X. (2)“Software Engineering: A Practitioner’s Approach”, Roger S. Pressman, McGraw-Hill, 2001，ISBN 0072496681. (3)“Software Engineering: Theory and Practice”, Shari Lawrence Pfleeger, 1998,Prentice Hall, ISBN 0130290491."
+      ],
+      "sources": [
+        {
+          "archive": "readme",
+          "path": "homework/SE/publish_website/How-to-publish-your-website",
+          "kinds": [
+            "作业"
+          ],
+          "label": "合法的、安全地发布自己的网站"
+        },
+        {
+          "archive": "readme",
+          "path": "homework/SE/using-SSL-in-SE/content",
+          "kinds": [
+            "作业"
+          ],
+          "label": "在软工项目中使用 SSL 证书"
+        },
+        {
+          "archive": "rekcarc",
+          "path": "大三上/软件工程",
+          "kinds": [
+            "往年题",
+            "答案",
+            "作业"
+          ],
+          "files": 22
+        },
+        {
+          "archive": "sast",
+          "path": "courses",
+          "kinds": [
+            "入门文档"
+          ],
+          "topics": [
+            "编程语言 / JavaScript 语言基础",
+            "编程语言 / TypeScript 语言基础"
+          ],
+          "detail": "技能引导文档里与这门课相关的入门章节"
+        }
+      ]
+    },
+    {
+      "name": "数据结构",
+      "category": "计算机与信息",
+      "terms": [
+        "大二上"
+      ],
+      "books": [
+        "https://dsa.cs.tsinghua.edu.cn/~deng/ds/dsacpp/index.htm MOOC：http://www.xuetangx.com/courses/course-v1:TsinghuaX+30240184+sp/about http://www.xuetangx.com/courses/course-v1:TsinghuaX+30240184_2X+sp/about"
+      ],
+      "sources": [
+        {
+          "archive": "readme",
+          "path": "homework/dsa-OJ/OJ1/OJ1-3",
+          "kinds": [
+            "作业"
+          ],
+          "label": "OJ1-3_灯塔_归并排序"
+        },
+        {
+          "archive": "readme",
+          "path": "homework/dsa-OJ/OJ2/OJ2-3",
+          "kinds": [
+            "作业"
+          ],
+          "label": "OJ2-3_游戏_括号匹配"
+        },
+        {
+          "archive": "readme",
+          "path": "homework/dsa-OJ/OJ3/OJ3-2",
+          "kinds": [
+            "作业"
+          ],
+          "label": "OJ3-2_旅行商_拓扑排序"
+        },
+        {
+          "archive": "readme",
+          "path": "homework/dsa-OJ/OJ3/OJ3-3",
+          "kinds": [
+            "作业"
+          ],
+          "label": "OJ3-3_气象台_KD树"
+        },
+        {
+          "archive": "readme",
+          "path": "homework/dsa-OJ/README",
+          "kinds": [
+            "作业"
+          ],
+          "label": "By 作者"
+        },
+        {
+          "archive": "readme",
+          "path": "note/data_structure/data_structure_review_notes_1",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "数据结构复习要点"
+        },
+        {
+          "archive": "readme",
+          "path": "note/data_structure/data_structure_review_notes_2",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "数据结构复习笔记"
+        },
+        {
+          "archive": "readme",
+          "path": "note/data_structure/DSA_cracker",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "数据结构期末复习"
+        },
+        {
+          "archive": "rekcarc",
+          "path": "大二上/数据结构",
+          "kinds": [
+            "速查表",
+            "课件",
+            "笔记",
+            "往年题",
+            "答案",
+            "作业"
+          ],
+          "files": 39
+        },
+        {
+          "archive": "sast",
+          "path": "courses",
+          "kinds": [
+            "入门文档"
+          ],
+          "topics": [
+            "外部链接 / OI-Wiki"
+          ],
+          "detail": "技能引导文档里与这门课相关的入门章节"
+        }
+      ]
+    },
+    {
+      "name": "数据库",
+      "category": "计算机与信息",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "readme",
+          "path": "note/database/Chapter6/Chapter 6  Database Design Using the E-R Model",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "第六章 E-R 模型"
+        },
+        {
+          "archive": "readme",
+          "path": "note/database/Chapter7/Chapter 7",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "第七章关系数据库设计"
+        }
+      ]
+    },
+    {
+      "name": "数据库系统概论",
+      "category": "计算机与信息",
+      "terms": [
+        "大三上"
+      ],
+      "books": [
+        "数据库系统设计与原理，冯建华等，清华出版"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三上/数据库系统概论",
+          "kinds": [
+            "作业"
+          ],
+          "files": 3
+        }
+      ]
+    },
+    {
+      "name": "数据库专题训练",
+      "category": "计算机与信息",
+      "terms": [
+        "大三下"
+      ],
+      "books": [
+        "PPT"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三下/数据库专题训练",
+          "kinds": [
+            "作业"
+          ],
+          "files": 2
+        }
+      ]
+    },
+    {
+      "name": "数据挖掘",
+      "category": "计算机与信息",
+      "terms": [
+        "大三下"
+      ],
+      "books": [
+        "Data Mining: Concepts and techniques 数据挖掘：概念与技术 Han Jiawe等著 高等教育出版社"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三下/数据挖掘",
+          "kinds": [
+            "往年题"
+          ],
+          "files": 4
+        }
+      ]
+    },
+    {
+      "name": "数字电子技术基础 C",
+      "category": "计算机与信息",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "readme",
+          "path": "note/digital_circuit/digital_notes",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "数字电子技术基础复习要点"
+        }
+      ]
+    },
+    {
+      "name": "数字逻辑电路",
+      "category": "计算机与信息",
+      "terms": [
+        "大二下"
+      ],
+      "books": [
+        "数字逻辑与数字集成电路（第二版）"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大二下/数字逻辑电路",
+          "kinds": [
+            "往年题",
+            "答案"
+          ],
+          "files": 8
+        }
+      ]
+    },
+    {
+      "name": "数字逻辑设计",
+      "category": "计算机与信息",
+      "terms": [
+        "大二下"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大二下/数字逻辑设计",
+          "kinds": [
+            "往年题",
+            "笔记"
+          ],
+          "files": 5
+        }
+      ]
+    },
+    {
+      "name": "数字逻辑实验",
+      "category": "计算机与信息",
+      "terms": [
+        "大二下"
+      ],
+      "books": [
+        "数字逻辑设计实验教程"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大二下/数字逻辑实验",
+          "kinds": [
+            "往年题",
+            "实验",
+            "笔记",
+            "作业"
+          ],
+          "files": 71
+        }
+      ]
+    },
+    {
+      "name": "数字图像处理",
+      "category": "计算机与信息",
+      "terms": [
+        "大三下"
+      ],
+      "books": [
+        "数字图像处理（第二版）, Gonzalez, 电子工业出版社"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三下/数字图像处理",
+          "kinds": [
+            "作业"
+          ],
+          "files": 5
+        }
+      ]
+    },
+    {
+      "name": "搜索引擎技术基础",
+      "category": "计算机与信息",
+      "terms": [
+        "大三下"
+      ],
+      "books": [
+        "[1] Richardo Beeza-Yates，Modern Information Retrieval，机械工业出版社，2005。 [2] Search Engines: Information Retrieval in Practice, W. Bruce Croft et al. 2009."
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三下/搜索引擎技术基础",
+          "kinds": [
+            "作业",
+            "大作业",
+            "实验",
+            "课件"
+          ],
+          "files": 10
+        }
+      ]
+    },
+    {
+      "name": "算法设计与分析",
+      "category": "计算机与信息",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "readme",
+          "path": "note/algorithm/算法期末复习笔记_24春",
+          "kinds": [
+            "往年题",
+            "笔记"
+          ],
+          "label": "算法设计与分析复习"
+        }
+      ]
+    },
+    {
+      "name": "网络安全工程与实践",
+      "category": "计算机与信息",
+      "terms": [
+        "大四上"
+      ],
+      "books": [
+        "Online documents or E-books assigned in class - TCP/IP protocols - http://www.tcpipguide.com/free/t_toc.htm - Cryptography and secure communications - Bulletproof SSL and TLS - System Security - The art of exploitation - Web Security - The Tangled Web - The Browser Hacker’s Handbook"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大四上/网络安全工程与实践",
+          "kinds": [
+            "作业",
+            "实验"
+          ],
+          "files": 3
+        }
+      ]
+    },
+    {
+      "name": "网络编程技术",
+      "category": "计算机与信息",
+      "terms": [
+        "大三下"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三下/网络编程技术",
+          "kinds": [
+            "课程资料"
+          ],
+          "files": 1
+        }
+      ]
+    },
+    {
+      "name": "网络空间安全导论",
+      "category": "计算机与信息",
+      "terms": [
+        "大三下"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三下/网络空间安全导论",
+          "kinds": [
+            "往年题"
+          ],
+          "files": 5
+        }
+      ]
+    },
+    {
+      "name": "系统分析与控制",
+      "category": "计算机与信息",
+      "terms": [
+        "大三下"
+      ],
+      "books": [
+        "系统分析与控制 孙增圻 清华大学出版社1994"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三下/系统分析与控制",
+          "kinds": [
+            "速查表",
+            "往年题",
+            "答案",
+            "笔记",
+            "作业"
+          ],
+          "files": 24
+        }
+      ]
+    },
+    {
+      "name": "现代控制技术",
+      "category": "计算机与信息",
+      "terms": [
+        "大四上"
+      ],
+      "books": [
+        "常春馨，《现代控制理论基础》，机械工业出版社，1998年"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大四上/现代控制技术",
+          "kinds": [
+            "往年题",
+            "课件",
+            "答案",
+            "作业"
+          ],
+          "files": 5
+        }
+      ]
+    },
+    {
+      "name": "现代密码学",
+      "category": "计算机与信息",
+      "terms": [
+        "大三下"
+      ],
+      "books": [
+        "密码学原理与实践（第二版）"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三下/现代密码学",
+          "kinds": [
+            "往年题",
+            "作业"
+          ],
+          "files": 5
+        }
+      ]
+    },
+    {
+      "name": "信号处理原理",
+      "category": "计算机与信息",
+      "terms": [
+        "大三上"
+      ],
+      "books": [
+        "Introduction to Signal Processing – S.J. Orfanidis, Prentice-Hall, Inc."
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三上/信号处理原理",
+          "kinds": [
+            "往年题",
+            "答案",
+            "作业",
+            "实验"
+          ],
+          "files": 50
+        }
+      ]
+    },
+    {
+      "name": "形式语言与自动机",
+      "category": "计算机与信息",
+      "terms": [
+        "大二上"
+      ],
+      "books": [
+        "自动机理论、语言和计算导论，第三版，机械工业出版社"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大二上/形式语言与自动机",
+          "kinds": [
+            "往年题",
+            "课件",
+            "答案",
+            "作业"
+          ],
+          "files": 43
+        }
+      ]
+    },
+    {
+      "name": "虚拟现实技术",
+      "category": "计算机与信息",
+      "terms": [
+        "大三上"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三上/虚拟现实技术",
+          "kinds": [
+            "作业",
+            "大作业"
+          ],
+          "files": 5
+        },
+        {
+          "archive": "sast",
+          "path": "courses",
+          "kinds": [
+            "入门文档"
+          ],
+          "topics": [
+            "编程语言 / JavaScript 语言基础"
+          ],
+          "detail": "技能引导文档里与这门课相关的入门章节"
+        }
+      ]
+    },
+    {
+      "name": "以智能服务为中心的软件开发设计与实现",
+      "category": "计算机与信息",
+      "terms": [
+        "大三下"
+      ],
+      "books": [
+        "Service-Oriented Computing Service-Oriented Software System Engineering: Challenges and Practices Patterns: Implementing an SOA using an Enterprise Service Bus"
+      ],
+      "sources": []
+    },
+    {
+      "name": "Java程序设计与训练",
+      "category": "计算机与信息",
+      "terms": [
+        "大一小学期"
+      ],
+      "books": [
+        "《Java技术及其应用(第二版)》，高等教育出版社，ISBN 978-7-04-020769-9"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一小学期/Java程序设计与训练",
+          "kinds": [
+            "作业",
+            "大作业",
+            "往年题",
+            "答案",
+            "课件"
+          ],
+          "files": 21
+        }
+      ]
+    },
+    {
+      "name": "VLSI设计导论",
+      "category": "计算机与信息",
+      "terms": [
+        "大三上"
+      ],
+      "books": [
+        "《超大规模集成电路设计导论》蔡懿慈 周强 清华大学出版社"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三上/VLSI设计导论",
+          "kinds": [
+            "课程资料"
+          ],
+          "files": 1
+        }
+      ]
+    },
+    {
+      "name": "马克思主义基本原理",
+      "category": "思政",
+      "terms": [
+        "大二上"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大二上/马克思主义基本原理",
+          "kinds": [
+            "笔记",
+            "往年题"
+          ],
+          "files": 5
+        },
+        {
+          "archive": "weiyang",
+          "path": "courses/basic/politics/basic_principles_of_marxism",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "马克思主义基本原理"
+        }
+      ]
+    },
+    {
+      "name": "思想道德与法治",
+      "category": "思政",
+      "terms": [
+        "大一上"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一上/思想道德与法治",
+          "kinds": [
+            "作业",
+            "笔记"
+          ],
+          "files": 4
+        }
+      ]
+    },
+    {
+      "name": "思政篇（选课指南）",
+      "category": "思政",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "course_selection/politics",
+          "kinds": [
+            "选课指南"
+          ],
+          "detail": "按课程类别整理的选课建议"
+        }
+      ]
+    },
+    {
+      "name": "形势与政策",
+      "category": "思政",
+      "terms": [
+        "大一上"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一上/形式与政策",
+          "kinds": [
+            "作业",
+            "课件"
+          ],
+          "files": 12
+        }
+      ]
+    },
+    {
+      "name": "中国近现代史纲要",
+      "category": "思政",
+      "terms": [
+        "大一下"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一下/中国近现代史纲要",
+          "kinds": [
+            "往年题",
+            "笔记",
+            "作业",
+            "答案"
+          ],
+          "files": 3
+        }
+      ]
+    },
+    {
+      "name": "英语篇（选课指南）",
+      "category": "外语",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "course_selection/english",
+          "kinds": [
+            "选课指南"
+          ],
+          "detail": "按课程类别整理的选课建议"
+        }
+      ]
+    },
+    {
+      "name": "英语听说A",
+      "category": "外语",
+      "terms": [
+        "大一上"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一上/英语听说A",
+          "kinds": [
+            "作业",
+            "笔记",
+            "课件",
+            "速查表",
+            "答案"
+          ],
+          "files": 96
+        }
+      ]
+    },
+    {
+      "name": "《庄子》导读",
+      "category": "通识与人文",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/general/zhuangzi_guide",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "《庄子》导读"
+        }
+      ]
+    },
+    {
+      "name": "工程经济学",
+      "category": "通识与人文",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/professional/civil/engineering_economics",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "工程经济学"
+        }
+      ]
+    },
+    {
+      "name": "经济学原理",
+      "category": "通识与人文",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/general/principles_of_economics",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "经济学原理"
+        }
+      ]
+    },
+    {
+      "name": "通识篇（选课指南）",
+      "category": "通识与人文",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "course_selection/general",
+          "kinds": [
+            "选课指南"
+          ],
+          "detail": "按课程类别整理的选课建议"
+        }
+      ]
+    },
+    {
+      "name": "写沟篇（选课指南）",
+      "category": "通识与人文",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "course_selection/academic_writing",
+          "kinds": [
+            "选课指南"
+          ],
+          "detail": "按课程类别整理的选课建议"
+        }
+      ]
+    },
+    {
+      "name": "写作与沟通",
+      "category": "通识与人文",
+      "terms": [
+        "大一上"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一上/写作与沟通",
+          "kinds": [
+            "课程资料"
+          ],
+          "files": 20
+        }
+      ]
+    },
+    {
+      "name": "体育篇（选课指南）",
+      "category": "体育",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "course_selection/pe",
+          "kinds": [
+            "选课指南"
+          ],
+          "detail": "按课程类别整理的选课建议"
+        }
+      ]
+    },
+    {
+      "name": "保研（推研）考试资料",
+      "category": "其他",
+      "terms": [
+        "大三小学期"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三小学期/保研考试",
+          "kinds": [
+            "课件",
+            "推研资料"
+          ],
+          "files": 2
+        }
+      ]
+    },
+    {
+      "name": "材料科学基础",
+      "category": "其他",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/professional/materials/funda_of_materials_science",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "材料科学基础"
+        }
+      ]
+    },
+    {
+      "name": "程序设计训练·Python 周",
+      "category": "其他",
+      "terms": [
+        "大一小学期"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一小学期/Week_3-Python",
+          "kinds": [
+            "往年题",
+            "作业",
+            "课件",
+            "大作业"
+          ],
+          "files": 49
+        }
+      ]
+    },
+    {
+      "name": "程序设计训练·Qt 周",
+      "category": "其他",
+      "terms": [
+        "大一小学期"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一小学期/Week_1-Qt",
+          "kinds": [
+            "往年题",
+            "作业",
+            "课件",
+            "大作业"
+          ],
+          "files": 21
+        }
+      ]
+    },
+    {
+      "name": "程序设计训练·Socket 周",
+      "category": "其他",
+      "terms": [
+        "大一小学期"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一小学期/Week_2-Socket",
+          "kinds": [
+            "往年题",
+            "作业",
+            "大作业",
+            "课件"
+          ],
+          "files": 37
+        }
+      ]
+    },
+    {
+      "name": "储能技术",
+      "category": "其他",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/professional/energy/energy_storage_technology",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "储能技术"
+        }
+      ]
+    },
+    {
+      "name": "动力建模与仿真",
+      "category": "其他",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/professional/computing/dynamic_modeling_and_simulation",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "动力建模与仿真"
+        }
+      ]
+    },
+    {
+      "name": "工程材料",
+      "category": "其他",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/professional/materials/engineering_materials",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "工程材料"
+        }
+      ]
+    },
+    {
+      "name": "工程图学基础",
+      "category": "其他",
+      "terms": [
+        "大一上"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一上/工程图学基础",
+          "kinds": [
+            "往年题",
+            "作业",
+            "课件",
+            "答案",
+            "实验",
+            "书目",
+            "笔记"
+          ],
+          "files": 60
+        }
+      ]
+    },
+    {
+      "name": "工程图学基础/机械设计基础(1)",
+      "category": "其他",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/basic/engineer_info/fundamentals_of_engineering_graphics",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "工程图学基础/机械设计基础(1)"
+        }
+      ]
+    },
+    {
+      "name": "工信篇（选课指南）",
+      "category": "其他",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "course_selection/engineer_info",
+          "kinds": [
+            "选课指南"
+          ],
+          "detail": "按课程类别整理的选课建议"
+        }
+      ]
+    },
+    {
+      "name": "化生篇（选课指南）",
+      "category": "其他",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "course_selection/chem_bio",
+          "kinds": [
+            "选课指南"
+          ],
+          "detail": "按课程类别整理的选课建议"
+        }
+      ]
+    },
+    {
+      "name": "机械设计基础 B(3)",
+      "category": "其他",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/professional/mechanics/mechnical_design_b3",
+          "kinds": [
+            "课程资料"
+          ],
+          "label": "机械设计基础 B(3)"
+        }
+      ]
+    },
+    {
+      "name": "军事理论",
+      "category": "其他",
+      "terms": [
+        "大一上"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一上/军事理论",
+          "kinds": [
+            "往年题",
+            "答案",
+            "笔记"
+          ],
+          "files": 11
+        }
+      ]
+    },
+    {
+      "name": "模式识别",
+      "category": "其他",
+      "terms": [
+        "大三下"
+      ],
+      "books": [
+        "Richard O. Duda, Peter E. Hart, and David G. Stork, Pattern Classification （2nd Edition）, John Wiley & Sons, Inc., New York. 机械工业出版社"
+      ],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大三下/模式识别",
+          "kinds": [
+            "作业"
+          ],
+          "files": 0
+        }
+      ]
+    },
+    {
+      "name": "数理篇（选课指南）",
+      "category": "其他",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "course_selection/math_phys",
+          "kinds": [
+            "选课指南"
+          ],
+          "detail": "按课程类别整理的选课建议"
+        }
+      ]
+    },
+    {
+      "name": "推研机试资料",
+      "category": "其他",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "readme",
+          "path": "note/graduate_recommendation/graduate_recommendation",
+          "kinds": [
+            "笔记",
+            "推研资料"
+          ],
+          "label": "推研机试整理"
+        }
+      ]
+    },
+    {
+      "name": "先进燃气轮机理论与实验技术",
+      "category": "其他",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "weiyang",
+          "path": "courses/professional/energy/gas_turbine_theory",
+          "kinds": [
+            "实验"
+          ],
+          "label": "先进燃气轮机理论与实验技术"
+        }
+      ]
+    },
+    {
+      "name": "信息科学技术概论",
+      "category": "其他",
+      "terms": [
+        "大一上"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一上/信息科学技术概论",
+          "kinds": [
+            "作业",
+            "大作业"
+          ],
+          "files": 6
+        }
+      ]
+    },
+    {
+      "name": "组合数学",
+      "category": "其他",
+      "terms": [
+        "研究生"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "研究生/组合数学",
+          "kinds": [
+            "往年题",
+            "答案",
+            "作业"
+          ],
+          "files": 10
+        }
+      ]
+    },
+    {
+      "name": "Python 课堂（2023 小学期）",
+      "category": "其他",
+      "terms": [
+        "大一小学期"
+      ],
+      "books": [],
+      "sources": [
+        {
+          "archive": "rekcarc",
+          "path": "大一小学期/2023-python课堂",
+          "kinds": [
+            "课程资料"
+          ],
+          "files": 1
+        }
+      ]
+    },
+    {
+      "name": "Qt 小学期",
+      "category": "其他",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "readme",
+          "path": "homework/Qt/FFmpeg",
+          "kinds": [
+            "作业"
+          ],
+          "label": "FFmpeg 与视频编解码"
+        }
+      ]
+    },
+    {
+      "name": "Rust 程序设计（小学期）",
+      "category": "其他",
+      "terms": [],
+      "books": [],
+      "sources": [
+        {
+          "archive": "readme",
+          "path": "note/Rust/rustL1",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "Rust 课程笔记 L1"
+        },
+        {
+          "archive": "readme",
+          "path": "note/Rust/rustL2",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "Rust 课程笔记 L2"
+        },
+        {
+          "archive": "readme",
+          "path": "note/Rust/rustL3",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "Rust 课程笔记 L3"
+        },
+        {
+          "archive": "readme",
+          "path": "note/Rust/rustL4",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "Rust 课程笔记 L4"
+        },
+        {
+          "archive": "readme",
+          "path": "note/Rust/rustL5",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "Rust 课程笔记 L5"
+        },
+        {
+          "archive": "readme",
+          "path": "note/Rust/rustL6",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "Rust 课程笔记 L6"
+        },
+        {
+          "archive": "readme",
+          "path": "note/Rust/rustL7",
+          "kinds": [
+            "笔记"
+          ],
+          "label": "Rust 课程笔记 L7"
+        }
+      ]
+    }
+  ]
+}

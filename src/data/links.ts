@@ -1,9 +1,29 @@
 /**
  * 校内常用链接 —— 结构化数据，改这一个文件就能更新页面。
  *
- * 重要：`verified` 填你亲自点开确认过的日期（例如 '2026-09-30'）。
- * 没填的条目页面上会显示「待核对」角标，避免把过期或错误的网址发出去。
+ * ## 关于两个日期字段
+ * - `checkedAt` 由 `npm run check:links` 自动写入 `link-status.json`，
+ *   表示**这个网址实测能打开**的日期（校外网络，脚本跑的）。
+ *   它只证明「域名活着」，不证明「入口还是干这件事」。
+ * - `reviewedAt` 是**核对日期**：确认过「这个入口现在还是干这件事」的日子。
+ *   没填的条目页面上会显示「核对：待补」角标 —— 网址会迁移，这一步不能省。
+ * - `verifiedBy` 说明这次核对是**谁做的**：
+ *     `'human'`（默认）＝有人点开看过，页面显示「人工核对」；
+ *     `'auto'`        ＝`npm run verify:links` 抓页面比对标题与关键词得出的结论，
+ *                       页面显示「脚本核对」，证据留在 `.review/link-verification.json`。
+ *   两者不是一个可信度级别：脚本只能确认「地址还指向那个服务」，确认不了登录后的功能。
+ *
+ * ## 关于 `reach`
+ * - `校园网`：校内系统，需要在校园网内或连 WebVPN 才能正常使用。
+ * - `公网`：校内外都能打开。
+ * - `未实测`：还没确认过，页面会照实标出来。
+ *
+ * ## 关于 `origin`
+ * 记这条链接是从哪来的（官方站 / 维护者收藏夹 / 某个资料库），
+ * 方便以后有人追查「这条是不是抄来的」。
  */
+
+export type Reach = '校园网' | '公网' | '未实测';
 
 export type CampusLink = {
   /** 显示名称 */
@@ -14,23 +34,33 @@ export type CampusLink = {
   desc: string;
   /** 分类 */
   group: LinkGroup;
-  /** 亲自核对过的日期；不填表示还没核对 */
-  verified?: string;
-  /** 需要校园网 / VPN 才能访问 */
-  campusOnly?: boolean;
+  /** 可达性 */
+  reach: Reach;
+  /** 核对日期；不填表示还没核对过 */
+  reviewedAt?: string;
+  /** 谁来核对的：'human' 人工点开（默认）/ 'auto' 脚本抓页面比对；不填按人工处理 */
+  verifiedBy?: 'human' | 'auto';
+  /** 来源 */
+  origin?: string;
+  /** 需要额外提醒的事（比如「要先开 WebVPN」） */
+  note?: string;
 };
 
 export type LinkGroup =
   | '教学与选课'
-  | '信息与生活'
-  | '科研与学术'
+  | '信息与账号'
+  | '图书馆与科研'
+  | '办事与生活'
+  | '校内平台与 AI'
   | '成长与出路'
   | '官方与资讯';
 
 export const linkGroups: LinkGroup[] = [
   '教学与选课',
-  '信息与生活',
-  '科研与学术',
+  '信息与账号',
+  '图书馆与科研',
+  '办事与生活',
+  '校内平台与 AI',
   '成长与出路',
   '官方与资讯',
 ];
@@ -40,43 +70,314 @@ export const campusLinks: CampusLink[] = [
   {
     name: '教学门户（选课 / 成绩 / 培养方案）',
     url: 'https://zhjw.cic.tsinghua.edu.cn/',
-    desc: '选课、查成绩、看培养方案和学籍信息的入口。具体域名请以信息门户内的跳转链接为准。',
+    desc: '选课、查成绩、看培养方案和学籍信息的入口。开学前先把这里摸熟。',
     group: '教学与选课',
-    campusOnly: true,
+    reach: '校园网',
+    origin: '学校官方',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '本科生选课系统',
+    url: 'https://zhjwxk.cic.tsinghua.edu.cn/',
+    desc: '选课季直接进这一台。选课轮次、退课与补选的时间节点以教务通知为准。',
+    group: '教学与选课',
+    reach: '校园网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
   },
   {
     name: '网络学堂',
-    url: 'https://learn.tsinghua.edu.cn/',
+    url: 'https://learn.tsinghua.edu.cn/f/wlxt/index/course/student/',
     desc: '课程通知、课件下载、作业提交、讨论区。开学第一周就要摸熟。',
     group: '教学与选课',
-    campusOnly: true,
+    reach: '校园网',
+    origin: '学校官方',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
   },
   {
     name: '雨课堂',
     url: 'https://www.yuketang.cn/',
-    desc: '不少课用它点名、发课件、随堂测验。',
+    desc: '不少课用它点名、发课件、随堂测验。手机端用得更多。',
     group: '教学与选课',
+    reach: '公网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
   },
   {
-    name: '清华大学图书馆',
-    url: 'https://lib.tsinghua.edu.cn/',
-    desc: '馆藏检索、数据库入口、座位预约、文献传递。写论文的起点。',
-    group: '科研与学术',
+    name: '第二成绩单',
+    url: 'https://transcript.student.tsinghua.edu.cn/',
+    desc: '记录课外经历与能力的官方系统（社工、志愿、竞赛等），保研和求职时用得上。',
+    group: '教学与选课',
+    reach: '校园网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '思政实践选课',
+    url: 'https://szsj.tsinghua.edu.cn/',
+    desc: '思政实践类课程的选课与记录入口。具体开课与要求以院系通知为准。',
+    group: '教学与选课',
+    reach: '校园网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
   },
 
-  // ── 信息与生活 ──────────────────────────────────────────────
+  // ── 信息与账号 ──────────────────────────────────────────────
   {
     name: '信息门户（info）',
     url: 'https://info.tsinghua.edu.cn/',
-    desc: '校内各类系统的总入口：通知、办事、财务、宿舍、一卡通等。',
-    group: '信息与生活',
-    campusOnly: true,
+    desc: '校内各类系统的总入口：通知、办事、财务、宿舍、一卡通等。找不到入口就来这里翻。',
+    group: '信息与账号',
+    reach: '校园网',
+    origin: '学校官方',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
   },
   {
     name: '清华邮箱',
     url: 'https://mails.tsinghua.edu.cn/',
     desc: '学校官方邮件。联系导师、投稿、申请材料都用它，务必每天看。',
-    group: '信息与生活',
+    group: '信息与账号',
+    reach: '公网',
+    origin: '学校官方',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '电子身份服务系统（id）',
+    url: 'https://id.tsinghua.edu.cn/f/welcome',
+    desc: '账号、密码、二次验证都在这里管。**忘记密码或换手机时第一时间来这里。**',
+    group: '信息与账号',
+    reach: '校园网',
+    note: '改密码、绑手机要靠它，建议开学就记下这个入口',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '清华云盘',
+    url: 'https://cloud.tsinghua.edu.cn/',
+    desc: '校内网盘，课程资料与共享目录常用它。分享链接的访问范围由分享者设定。',
+    group: '信息与账号',
+    reach: '校园网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '信息化用户服务平台',
+    url: 'https://its.tsinghua.edu.cn/',
+    desc: '网络、账号、正版软件、报修这类问题的官方服务入口。',
+    group: '信息与账号',
+    reach: '校园网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '校园网自助服务系统（802.1X 密码）',
+    url: 'https://usereg.tsinghua.edu.cn/',
+    desc: '校园网账号的自服务入口：注册/修改 802.1X 密码、看在线设备与流量。连不上无线网先来这里。',
+    group: '信息与账号',
+    reach: '公网',
+    note: '连不上校园网时也能打开（用手机流量）——所以它是排查网络问题的第一站',
+    origin: '资料库（ReadMe 互助文档）',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: 'WebVPN',
+    url: 'https://webvpn.tsinghua.edu.cn/',
+    desc: '在校外访问校内系统用。**先把这一条存下来**，不然放假回家会抓瞎。',
+    group: '信息与账号',
+    reach: '公网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+
+  // ── 图书馆与科研 ────────────────────────────────────────────
+  {
+    name: '清华大学图书馆',
+    url: 'https://lib.tsinghua.edu.cn/',
+    desc: '馆藏检索、数据库入口、座位预约、文献传递。写论文的起点。',
+    group: '图书馆与科研',
+    reach: '公网',
+    origin: '学校官方',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '数据库导航',
+    url: 'https://ecollection.lib.tsinghua.edu.cn/databasenav/entrance/databaseNav',
+    desc: '按学科找数据库。**从校内入口进才有订阅权限**，校外走 WebVPN。',
+    group: '图书馆与科研',
+    reach: '校园网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '电子期刊导航',
+    url: 'https://ecollection.lib.tsinghua.edu.cn/journalnav/home',
+    desc: '按刊名或学科定位期刊，看某本刊学校有没有订阅。',
+    group: '图书馆与科研',
+    reach: '校园网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '乐学工作坊资料',
+    url: 'https://workshop.learning.tsinghua.edu.cn/web/index.php/materials/index',
+    desc: '学业指导类讲座资料：学业规划、时间管理、受挫之后怎么办、推研面试准备。',
+    group: '图书馆与科研',
+    reach: '校园网',
+    origin: '资料库（未央学习）',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '校内 Overleaf（在线 LaTeX）',
+    url: 'https://overleaf.tsinghua.edu.cn/',
+    desc: '学校提供的 Overleaf 服务，多人协作写报告很方便。用校内账号登录。',
+    group: '图书馆与科研',
+    reach: '校园网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '校内 GitLab',
+    url: 'https://git.tsinghua.edu.cn/',
+    desc: '校内代码托管平台。几个课程攻略库在这里都有镜像，**校园网内比 GitHub 快得多**。',
+    group: '图书馆与科研',
+    reach: '校园网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '开源软件镜像站（TUNA）',
+    url: 'https://mirrors.tuna.tsinghua.edu.cn/',
+    desc: '装 Python / Node / Linux 发行版时把源换成它，下载速度差一个数量级。',
+    group: '图书馆与科研',
+    reach: '公网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: 'Tsinghua Online Judge',
+    url: 'https://dsa.cs.tsinghua.edu.cn/oj/',
+    desc: '数据结构等课程可能用到的判题平台。课程要求以任课教师说明为准。',
+    group: '图书馆与科研',
+    reach: '公网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+
+  // ── 办事与生活 ──────────────────────────────────────────────
+  {
+    name: '在线服务系统（thos）',
+    url: 'https://thos.tsinghua.edu.cn/',
+    desc: '各类线上办事表单的入口：证明开具、场地申请、审批流程等。',
+    group: '办事与生活',
+    reach: '校园网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '学生活动申请平台',
+    url: 'https://oa.student.tsinghua.edu.cn/',
+    desc: '班级、社团办活动要走的手续入口。办活动前先来看需要哪些材料。',
+    group: '办事与生活',
+    reach: '校园网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '学生清华',
+    url: 'https://student.tsinghua.edu.cn/',
+    desc: '学生工作相关的信息与服务入口。',
+    group: '办事与生活',
+    reach: '校园网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '场馆预约（体育）',
+    url: 'https://www.sports.tsinghua.edu.cn/venue/',
+    desc: '体育馆、游泳馆、球场等场馆的预约入口。热门时段要提前抢。',
+    group: '办事与生活',
+    reach: '校园网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '奖学金申请',
+    url: 'https://sa.tsinghua.edu.cn/',
+    desc: '奖学金、助学金相关的申请与评审入口。**时间和材料要求以当年通知为准。**',
+    group: '办事与生活',
+    reach: '校园网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+
+  // ── 校内平台与 AI ───────────────────────────────────────────
+  {
+    name: '清华 AI 素养学习中心',
+    url: 'https://yuketang.tsinghua.edu.cn/ai/learning-center',
+    desc: '学校的人工智能素养课程入口（雨课堂平台）。想系统了解 AI 从这开始。',
+    group: '校内平台与 AI',
+    reach: '校园网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: 'MAIC：自适应课堂',
+    url: 'https://www.maic.tsinghua.edu.cn/',
+    desc: '校内 AI 辅助教学平台，部分课程会用到。是否使用以任课教师安排为准。',
+    group: '校内平台与 AI',
+    reach: '校园网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '校内大模型服务入口',
+    url: 'https://madmodel.cs.tsinghua.edu.cn/',
+    desc: '校内提供的大模型服务入口。**用之前先看清课程对 AI 工具的规定。**',
+    group: '校内平台与 AI',
+    reach: '校园网',
+    note: '账号与可用范围以官方说明为准',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '清华常用信息汇总（第三方）',
+    url: 'https://thu.services/',
+    desc: '学生做的信息汇总站，把各类校内入口和服务按主题整理在一起，可作为交叉验证。',
+    group: '校内平台与 AI',
+    reach: '未实测',
+    note: '第三方站点，不是学校官方，信息可能滞后',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
   },
 
   // ── 成长与出路 ──────────────────────────────────────────────
@@ -85,6 +386,40 @@ export const campusLinks: CampusLink[] = [
     url: 'https://career.tsinghua.edu.cn/',
     desc: '实习与校招信息、宣讲会日程、职业发展中心的服务入口。',
     group: '成长与出路',
+    reach: '公网',
+    origin: '学校官方',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '学信网',
+    url: 'https://www.chsi.com.cn/',
+    desc: '学籍学历查询与在线验证报告。出国、求职、办手续时常被要求提供。',
+    group: '成长与出路',
+    reach: '公网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '北京共青团',
+    url: 'https://www.bjyouth.net/',
+    desc: '团员注册、志愿项目与团组织关系相关的系统。团支书会经常用。',
+    group: '成长与出路',
+    reach: '公网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '清华大学本科招生网',
+    url: 'https://www.join-tsinghua.edu.cn/',
+    desc: '招生政策与院系介绍。给还在高中的学弟学妹转发时用得上。',
+    group: '成长与出路',
+    reach: '公网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
   },
 
   // ── 官方与资讯 ──────────────────────────────────────────────
@@ -93,12 +428,51 @@ export const campusLinks: CampusLink[] = [
     url: 'https://www.tsinghua.edu.cn/',
     desc: '学校层面的新闻、通知、机构与院系导航。',
     group: '官方与资讯',
+    reach: '公网',
+    origin: '学校官方',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
   },
   {
     name: '清华大学新闻网',
     url: 'https://news.tsinghua.edu.cn/',
     desc: '校内新闻与人物报道，找「学校最近在发生什么」时看这里。',
     group: '官方与资讯',
+    reach: '公网',
+    origin: '学校官方',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '院系设置',
+    url: 'https://www.tsinghua.edu.cn/yxsz.htm',
+    desc: '全校院系一览，顺着能找到各院系官网与教师主页。找信息时的第一条线索。',
+    group: '官方与资讯',
+    reach: '公网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '视觉形象识别系统（官方模板）',
+    url: 'https://vi.tsinghua.edu.cn/',
+    desc: '官方 PPT 模板、校徽与配色规范。做汇报、做海报时别自己乱拼一个。',
+    group: '官方与资讯',
+    reach: '校园网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '中国知网（CNKI）',
+    url: 'https://www.cnki.net/',
+    desc: '中文学术文献检索。**全文下载要走图书馆的订阅入口，直接打开是要付费的。**',
+    group: '官方与资讯',
+    reach: '公网',
+    note: '校外访问全文请走图书馆数据库导航，别自己买',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
   },
 ];
 

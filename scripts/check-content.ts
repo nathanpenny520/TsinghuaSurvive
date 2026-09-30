@@ -21,6 +21,9 @@ import { parse as parseYaml } from 'yaml';
 
 import { campusLinks } from '../src/data/links.ts';
 import { resources } from '../src/data/resources.ts';
+import { archives, archiveOrder, courses, sourceLink } from '../src/data/courses.ts';
+import { extraArchives } from '../src/data/archives.ts';
+import linkStatus from '../src/data/link-status.json' with { type: 'json' };
 
 const ROOT = resolve(import.meta.dirname, '..');
 const DOCS_DIR = join(ROOT, 'src/content/docs');
@@ -124,7 +127,9 @@ for (const file of walk(DOCS_DIR, (p) => ['.md', '.mdx'].includes(extname(p)))) 
 
   const rel = relative(DOCS_DIR, file);
   const id = rel.replace(/\.mdx?$/, '').split('\\').join('/');
-  const route = id === 'index' ? '/' : `/${id}/`;
+  // skills/index.md 这种嵌套首页，Starlight 生成的是目录路由 /skills/ 而不是 /skills/index/
+  const route =
+    id === 'index' ? '/' : id.endsWith('/index') ? `/${id.slice(0, -'/index'.length)}/` : `/${id}/`;
 
   docs.push({ file, id, route, data });
 
@@ -311,32 +316,27 @@ for (const link of campusLinks) {
     error(`links.ts 里 ${link.name} 的 url 不是合法网址：${link.url}`, 'src/data/links.ts');
   }
 
-  if (!link.verified) {
-    warn(
-      `links.ts：${link.name} 还没有 verified 日期（页面上会显示「待核对」）`,
-      'src/data/links.ts',
-      undefined,
-      "亲自点开确认后填 verified: '2026-09-30'",
-    );
-    continue;
-  }
+  // 「网址活着」由 `npm run check:links` 实测（link-status.json），
+  // 这里只负责「有人确认过这个入口还是干这件事吗」—— 也就是 reviewedAt。
+  // 未核对的条目合并成一条警告：避免几十条链接把输出刷满，具体数量进「债务总账」。
+  if (!link.reviewedAt) continue;
 
-  const verified = toDate(link.verified);
-  if (!verified) {
-    error(`links.ts：${link.name} 的 verified 不是合法日期：${link.verified}`, 'src/data/links.ts');
+  const reviewedAt = toDate(link.reviewedAt);
+  if (!reviewedAt) {
+    error(`links.ts：${link.name} 的 reviewedAt 不是合法日期：${link.reviewedAt}`, 'src/data/links.ts');
     continue;
   }
-  if (verified.getTime() > Date.now()) {
-    error(`links.ts：${link.name} 的 verified 写在了未来`, 'src/data/links.ts');
+  if (reviewedAt.getTime() > Date.now()) {
+    error(`links.ts：${link.name} 的 reviewedAt 写在了未来`, 'src/data/links.ts');
     continue;
   }
-  const months = monthsBetween(verified, new Date());
+  const months = monthsBetween(reviewedAt, new Date());
   if (months >= policy.linkVerifiedStaleAfterMonths) {
     warn(
-      `links.ts：${link.name} 的链接已 ${months} 个月未重新确认`,
+      `links.ts：${link.name} 已 ${months} 个月没有人工重新确认`,
       'src/data/links.ts',
       undefined,
-      '网址会变，点开确认后更新 verified',
+      '网址会变，点开确认后更新 reviewedAt',
     );
   }
 }
@@ -350,6 +350,33 @@ for (const item of resources) {
 
   const isPlaceholder =
     !item.url || policy.placeholderUrlValues.includes(item.url.trim()) || item.url === 'TODO';
+
+  // 站内条目（在线清单、在线表格）：url 是站内绝对路径，不要当外链校验
+  if (!isPlaceholder && item.internal) {
+    if (!item.url!.startsWith('/')) {
+      error(
+        `resources.ts：${item.name} 标了 internal，但 url 不是站内绝对路径（${item.url}）`,
+        'src/data/resources.ts',
+        undefined,
+        "站内条目的 url 要写成 '/xxx/' 这样的路径",
+      );
+    } else {
+      const target = item.url!.split('#')[0];
+      const known =
+        routes.has(target) ||
+        routes.has(target.endsWith('/') ? target : `${target}/`) ||
+        routes.has(target.replace(/\/$/, ''));
+      if (!known) {
+        error(
+          `resources.ts：${item.name} 指向的站内页面不存在：${item.url}`,
+          'src/data/resources.ts',
+          undefined,
+          '改文件名或删页面后，记得同步这里',
+        );
+      }
+    }
+    continue;
+  }
 
   if (isPlaceholder) {
     warn(
@@ -374,6 +401,160 @@ for (const item of resources) {
   }
 }
 
+// ── 检查 links.ts 的可达性标注与实测结果 ────────────────────────────────
+
+const REACH_VALUES = ['校园网', '公网', '未实测'];
+const unreviewedLinks = campusLinks.filter((l) => !l.reviewedAt);
+for (const link of campusLinks) {
+  if (!REACH_VALUES.includes(link.reach)) {
+    error(
+      `links.ts：${link.name} 的 reach 只能是 ${REACH_VALUES.join(' / ')}，现在写的是「${link.reach}」`,
+      'src/data/links.ts',
+    );
+  }
+  if (link.reviewedAt && !toDate(link.reviewedAt)) {
+    error(`links.ts：${link.name} 的 reviewedAt 不是合法日期：${link.reviewedAt}`, 'src/data/links.ts');
+  }
+  if (link.verifiedBy && !['human', 'auto'].includes(link.verifiedBy)) {
+    error(
+      `links.ts：${link.name} 的 verifiedBy 只能是 'human' 或 'auto'，现在是「${link.verifiedBy}」`,
+      'src/data/links.ts',
+    );
+  }
+  if (link.verifiedBy && !link.reviewedAt) {
+    error(
+      `links.ts：${link.name} 填了 verifiedBy 却没有 reviewedAt`,
+      'src/data/links.ts',
+      undefined,
+      '没有核对日期，核对方式就没有意义',
+    );
+  }
+}
+
+/** link-status.json 是 `npm run check:links` 的产物，过期或失败都要提醒 */
+const status = linkStatus as {
+  checkedAt: string;
+  reachable: number;
+  total: number;
+  results: Record<string, { ok: boolean; status: number | null; error?: string }>;
+};
+
+const statusDate = toDate(status.checkedAt);
+if (!statusDate) {
+  error(`link-status.json 的 checkedAt 不是合法日期：${status.checkedAt}`, 'src/data/link-status.json');
+} else {
+  const months = monthsBetween(statusDate, new Date());
+  if (months >= policy.linkVerifiedStaleAfterMonths) {
+    warn(
+      `链接实测结果已经 ${months} 个月没更新`,
+      'src/data/link-status.json',
+      undefined,
+      '跑一次 npm run check:links 重新实测',
+    );
+  }
+}
+
+if (unreviewedLinks.length) {
+  warn(
+    `links.ts：${unreviewedLinks.length}/${campusLinks.length} 条链接还没有人工核对日期（页面上显示「待人工核对」）`,
+    'src/data/links.ts',
+    undefined,
+    `例：${unreviewedLinks
+      .slice(0, 3)
+      .map((l) => l.name)
+      .join('、')}…… 点开确认后填 reviewedAt`,
+  );
+}
+
+const uncheckedLinks = campusLinks.filter((link) => !status.results[link.url]);
+const brokenLinks = campusLinks.filter((link) => status.results[link.url]?.ok === false);
+
+if (uncheckedLinks.length) {
+  warn(
+    `links.ts：${uncheckedLinks.length} 条链接没有实测记录`,
+    'src/data/links.ts',
+    undefined,
+    '跑一次 npm run check:links（新加的链接会漏掉）',
+  );
+}
+
+if (brokenLinks.length) {
+  warn(
+    `links.ts：${brokenLinks.length} 条链接最近一次实测打不开`,
+    'src/data/links.ts',
+    undefined,
+    `例：${brokenLinks
+      .slice(0, 3)
+      .map((l) => l.name)
+      .join('、')}…… 可能只是需要校园网，确认后更新 reach 或换入口`,
+  );
+}
+
+// ── 检查课程索引（course-index.json 与 courses.ts） ─────────────────────
+
+const archiveIds = new Set(Object.keys(archives));
+const courseNames = new Set<string>();
+let coursesWithoutSources = 0;
+let sourcesChecked = 0;
+
+for (const id of archiveOrder) {
+  if (!archiveIds.has(id)) {
+    error(`courses.ts：归档 ${id} 在 archiveOrder 里但没有定义`, 'src/data/courses.ts');
+  }
+}
+
+for (const course of courses) {
+  if (courseNames.has(course.name)) {
+    error(`course-index.json 里有重名课程：${course.name}`, 'src/data/course-index.json');
+  }
+  courseNames.add(course.name);
+
+  if (!course.sources.length) {
+    coursesWithoutSources += 1;
+    continue;
+  }
+
+  for (const source of course.sources) {
+    sourcesChecked += 1;
+    if (!archiveIds.has(source.archive)) {
+      error(
+        `course-index.json：${course.name} 引用了未知资料库「${source.archive}」`,
+        'src/data/course-index.json',
+      );
+      continue;
+    }
+    if (!source.path) {
+      error(`course-index.json：${course.name} 有一条资料没有路径`, 'src/data/course-index.json');
+    }
+    if (!source.kinds.length) {
+      error(`course-index.json：${course.name} 的「${source.path}」没有资料类型`, 'src/data/course-index.json');
+    }
+    const link = sourceLink(source);
+    try {
+      new URL(link.url);
+    } catch {
+      error(
+        `courses.ts：${course.name} 的链接拼不出来（${link.url}）`,
+        'src/data/courses.ts',
+      );
+    }
+  }
+}
+
+// extraArchives 里的链接同样要合法
+for (const archive of extraArchives) {
+  if (!archive.links.length) {
+    warn(`archives.ts：${archive.name} 没有任何链接`, 'src/data/archives.ts');
+  }
+  for (const link of archive.links) {
+    try {
+      new URL(link.url);
+    } catch {
+      error(`archives.ts：${archive.name} 的 url 不合法：${link.url}`, 'src/data/archives.ts');
+    }
+  }
+}
+
 // ── 输出 ───────────────────────────────────────────────────────────────
 
 const errors = findings.filter((f) => f.level === 'error');
@@ -391,7 +572,10 @@ function emit(f: Finding) {
 }
 
 if (!annotate) {
-  console.log(`\n检查了 ${docs.length} 篇文章、${campusLinks.length} 条链接、${resources.length} 条资料\n`);
+  console.log(
+    `\n检查了 ${docs.length} 篇文章、${campusLinks.length} 条链接、${resources.length} 条资料、` +
+      `${courses.length} 门课（${sourcesChecked} 条资料索引）\n`,
+  );
 }
 
 for (const f of errors) emit(f);
@@ -406,10 +590,11 @@ const debt = {
   }).length,
   待核对页面: docs.filter((d) => d.data.status === 'draft').length,
   未标注核对日期: docs.filter((d) => !toDate(d.data.reviewedAt)).length,
-  待核对链接: campusLinks.filter((l) => !l.verified).length,
+  待人工核对链接: campusLinks.filter((l) => !l.reviewedAt).length,
   待补充资料: resources.filter(
     (r) => !r.url || policy.placeholderUrlValues.includes(r.url.trim()),
   ).length,
+  只有书目没有资料索引的课: coursesWithoutSources,
 };
 
 if (!annotate) {

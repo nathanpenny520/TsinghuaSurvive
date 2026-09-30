@@ -1,0 +1,107 @@
+---
+/**
+ * 「哪门课会用到哪个技能」映射表。
+ *
+ * 数据来自技能引导文档（SAST skill docs）的「课程指引」一节 —— 它把课程和入门章节对应起来。
+ * 借鉴的正是这个思路：**上课听不懂，有时候不是课难，是缺了前置工具技能**。
+ */
+import { courses, archives } from '../data/courses';
+
+const rows = courses
+  .flatMap((course) =>
+    course.sources
+      .filter((source) => source.archive === 'sast' && source.topics?.length)
+      .map((source) => ({ course: course.name, topics: source.topics ?? [] })),
+  )
+  .sort((a, b) => a.course.localeCompare(b.course, 'zh-Hans-CN'));
+---
+
+{
+  rows.length === 0 ? (
+    <p class="empty">暂时没有映射数据（课程索引里没有技能引导文档的记录）。</p>
+  ) : (
+    <div class="map">
+      <p class="map__lead">
+        下面这些课，技能引导文档里给出了对应的入门章节。它的价值在于：
+        <strong>有些课听起来难，其实卡在前置工具上</strong>（不会命令行、不会 Git、不会用终端跑脚本）。
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>课程</th>
+              <th>相关的入门文档</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr>
+                <td>{row.course}</td>
+                <td>
+                  {row.topics.map((topic) => (
+                    <span class="topic">{topic}</span>
+                  ))}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="map__note">
+        章节标题按原文照录，点进 <a href={archives.sast.links[0]!.url} target="_blank" rel="noopener noreferrer">技能引导文档</a>
+        按标题找对应页面。映射关系由脚本从对方的「课程指引」页扫出来，不是我们编的。
+      </p>
+    </div>
+  )
+}
+
+<style>
+  .map__lead,
+  .map__note,
+  .empty {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+    line-height: 1.75;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--sl-text-sm);
+  }
+
+  th,
+  td {
+    padding: 0.5rem 0.65rem;
+    border-bottom: 1px solid var(--sl-color-gray-6);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  td:first-child {
+    white-space: nowrap;
+    font-weight: 500;
+  }
+
+  .topic {
+    display: inline-block;
+    margin: 0 0.3rem 0.3rem 0;
+    padding: 0.05rem 0.45rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.3rem;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-2);
+  }
+</style>

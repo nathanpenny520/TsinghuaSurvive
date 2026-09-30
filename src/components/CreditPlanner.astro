@@ -1,0 +1,563 @@
+---
+/**
+ * 培养方案学分缺口拆解表（纯前端小工具）。
+ *
+ * 为什么需要它：`/academics/course-selection/` 里给的第一个建议就是
+ * 「**别用眼睛读培养方案，用表格读**」——但很多人就是从零建一张表这一步卡住。
+ * 这个工具把表的骨架给出来：类别、学分下限、已修学分、缺口，自动算。
+ *
+ * ⚠️ 这里面**没有任何院系的数字**：学分下限默认是 0，必须你自己照着培养方案填。
+ *    本站不提供任何院系的学分要求，也不该提供（每届、每院系都不一样）。
+ *
+ * 数据只存在浏览器 localStorage，不上传。
+ */
+const DEFAULT_CATEGORIES = ['必修', '限选', '任选', '通识', '实践'];
+---
+
+<section class="planner" data-planner data-planner-defaults={JSON.stringify(DEFAULT_CATEGORIES)}>
+  <div class="planner__bar" data-planner-controls hidden>
+    <button type="button" data-planner-add-row>+ 加一门课</button>
+    <button type="button" data-planner-export>导出 JSON</button>
+    <button type="button" data-planner-import>导入 JSON</button>
+    <button type="button" data-planner-print>打印 / 存 PDF</button>
+    <button type="button" data-planner-reset>清空</button>
+    <input type="file" accept="application/json" data-planner-file hidden />
+  </div>
+
+  <h3>一、先填你自己院系的学分下限</h3>
+  <p class="planner__hint">
+    照培养方案上的数字填。<strong>这里默认是 0，本站不提供任何院系的数字</strong> —— 填错等于白算。
+    类别名也可以改（改成你培养方案上的叫法，比如「专业核心课」）。
+  </p>
+  <table class="planner__table planner__table--min">
+    <thead>
+      <tr>
+        <th>课程类别</th>
+        <th class="num">学分下限</th>
+        <th class="num">已修 / 在修</th>
+        <th class="num">缺口</th>
+        <th class="act"></th>
+      </tr>
+    </thead>
+    <tbody data-planner-categories></tbody>
+    <tfoot>
+      <tr>
+        <td>合计</td>
+        <td class="num" data-planner-total-min>0</td>
+        <td class="num" data-planner-total-earned>0</td>
+        <td class="num" data-planner-total-gap>0</td>
+        <td class="act"></td>
+      </tr>
+    </tfoot>
+  </table>
+  <button type="button" class="planner__add-cat" data-planner-add-category hidden>+ 加一个类别</button>
+
+  <h3>二、把课程填进来</h3>
+  <p class="planner__hint">一门课一行。「已修」勾上表示这门课的成绩已经拿到（在修的课先别勾，或者自己记着）。</p>
+  <table class="planner__table">
+    <thead>
+      <tr>
+        <th>课程名</th>
+        <th>类别</th>
+        <th class="num">学分</th>
+        <th class="act">已修</th>
+        <th class="act"></th>
+      </tr>
+    </thead>
+    <tbody data-planner-rows></tbody>
+  </table>
+  <p class="planner__empty" data-planner-empty>还没有课程。点上面的「+ 加一门课」开始。</p>
+
+  <h3>三、缺口长这样</h3>
+  <div class="planner__summary" data-planner-summary></div>
+
+  <p class="planner__note">
+    数据只存在你这台设备的浏览器里（localStorage），<strong>不会上传到任何地方</strong>。
+    换设备或清缓存会丢，重要的话用「导出 JSON」存一份。
+  </p>
+</section>
+
+<style>
+  .planner {
+    margin: 1.25rem 0 2rem;
+  }
+
+  .planner__bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .planner__bar button,
+  .planner__add-cat {
+    border: 1px solid var(--sl-color-gray-5);
+    background: transparent;
+    color: var(--sl-color-text-accent);
+    font-size: var(--sl-text-sm);
+    padding: 0.3rem 0.7rem;
+    border-radius: 0.4rem;
+    cursor: pointer;
+  }
+
+  .planner__bar button:hover,
+  .planner__add-cat:hover {
+    border-color: var(--sl-color-accent);
+  }
+
+  .planner__hint,
+  .planner__note,
+  .planner__empty {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+    line-height: 1.7;
+  }
+
+  .planner__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--sl-text-sm);
+    margin: 0.6rem 0 1rem;
+  }
+
+  .planner__table th,
+  .planner__table td {
+    padding: 0.35rem 0.5rem;
+    border-bottom: 1px solid var(--sl-color-gray-6);
+    text-align: left;
+  }
+
+  .planner__table th {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .planner__table .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .planner__table .act {
+    width: 1%;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .planner__table tfoot td {
+    font-weight: 600;
+    border-top: 1px solid var(--sl-color-gray-4);
+  }
+
+  .planner__table input[type='text'],
+  .planner__table input[type='number'],
+  .planner__table select {
+    width: 100%;
+    min-width: 4.5rem;
+    background: var(--sl-color-bg);
+    color: var(--sl-color-white);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.35rem;
+    padding: 0.25rem 0.4rem;
+    font: inherit;
+  }
+
+  .planner__table input[type='number'] {
+    text-align: right;
+  }
+
+  .planner__table input[type='checkbox'] {
+    accent-color: var(--sl-color-accent);
+  }
+
+  .planner__table button {
+    background: transparent;
+    border: 0;
+    color: var(--sl-color-gray-3);
+    cursor: pointer;
+    font-size: var(--sl-text-xs);
+    padding: 0.15rem 0.3rem;
+    white-space: nowrap;
+  }
+
+  .planner__table button:hover {
+    color: var(--sl-color-text-accent);
+  }
+
+  .planner__gap {
+    color: hsl(35, 80%, 70%);
+    font-weight: 600;
+  }
+
+  .planner__done {
+    color: hsl(150, 55%, 68%);
+  }
+
+  .planner__summary {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0.75rem 0 1rem;
+  }
+
+  .planner__meter {
+    display: grid;
+    grid-template-columns: 8rem 1fr 8rem;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: var(--sl-text-sm);
+  }
+
+  .planner__meter-track {
+    height: 8px;
+    border-radius: 99px;
+    background: var(--sl-color-gray-6);
+    overflow: hidden;
+  }
+
+  .planner__meter-track > i {
+    display: block;
+    height: 100%;
+    background: var(--sl-color-accent);
+  }
+
+  .planner__meter-track > i.is-full {
+    background: hsl(150, 45%, 45%);
+  }
+
+  .planner__meter-value {
+    text-align: right;
+    color: var(--sl-color-gray-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  :global(:root[data-theme='light']) .planner__gap {
+    color: hsl(28, 80%, 32%);
+  }
+
+  :global(:root[data-theme='light']) .planner__done {
+    color: hsl(155, 70%, 25%);
+  }
+
+  @media print {
+    .planner__bar,
+    .planner__add-cat,
+    .planner__table button,
+    .planner__note {
+      display: none !important;
+    }
+
+    .planner__table input,
+    .planner__table select {
+      border: 0 !important;
+      padding: 0 !important;
+    }
+  }
+</style>
+
+<script>
+  const STORE_KEY = 'tsinghua-guide-credit-planner-v1';
+
+  type Row = { id: string; name: string; category: string; credits: number; done: boolean };
+  type Category = { name: string; min: number };
+  type State = { categories: Category[]; rows: Row[] };
+
+  const root = document.querySelector<HTMLElement>('[data-planner]');
+
+  if (root) {
+    const categoryBody = root.querySelector<HTMLElement>('[data-planner-categories]')!;
+    const rowBody = root.querySelector<HTMLElement>('[data-planner-rows]')!;
+    const summary = root.querySelector<HTMLElement>('[data-planner-summary]')!;
+    const emptyHint = root.querySelector<HTMLElement>('[data-planner-empty]')!;
+    const controls = root.querySelector<HTMLElement>('[data-planner-controls]')!;
+
+    const totalMinCells = {
+      min: root.querySelector<HTMLElement>('[data-planner-total-min]')!,
+      earned: root.querySelector<HTMLElement>('[data-planner-total-earned]')!,
+      gap: root.querySelector<HTMLElement>('[data-planner-total-gap]')!,
+    };
+
+    /** 默认类别来自 frontmatter（只有一份定义），解析失败就退回到通用四类 */
+    const DEFAULT_CATEGORIES: string[] = (() => {
+      try {
+        const parsed = JSON.parse(root.dataset.plannerDefaults ?? '[]');
+        return Array.isArray(parsed) && parsed.length ? parsed : ['必修', '限选', '任选', '通识'];
+      } catch {
+        return ['必修', '限选', '任选', '通识'];
+      }
+    })();
+
+    const initial: State = {
+      categories: DEFAULT_CATEGORIES.map((name: string) => ({ name, min: 0 })),
+      rows: [],
+    };
+
+    const load = (): State => {
+      try {
+        const raw = localStorage.getItem(STORE_KEY);
+        if (!raw) return initial;
+        const parsed = JSON.parse(raw) as State;
+        if (!Array.isArray(parsed.categories) || !Array.isArray(parsed.rows)) return initial;
+        return parsed;
+      } catch {
+        return initial;
+      }
+    };
+
+    let state = load();
+    let seq = 0;
+    const nextId = () => `row-${Date.now()}-${seq++}`;
+
+    const save = () => {
+      try {
+        localStorage.setItem(STORE_KEY, JSON.stringify(state));
+      } catch {
+        /* 隐私模式忽略 */
+      }
+    };
+
+    const escapeHtml = (value: string) =>
+      value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    const earnedOf = (category: string) =>
+      state.rows
+        .filter((row) => row.category === category && row.done)
+        .reduce((sum, row) => sum + (Number.isFinite(row.credits) ? row.credits : 0), 0);
+
+    const render = () => {
+      controls.hidden = false;
+      const addCategory = root.querySelector<HTMLElement>('[data-planner-add-category]');
+      if (addCategory) addCategory.hidden = false;
+
+      // 类别表
+      categoryBody.innerHTML = state.categories
+        .map((category, index) => {
+          const earned = earnedOf(category.name);
+          const gap = Math.max(0, (category.min || 0) - earned);
+          return `<tr>
+            <td><input type="text" value="${escapeHtml(category.name)}" data-cat-name="${index}" /></td>
+            <td class="num"><input type="number" min="0" step="0.5" value="${category.min || 0}" data-cat-min="${index}" /></td>
+            <td class="num planner__done">${earned}</td>
+            <td class="num ${gap > 0 ? 'planner__gap' : ''}">${gap > 0 ? gap : '✓'}</td>
+            <td class="act">${state.categories.length > 1 ? `<button type="button" data-cat-remove="${index}" title="删除这个类别">删除</button>` : ''}</td>
+          </tr>`;
+        })
+        .join('');
+
+      // 课程表
+      rowBody.innerHTML = state.rows
+        .map((row, index) => {
+          const options = state.categories
+            .map(
+              (category) =>
+                `<option value="${escapeHtml(category.name)}"${category.name === row.category ? ' selected' : ''}>${escapeHtml(category.name)}</option>`,
+            )
+            .join('');
+          return `<tr>
+            <td><input type="text" value="${escapeHtml(row.name)}" placeholder="课程名" data-row-name="${index}" /></td>
+            <td><select data-row-category="${index}">${options}</select></td>
+            <td class="num"><input type="number" min="0" step="0.5" value="${row.credits || 0}" data-row-credits="${index}" /></td>
+            <td class="act"><input type="checkbox" data-row-done="${index}"${row.done ? ' checked' : ''} /></td>
+            <td class="act"><button type="button" data-row-remove="${index}" title="删除这一行">删除</button></td>
+          </tr>`;
+        })
+        .join('');
+
+      emptyHint.hidden = state.rows.length > 0;
+
+      // 汇总
+      const totalMin = state.categories.reduce((sum, category) => sum + (category.min || 0), 0);
+      const totalEarned = state.rows
+        .filter((row) => row.done)
+        .reduce((sum, row) => sum + (row.credits || 0), 0);
+      const totalGap = Math.max(0, totalMin - totalEarned);
+
+      totalMinCells.min.textContent = String(totalMin);
+      totalMinCells.earned.textContent = String(totalEarned);
+      totalMinCells.gap.textContent = String(totalGap);
+      totalMinCells.gap.className = `num ${totalGap > 0 ? 'planner__gap' : 'planner__done'}`;
+
+      renderSummaryOnly();
+    };
+
+    // ── 事件：改类别名 / 学分下限 ──────────────────────────────────────
+    categoryBody.addEventListener('input', (event) => {
+      const target = event.target as HTMLInputElement;
+      const nameIndex = target.dataset.catName;
+      const minIndex = target.dataset.catMin;
+      if (nameIndex !== undefined) {
+        const index = Number(nameIndex);
+        const oldName = state.categories[index]!.name;
+        const newName = target.value;
+        state.categories[index]!.name = newName;
+        // 类别改名时，把已选该类的课程一起改过去，避免出现"孤儿课程"
+        for (const row of state.rows) if (row.category === oldName) row.category = newName;
+        // 只重绘汇总，不重绘输入框：否则打字时输入框被替换，光标会跳走
+        save();
+        renderSummaryOnly();
+        return;
+      }
+      if (minIndex !== undefined) {
+        state.categories[Number(minIndex)]!.min = Number(target.value) || 0;
+        save();
+        renderSummaryOnly();
+        updateCategoryFoot();
+      }
+    });
+
+    const updateCategoryFoot = () => {
+      for (const [index, category] of state.categories.entries()) {
+        const row = categoryBody.children[index] as HTMLTableRowElement | undefined;
+        if (!row) continue;
+        const earned = earnedOf(category.name);
+        const gap = Math.max(0, (category.min || 0) - earned);
+        const cells = row.querySelectorAll('td');
+        if (cells[2]) cells[2].textContent = String(earned);
+        if (cells[3]) {
+          cells[3].textContent = gap > 0 ? String(gap) : '✓';
+          cells[3].className = `num ${gap > 0 ? 'planner__gap' : 'planner__done'}`;
+        }
+      }
+      const totalMin = state.categories.reduce((sum, category) => sum + (category.min || 0), 0);
+      const totalEarned = state.rows.filter((row) => row.done).reduce((sum, row) => sum + (row.credits || 0), 0);
+      const totalGap = Math.max(0, totalMin - totalEarned);
+      totalMinCells.min.textContent = String(totalMin);
+      totalMinCells.earned.textContent = String(totalEarned);
+      totalMinCells.gap.textContent = String(totalGap);
+      totalMinCells.gap.className = `num ${totalGap > 0 ? 'planner__gap' : 'planner__done'}`;
+    };
+
+    /** 汇总区重绘（输入时用，避免整表重绘导致光标丢失） */
+    const renderSummaryOnly = () => {
+      const totalMin = state.categories.reduce((sum, category) => sum + (category.min || 0), 0);
+      const totalEarned = state.rows.filter((row) => row.done).reduce((sum, row) => sum + (row.credits || 0), 0);
+      const totalGap = Math.max(0, totalMin - totalEarned);
+      summary.innerHTML =
+        state.categories
+          .map((category) => {
+            const earned = earnedOf(category.name);
+            const min = category.min || 0;
+            const percent = min > 0 ? Math.min(100, (earned / min) * 100) : earned > 0 ? 100 : 0;
+            const gap = Math.max(0, min - earned);
+            return `<div class="planner__meter">
+              <span>${escapeHtml(category.name)}</span>
+              <span class="planner__meter-track"><i class="${percent >= 100 ? 'is-full' : ''}" style="width:${percent}%"></i></span>
+              <span class="planner__meter-value">${earned} / ${min}${gap > 0 ? `（缺 ${gap}）` : min > 0 ? ' ✓' : ''}</span>
+            </div>`;
+          })
+          .join('') +
+        `<div class="planner__meter">
+          <span><strong>合计</strong></span>
+          <span class="planner__meter-track"><i class="${totalGap === 0 && totalMin > 0 ? 'is-full' : ''}" style="width:${totalMin > 0 ? Math.min(100, (totalEarned / totalMin) * 100) : 0}%"></i></span>
+          <span class="planner__meter-value"><strong>${totalEarned} / ${totalMin}${totalGap > 0 ? `（缺 ${totalGap}）` : totalMin > 0 ? ' ✓' : ''}</strong></span>
+        </div>`;
+    };
+
+    // ── 事件：课程行 ──────────────────────────────────────────────────
+    rowBody.addEventListener('input', (event) => {
+      const target = event.target as HTMLInputElement;
+      const nameIndex = target.dataset.rowName;
+      const creditsIndex = target.dataset.rowCredits;
+      if (nameIndex !== undefined) state.rows[Number(nameIndex)]!.name = target.value;
+      if (creditsIndex !== undefined) state.rows[Number(creditsIndex)]!.credits = Number(target.value) || 0;
+      save();
+      renderSummaryOnly();
+      updateCategoryFoot();
+    });
+
+    rowBody.addEventListener('change', (event) => {
+      const target = event.target as HTMLInputElement | HTMLSelectElement;
+      const categoryIndex = (target as HTMLElement).dataset.rowCategory;
+      const doneIndex = (target as HTMLElement).dataset.rowDone;
+      if (categoryIndex !== undefined) {
+        state.rows[Number(categoryIndex)]!.category = target.value;
+        save();
+        render();
+      }
+      if (doneIndex !== undefined) {
+        state.rows[Number(doneIndex)]!.done = (target as HTMLInputElement).checked;
+        save();
+        renderSummaryOnly();
+        updateCategoryFoot();
+      }
+    });
+
+    rowBody.addEventListener('click', (event) => {
+      const index = (event.target as HTMLElement).dataset.rowRemove;
+      if (index === undefined) return;
+      state.rows.splice(Number(index), 1);
+      save();
+      render();
+    });
+
+    categoryBody.addEventListener('click', (event) => {
+      const index = (event.target as HTMLElement).dataset.catRemove;
+      if (index === undefined) return;
+      const [removed] = state.categories.splice(Number(index), 1);
+      const fallback = state.categories[0]?.name ?? '必修';
+      for (const row of state.rows) if (row.category === removed?.name) row.category = fallback;
+      save();
+      render();
+    });
+
+    root.querySelector('[data-planner-add-row]')?.addEventListener('click', () => {
+      state.rows.push({
+        id: nextId(),
+        name: '',
+        category: state.categories[0]?.name ?? '必修',
+        credits: 0,
+        done: false,
+      });
+      save();
+      render();
+      const inputs = rowBody.querySelectorAll<HTMLInputElement>('input[type="text"]');
+      inputs[inputs.length - 1]?.focus();
+    });
+
+    root.querySelector('[data-planner-add-category]')?.addEventListener('click', () => {
+      state.categories.push({ name: `新类别${state.categories.length + 1}`, min: 0 });
+      save();
+      render();
+    });
+
+    root.querySelector('[data-planner-reset]')?.addEventListener('click', () => {
+      if (!confirm('清空这张表？所有课程与学分都会没掉。')) return;
+      state = { categories: DEFAULT_CATEGORIES.map((name) => ({ name, min: 0 })), rows: [] };
+      save();
+      render();
+    });
+
+    root.querySelector('[data-planner-export]')?.addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'credit-planner.json';
+      link.click();
+    });
+
+    root.querySelector('[data-planner-import]')?.addEventListener('click', () => {
+      root.querySelector<HTMLInputElement>('[data-planner-file]')?.click();
+    });
+
+    root.querySelector<HTMLInputElement>('[data-planner-file]')?.addEventListener('change', async (event) => {
+      const input = event.target as HTMLInputElement;
+      const file = input.files?.[0];
+      if (!file) return;
+      try {
+        const parsed = JSON.parse(await file.text()) as State;
+        if (!Array.isArray(parsed.categories) || !Array.isArray(parsed.rows)) throw new Error('格式不对');
+        state = parsed;
+        save();
+        render();
+      } catch (error) {
+        alert(`导入失败：${(error as Error).message}`);
+      }
+      input.value = '';
+    });
+
+    root.querySelector('[data-planner-print]')?.addEventListener('click', () => window.print());
+
+    render();
+  }
+</script>

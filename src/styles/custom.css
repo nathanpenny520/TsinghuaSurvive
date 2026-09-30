@@ -163,3 +163,29 @@
     padding: 0;
   }
 }
+
+
+/* ── 无障碍：键盘焦点 ─────────────────────────────────────────────────── */
+/* 站内自定义的卡片、按钮、筛选 chips 都要有清楚的焦点环（默认只在部分元素上有） */
+main a:focus-visible,
+main button:focus-visible,
+main summary:focus-visible,
+main input:focus-visible,
+main select:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* ── 无障碍：尊重「减少动态效果」偏好 ─────────────────────────────────── */
+/* 只把过渡/动画缩短到接近 0，不改布局，也不影响任何功能的可用性。 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

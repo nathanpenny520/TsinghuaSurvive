@@ -1,0 +1,150 @@
+---
+/**
+ * 参考书目 —— 把课程索引里的 52 门课的书目单独抽出来看。
+ *
+ * 数据来源：`course-index.json` 的 `books` 字段（扫自计算机系课程攻略的《参考书目》一节）。
+ * 借鉴 SAST 技能引导文档的「书目推荐」页：按学年/课程列出书，并说明它解决什么问题。
+ *
+ * ⚠️ 书目是「当年那届的」参考书，教材会换版本、老师会换书。这一页只做索引，不做推荐排序。
+ */
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { courses, courseCategories } from '../../data/courses';
+
+const withBooks = courses.filter((course) => course.books.length > 0);
+const groupOrder = courseCategories;
+
+/** 书目原文里混着网址（MOOC 链接等），把它变成可点的链接；其余按纯文本转义 */
+const escapeHtml = (value: string) =>
+  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+const linkify = (value: string) =>
+  escapeHtml(value).replace(
+    /(https?:\/\/[^\s，。；、）)】]+)/g,
+    '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>',
+  );
+
+const total = withBooks.reduce((sum, course) => sum + course.books.length, 0);
+---
+
+<StarlightPage
+  frontmatter={{
+    title: '课程参考书目',
+    description:
+      '课程攻略库里整理过的参考书目，按课程归类：这门课当年用什么教材、参考书。教材会换版本，以当年开课信息为准。',
+    tableOfContents: false,
+  }}
+>
+  <p>
+    这一页把课程资料索引里的 <strong>参考书目</strong> 单独抽出来：
+    <strong>{withBooks.length} 门课、{total} 条书目</strong>。
+    数据来自计算机系课程攻略库里的《参考书目》一节 —— 那是往届同学按学期整理的，
+    <strong>不是学校的官方教材清单</strong>。
+  </p>
+
+  <aside class="callout">
+    <p>
+      <strong>怎么用：</strong>预习、补基础、或者老师不讲教材只发讲义时，
+      至少知道这门课「通常被期望读到什么深度」。想按课程找资料（往年题、笔记、答案），去
+      <a href="/courses/">课程资料索引</a>。
+    </p>
+    <p>
+      <strong>注意：</strong>教材版本、是否用教材、用哪一本，每个老师都可能不同。
+      书目里出现的 MOOC 与网址也未必还有效 —— 以当年开课信息和任课教师说明为准。
+    </p>
+  </aside>
+
+  {
+    groupOrder.map((category) => {
+      const list = withBooks.filter((course) => course.category === category);
+      if (!list.length) return null;
+      return (
+        <section>
+          <h2>{category}</h2>
+          <ul class="books">
+            {list.map((course) => (
+              <li>
+                <div class="books__head">
+                  <strong>{course.name}</strong>
+                  {course.terms.map((term) => (
+                    <span class="books__term">{term}</span>
+                  ))}
+                </div>
+                <ul class="books__list">
+                  {course.books.map((book) => (
+                    <li set:html={linkify(book)} />
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </section>
+      );
+    })
+  }
+
+  <p class="footer-links">
+    相关：<a href="/courses/">课程资料索引</a> ·
+    <a href="/guides/archives/">外部资料库地图</a> ·
+    <a href="/academics/course-types/">各类课程怎么选</a>
+  </p>
+</StarlightPage>
+
+<style>
+  .callout {
+    padding: 0.9rem 1.1rem;
+    border-left: 3px solid var(--sl-color-accent);
+    background: var(--sl-color-gray-7, transparent);
+    border-radius: 0 0.4rem 0.4rem 0;
+    font-size: var(--sl-text-sm);
+  }
+
+  .callout p {
+    margin: 0.4rem 0;
+  }
+
+  .books {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 2rem;
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .books > li {
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--sl-color-gray-6);
+    border-radius: 0.5rem;
+  }
+
+  .books__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.45rem;
+  }
+
+  .books__term {
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.3rem;
+    padding: 0 0.35rem;
+  }
+
+  .books__list {
+    margin: 0.5rem 0 0;
+    padding-left: 1.1rem;
+    font-size: var(--sl-text-sm);
+    line-height: 1.75;
+    color: var(--sl-color-gray-2);
+    overflow-wrap: anywhere;
+  }
+
+  .footer-links {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--sl-color-gray-6);
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+</style>

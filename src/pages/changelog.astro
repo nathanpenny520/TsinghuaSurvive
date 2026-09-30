@@ -1,0 +1,212 @@
+---
+/**
+ * 更新日志 —— 直接从 Git 提交记录生成，不需要谁记得维护一份 CHANGELOG。
+ *
+ * 借鉴 mkdocs 站点的「网站更新日志」做法：读者想知道「这个站还活着吗、最近补了什么」，
+ * 而这件事最可靠的来源就是提交历史本身。
+ */
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { recentCommits, commitTypes } from '../data/git';
+
+const commits = recentCommits(120);
+const types = commitTypes();
+
+/** 按「年-月」分组，读者关心的是「这段时间改了什么」 */
+const byMonth = new Map<string, typeof commits>();
+for (const commit of commits) {
+  const month = commit.date.slice(0, 7);
+  byMonth.set(month, [...(byMonth.get(month) ?? []), commit]);
+}
+
+const TYPE_LABEL: Record<string, string> = Object.fromEntries(types.map((t) => [t.type, t.label]));
+---
+
+<StarlightPage
+  frontmatter={{
+    title: '更新日志',
+    description: '本站最近改了什么：从 Git 提交记录自动生成，按月份分组。',
+    tableOfContents: false,
+  }}
+>
+  <p>
+    这个站不是一次写完的。下面是从 Git 提交记录里自动生成的更新日志 ——
+    <strong>包括加了哪些内容、修了哪些错误的链接</strong>。想看谁在维护，去
+    <a href="/contributors/">贡献者</a>。
+  </p>
+
+  {
+    types.length > 0 && (
+      <ul class="types">
+        {types.slice(0, 6).map((type) => (
+          <li>
+            <span class={`dot dot--${type.type}`} aria-hidden="true" />
+            {type.label}
+            <span class="types__count">{type.count}</span>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  {
+    commits.length === 0 ? (
+      <p class="empty">
+        拿不到 Git 历史（可能是用压缩包部署的），所以这一页暂时没有数据。
+      </p>
+    ) : (
+      [...byMonth.entries()].map(([month, items]) => (
+        <section>
+          <h2>{month}</h2>
+          <ul class="log">
+            {items.map((commit) => (
+              <li>
+                <time datetime={commit.date}>{commit.date.slice(5)}</time>
+                <span class={`label label--${commit.type}`}>{TYPE_LABEL[commit.type] ?? '其他'}</span>
+                <span class="text">{commit.text}</span>
+                <code>{commit.hash}</code>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    )
+  }
+
+  {
+    commits.length > 0 && (
+      <p class="note">
+        这里只显示最近 {commits.length} 条。完整历史见
+        <a href="https://github.com/nathanpenny520/TsinghuaSurvive/commits/main" target="_blank" rel="noopener">
+          GitHub 提交记录
+        </a>
+        （校园网内打不开的话，用 <code>git log</code> 看本地副本）。
+      </p>
+    )
+  }
+</StarlightPage>
+
+<style>
+  .types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 2rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-2);
+  }
+
+  .types li {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .types__count {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: var(--sl-color-gray-4);
+  }
+
+  .dot--feat,
+  .dot--content {
+    background: hsl(150, 60%, 55%);
+  }
+
+  .dot--fix {
+    background: hsl(0, 65%, 62%);
+  }
+
+  .dot--docs {
+    background: hsl(210, 65%, 62%);
+  }
+
+  .dot--ci {
+    background: hsl(35, 80%, 60%);
+  }
+
+  .log {
+    list-style: none;
+    padding: 0;
+    margin: 0.6rem 0 2rem;
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .log li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: var(--sl-text-sm);
+    padding-bottom: 0.35rem;
+    border-bottom: 1px dashed var(--sl-color-gray-6);
+  }
+
+  .log time {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+    font-variant-numeric: tabular-nums;
+    min-width: 3rem;
+  }
+
+  .label {
+    font-size: var(--sl-text-xs);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.3rem;
+    padding: 0 0.35rem;
+    color: var(--sl-color-gray-3);
+    white-space: nowrap;
+  }
+
+  .label--feat,
+  .label--content {
+    color: hsl(150, 60%, 68%);
+    border-color: hsl(150, 35%, 38%);
+  }
+
+  .label--fix {
+    color: hsl(0, 70%, 72%);
+    border-color: hsl(0, 40%, 45%);
+  }
+
+  .label--docs {
+    color: hsl(210, 60%, 74%);
+    border-color: hsl(210, 35%, 45%);
+  }
+
+  .log code {
+    color: var(--sl-color-gray-4);
+    font-size: var(--sl-text-xs);
+  }
+
+  .empty,
+  .note {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+  }
+
+  :global(:root[data-theme='light']) .label--feat,
+  :global(:root[data-theme='light']) .label--content {
+    color: hsl(155, 70%, 25%);
+    border-color: hsl(155, 40%, 60%);
+  }
+
+  :global(:root[data-theme='light']) .label--fix {
+    color: hsl(0, 70%, 35%);
+    border-color: hsl(0, 45%, 60%);
+  }
+
+  :global(:root[data-theme='light']) .label--docs {
+    color: hsl(212, 70%, 32%);
+    border-color: hsl(212, 40%, 62%);
+  }
+</style>

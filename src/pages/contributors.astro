@@ -1,0 +1,219 @@
+---
+/**
+ * 贡献者页 —— 数据来自 Git 历史，不靠手工维护名单。
+ *
+ * 两个来源分开列：
+ *   1. Git 提交者（改过代码或文章的人，含只改一个错字的人）
+ *   2. 文章 frontmatter 里署名的作者（可能是匿名，或者和提交账号不是同一个人）
+ *
+ * 借鉴 mkdocs 的 git-authors 插件：让「谁做了多少」由机器算，而不是让维护者记得更新名单。
+ */
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { contributors, recentCommits, lastContentUpdate, signedAuthors } from '../data/git';
+import { publishedDocs } from '../data/browse';
+
+const people = contributors();
+const commits = recentCommits(500);
+const docs = await publishedDocs();
+
+const authorCounts = new Map<string, number>();
+for (const doc of docs) {
+  for (const author of doc.data.authors ?? []) {
+    const name = author.trim();
+    if (!name || name === '待补充' || name === 'TODO') continue;
+    authorCounts.set(name, (authorCounts.get(name) ?? 0) + 1);
+  }
+}
+const namedAuthors = signedAuthors([...authorCounts.keys()]);
+const updated = lastContentUpdate();
+const anonymousCount = docs.filter((doc) => {
+  const authors = (doc.data.authors ?? []).map((a) => a.trim());
+  return authors.length === 0 || authors.every((a) => a === '待补充' || a === 'TODO');
+}).length;
+---
+
+<StarlightPage
+  frontmatter={{
+    title: '贡献者',
+    description: '谁在维护这个站：贡献者名单、各自改了多少、以及署名与匿名的规则。',
+    tableOfContents: false,
+  }}
+>
+  <p>
+    这一页不靠人维护名单，而是<strong>每次构建时从 Git 历史里算出来的</strong>。
+    所以你看到的数字不会滞后，也不会因为谁忘了更新而失真。
+  </p>
+
+  {
+    updated && (
+      <p class="updated">
+        内容与代码最近一次更新：<strong>{updated}</strong>（共 {commits.length} 次提交记录在案）
+      </p>
+    )
+  }
+
+  <h2>提交者</h2>
+  <p class="lead">
+    按提交数排序。「改过几篇文章」只统计 <code>src/content/docs/</code> 下的文件，
+    改代码、改配置、修错别字都会计入提交数。
+  </p>
+
+  {people.length === 0 ? (
+    <p class="empty">
+      拿不到 Git 历史（可能是用压缩包部署的），所以这一页暂时没有数据。
+      历史完整时它会自动出现。
+    </p>
+  ) : (
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>昵称</th>
+            <th class="num">提交</th>
+            <th class="num">改过的文章</th>
+            <th>首次</th>
+            <th>最近</th>
+          </tr>
+        </thead>
+        <tbody>
+          {people.map((person) => (
+            <tr>
+              <td>{person.name}</td>
+              <td class="num">{person.commits}</td>
+              <td class="num">{person.pages || '—'}</td>
+              <td>{person.first}</td>
+              <td>{person.last}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+
+  <h2>文章署名</h2>
+  <p class="lead">
+    文章 frontmatter 里的 <code>authors</code> 是<strong>写内容的人</strong>的署名，可以和提交账号不是同一个人。
+  </p>
+
+  {namedAuthors.length === 0 ? (
+    <p class="empty">
+      目前还没有人署名。差不多有 <strong>{anonymousCount}</strong> 篇文章的署名仍是占位符 ——
+      这个数字也会出现在 <code>npm run check:content</code> 的「债务总账」里。
+    </p>
+  ) : (
+    <ul class="authors">
+      {namedAuthors.map((name) => (
+        <li>
+          <strong>{name}</strong>
+          <span>{authorCounts.get(name) ?? 0} 篇</span>
+        </li>
+      ))}
+    </ul>
+  )}
+  {namedAuthors.length > 0 && anonymousCount > 0 && (
+    <p class="lead">
+      另有 <strong>{anonymousCount}</strong> 篇文章还没署名（占位符或留空）。
+    </p>
+  )}
+
+  <h2>署名与匿名的规则</h2>
+  <ul>
+    <li>
+      <strong>可以匿名。</strong>署名写「匿名学长」「某院系 20xx 级」都行 ——
+      本站不要求你用真名，也不会去核对你的身份。
+    </li>
+    <li>
+      <strong>不要冒用别人的名字。</strong>也不要写「某老师推荐」这类无法核实的背书。
+    </li>
+    <li>
+      <strong>署名会出现在公开的 Git 历史里。</strong>如果你不想让提交邮箱暴露，
+      在本地配置 <code>git config user.email</code> 时用一个中转邮箱即可。
+    </li>
+    <li>
+      <strong>贡献不只有写文章。</strong>改一个错的网址、补一句「这条已经过期了」，
+      都是有效的贡献，也会出现在上面的表格里。
+    </li>
+  </ul>
+
+  <p class="footer-links">
+    想加入？看<a href="/contribute/">怎么贡献一篇经验帖</a> ·
+    最近改了什么见<a href="/changelog/">更新日志</a>
+  </p>
+</StarlightPage>
+
+<style>
+  .updated {
+    padding: 0.7rem 0.95rem;
+    border-left: 3px solid var(--sl-color-accent);
+    background: var(--sl-color-gray-7, transparent);
+    font-size: var(--sl-text-sm);
+  }
+
+  .lead,
+  .empty {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+    line-height: 1.75;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1rem 0 2rem;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--sl-text-sm);
+  }
+
+  th,
+  td {
+    padding: 0.45rem 0.6rem;
+    border-bottom: 1px solid var(--sl-color-gray-6);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  th {
+    color: var(--sl-color-gray-3);
+    font-weight: 600;
+    font-size: var(--sl-text-xs);
+  }
+
+  .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .authors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+  }
+
+  .authors li {
+    display: flex;
+    gap: 0.4rem;
+    align-items: baseline;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--sl-color-gray-6);
+    border-radius: 999px;
+    font-size: var(--sl-text-sm);
+  }
+
+  .authors span {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+  }
+
+  .footer-links {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--sl-color-gray-6);
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+</style>

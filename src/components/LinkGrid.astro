@@ -1,35 +1,271 @@
 ---
 /**
  * 渲染「校内常用链接」卡片墙。
- * 数据来源：src/data/links.ts —— 加链接只需要改那个文件。
+ * 数据来源：
+ *   src/data/links.ts        —— 手写：名称、说明、分类、可达性、人工核对日期
+ *   src/data/link-status.json —— 自动生成：`npm run check:links` 的实测结果
+ *
+ * 两个信息分开显示，是有意的：
+ *   「实测可访问」说明域名活着（机器测的），「已人工核对」说明入口还是干这件事（人测的）。
+ *   只有后者能证明这个链接没写错，所以缺了它会显示角标。
  */
-import { linksByGroup } from '../data/links';
+import { linksByGroup, campusLinks } from '../data/links';
+import linkStatus from '../data/link-status.json';
 
 const groups = linksByGroup();
+
+const status = linkStatus as {
+  checkedAt: string;
+  network: string;
+  reachable: number;
+  total: number;
+  results: Record<string, { ok: boolean; status: number | null; error?: string }>;
+};
+
+const REACH_LABEL: Record<string, string> = {
+  校园网: '需校园网',
+  公网: '公网可开',
+  未实测: '未实测',
+};
+const REACH_CLASS: Record<string, string> = {
+  校园网: 'campus',
+  公网: 'public',
+  未实测: 'unknown',
+};
+
+const checkedCount = campusLinks.filter((l) => l.reviewedAt).length;
 ---
+
+<div class="link-toolbar" data-link-toolbar hidden>
+  <input
+    type="search"
+    class="link-search"
+    data-link-search
+    placeholder="搜链接：选课、邮箱、图书馆、报销……"
+    aria-label="搜索常用链接"
+    autocomplete="off"
+  />
+  <div class="link-groups">
+    {
+      groups.map(({ group }) => (
+        <a class="link-groups__item" href={`#${group}`}>
+          {group}
+        </a>
+      ))
+    }
+  </div>
+  <span class="link-count" data-link-count aria-live="polite"></span>
+</div>
+
+<div class="link-summary">
+  <span>
+    共 {campusLinks.length} 条 · 已人工核对 <strong>{checkedCount}</strong> 条 · 链接实测
+    <strong>{status.reachable}/{status.total}</strong> 可访问（{status.checkedAt}）
+  </span>
+</div>
+
+<p class="link-empty" data-link-empty hidden>没有匹配的链接。</p>
 
 {
   groups.map(({ group, items }) => (
-    <section>
+    <section class="link-section" id={group} data-link-section>
       <h2>{group}</h2>
       <ul class="guide-grid">
-        {items.map((item) => (
-          <li class="guide-card">
-            <div class="guide-card__head">
-              <a class="guide-card__name" href={item.url} target="_blank" rel="noopener noreferrer">
-                {item.name}
-              </a>
-              {item.campusOnly && <span class="guide-tag guide-tag--campus">需校内网</span>}
-              {!item.verified && <span class="guide-tag guide-tag--warn">待核对</span>}
-            </div>
-            <p class="guide-card__desc">{item.desc}</p>
-            <div class="guide-card__meta">
-              <span>{new URL(item.url).hostname}</span>
-              {item.verified && <span>核对于 {item.verified}</span>}
-            </div>
-          </li>
-        ))}
+        {items.map((item) => {
+          const probe = status.results[item.url];
+          return (
+            <li class="guide-card" data-link-card data-search={`${item.name} ${item.desc} ${group}`.toLowerCase()}>
+              <div class="guide-card__head">
+                <a class="guide-card__name" href={item.url} target="_blank" rel="noopener noreferrer">
+                  {item.name}
+                </a>
+              </div>
+              <div class="guide-card__tags">
+                <span class={`guide-tag guide-tag--${REACH_CLASS[item.reach] ?? 'unknown'}`}>
+                  {REACH_LABEL[item.reach] ?? item.reach}
+                </span>
+                {probe?.ok === true && (
+                  <span class="guide-tag guide-tag--ok" title={`脚本实测于 ${status.checkedAt}`}>
+                    实测可访问
+                  </span>
+                )}
+                {probe && probe.ok === false && (
+                  <span
+                    class="guide-tag guide-tag--bad"
+                    title={`最近一次实测失败：${probe.error ?? probe.status ?? '未知原因'}`}
+                  >
+                    实测打不开
+                  </span>
+                )}
+              </div>
+              <p class="guide-card__desc">{item.desc}</p>
+              {item.note && <p class="guide-card__note">提示：{item.note}</p>}
+              <div class="guide-card__meta">
+                <span>{new URL(item.url).hostname}</span>
+                {item.origin && <span>来源：{item.origin}</span>}
+                <span class={item.reviewedAt ? 'meta--ok' : 'meta--todo'}>
+                  {item.reviewedAt
+                    ? item.verifiedBy === 'auto'
+                      ? `脚本核对 ${item.reviewedAt}`
+                      : `人工核对 ${item.reviewedAt}`
+                    : '核对：待补'}
+                </span>
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </section>
   ))
 }
+
+<script>
+  /** 搜索只是「藏掉不匹配的卡片」，没有 JS 也能完整阅读 */
+  const toolbar = document.querySelector<HTMLElement>('[data-link-toolbar]');
+  if (toolbar) {
+    toolbar.hidden = false;
+    const input = toolbar.querySelector<HTMLInputElement>('[data-link-search]');
+    const count = toolbar.querySelector<HTMLElement>('[data-link-count]');
+    const empty = document.querySelector<HTMLElement>('[data-link-empty]');
+    const cards = [...document.querySelectorAll<HTMLElement>('[data-link-card]')];
+    const sections = [...document.querySelectorAll<HTMLElement>('[data-link-section]')];
+
+    const apply = () => {
+      const query = (input?.value ?? '').trim().toLowerCase();
+      let visible = 0;
+      for (const card of cards) {
+        const show = !query || (card.dataset.search ?? '').includes(query);
+        card.hidden = !show;
+        if (show) visible += 1;
+      }
+      for (const section of sections) {
+        section.hidden = ![...section.querySelectorAll<HTMLElement>('[data-link-card]')].some(
+          (card) => !card.hidden,
+        );
+      }
+      if (count) count.textContent = query ? `匹配 ${visible} 条` : '';
+      if (empty) empty.hidden = visible !== 0;
+    };
+
+    input?.addEventListener('input', apply);
+    apply();
+  }
+</script>
+
+<style>
+  .link-toolbar {
+    margin: 1rem 0 0.5rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.6rem;
+  }
+
+  .link-search {
+    width: 100%;
+    padding: 0.45rem 0.7rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.45rem;
+    background: var(--sl-color-bg);
+    color: var(--sl-color-white);
+    font-size: var(--sl-text-sm);
+  }
+
+  .link-groups {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.6rem;
+  }
+
+  .link-groups__item {
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-text-accent);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+    text-decoration: none;
+  }
+
+  .link-count {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+  }
+
+  .link-summary {
+    margin: 0 0 1.5rem;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+  }
+
+  .link-empty {
+    color: var(--sl-color-gray-3);
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .guide-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin: 0.4rem 0 0.5rem;
+  }
+
+  .guide-card__note {
+    margin: 0.25rem 0 0;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+  }
+
+  .guide-tag--campus {
+    color: hsl(150, 60%, 70%);
+    border-color: hsl(150, 40%, 35%);
+  }
+
+  .guide-tag--public {
+    color: hsl(210, 60%, 72%);
+    border-color: hsl(210, 40%, 40%);
+  }
+
+  .guide-tag--unknown {
+    color: var(--sl-color-gray-3);
+    border-color: var(--sl-color-gray-5);
+  }
+
+  .guide-tag--ok {
+    color: hsl(150, 55%, 68%);
+    border-color: hsl(150, 30%, 35%);
+  }
+
+  .guide-tag--bad {
+    color: hsl(0, 70%, 72%);
+    border-color: hsl(0, 45%, 45%);
+  }
+
+  .meta--ok {
+    color: hsl(210, 55%, 74%);
+  }
+
+  .meta--todo {
+    /* gray-4 在深色下只有 2.5:1 对比度（实测），小字不达标；gray-3 是 5.3:1 */
+    color: var(--sl-color-gray-3);
+  }
+
+  :global(:root[data-theme='light']) .guide-tag--campus,
+  :global(:root[data-theme='light']) .guide-tag--ok {
+    color: hsl(155, 70%, 25%);
+    border-color: hsl(155, 40%, 60%);
+  }
+
+  :global(:root[data-theme='light']) .guide-tag--public,
+  :global(:root[data-theme='light']) .meta--ok {
+    color: hsl(212, 70%, 32%);
+    border-color: hsl(212, 40%, 62%);
+  }
+
+  :global(:root[data-theme='light']) .guide-tag--bad {
+    color: hsl(0, 70%, 35%);
+    border-color: hsl(0, 45%, 60%);
+  }
+</style>

@@ -28,11 +28,11 @@ const groups = [...new Set(available.map((r) => r.group))];
                 <a
                   class="guide-card__name"
                   href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  {...(item.internal ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
                 >
                   {item.name}
                 </a>
+                {item.internal && <span class="guide-tag">站内</span>}
               </div>
               <p class="guide-card__desc">{item.desc}</p>
               <div class="guide-card__meta">

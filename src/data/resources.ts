@@ -1,16 +1,26 @@
 /**
- * 资料下载 —— 文件本体不放本站，只放第三方网盘外链（坚果云 / 百度网盘 / 阿里云盘等）。
+ * 资料下载 / 站内工具清单。
+ *
+ * 两类条目，用 `internal` 区分：
+ *   - 网盘外链（默认）：**文件本体不放本站**，只放第三方网盘链接 + 提取码
+ *   - 站内页面（`internal: true`）：直接在站上就能用的东西（可勾选清单、在线表格），
+ *     `url` 写站内绝对路径（`/xxx/`）
  *
  * 约定：
  * 1. `url` 留空或填 'TODO' 时，页面显示「待补充」，不会渲染成死链。
  * 2. 网盘链接容易失效，`checkedAt` 用来记录你最后一次确认链接可用的日期。
  * 3. 不要把含个人信息、学号、内部系统截图、他人隐私的文件放上来。
+ *
+ * 为什么有些东西做成站内页面而不是模板文件：
+ *   - 清单要能在手机上勾、勾完还得记住，模板文件做不到；
+ *   - 在线表格能在浏览器里算，改一个数字立刻看到缺口，比发一个 xlsx 有用；
+ *   - 少一份文件，就少一个「链接失效」的入口。
  */
 
 export type Resource = {
   /** 资料名称 */
   name: string;
-  /** 网盘链接 */
+  /** 网盘链接，或站内绝对路径（`internal: true` 时） */
   url?: string;
   /** 提取码（如有） */
   code?: string;
@@ -18,50 +28,41 @@ export type Resource = {
   desc: string;
   /** 分类 */
   group: string;
-  /** 文件格式，如 PDF / Markdown / zip */
+  /** 文件格式，如 PDF / Markdown / zip；站内工具写「站内工具」「站内页面」 */
   format?: string;
   /** 大小，如 '12 MB' */
   size?: string;
   /** 最后确认链接可用的日期 */
   checkedAt?: string;
+  /** 指向站内页面而不是网盘文件 */
+  internal?: boolean;
 };
 
 export const resourceGroups = ['新生入学', '学业与选课', '科研与深造', '求职与实习', '杂项'];
 
 export const resources: Resource[] = [
   {
-    name: '新生报到物品清单（可打印版）',
-    url: 'TODO',
-    desc: '开学前一周对着勾一遍，避免落下证件和必需品。',
+    name: '新生报到清单（可在线勾选）',
+    url: '/freshman/arrival-checklist/',
+    desc: '出发前的证件、到校当天、第一周的账号与基础设施——三条清单，勾选状态存在你自己的浏览器里。',
     group: '新生入学',
-    format: 'PDF',
+    format: '站内工具',
+    internal: true,
   },
   {
-    name: '培养方案阅读笔记模板',
-    url: 'TODO',
-    desc: '把四年培养方案拆成「必修 / 限选 / 任选 + 学分缺口」的一张表，选课前先填一遍。',
+    name: '学分缺口拆解表（在线填 + 导出 JSON）',
+    url: '/academics/credit-planner/',
+    desc: '把培养方案拆成「类别 → 学分下限 → 已修 → 缺口」，自动算每类还差多少学分。',
     group: '学业与选课',
-    format: 'xlsx',
+    format: '站内工具',
+    internal: true,
   },
   {
-    name: '选课时间线与决策表',
-    url: 'TODO',
-    desc: '按学期列出选课、退课、补选的截止节点，以及选课时的决策顺序。',
-    group: '学业与选课',
-    format: 'Markdown',
-  },
-  {
-    name: '套磁信 / 联系导师邮件模板',
-    url: 'TODO',
-    desc: '几种常见场景的邮件骨架：进组、问问题、求推荐信。',
+    name: '联系导师 / 问老师事情的邮件怎么写',
+    url: '/mindset/talking-to-advisors/',
+    desc: '邮件只要四件事：你是谁、你要什么、为什么找他、怎么继续。附写法与追问节奏。',
     group: '科研与深造',
-    format: 'Markdown',
-  },
-  {
-    name: '简历（中文 / 英文）模板',
-    url: 'TODO',
-    desc: '一页纸版本，实习和保研都能用。',
-    group: '求职与实习',
-    format: 'docx',
+    format: '站内页面',
+    internal: true,
   },
 ];

@@ -37,8 +37,21 @@ jobs:
       - name: 内容检查
         run: npm run check:content
 
+      # 课程索引与 reference/ 的一致性。CI 上没有 reference/（那是十几 GB 的本地参考资料），
+      # 脚本检测不到就跳过并以 0 退出，不会误报。
+      - name: 课程索引一致性
+        run: npm run courses:check
+
       - name: 构建
         run: npm run build
+
+      # 构建之后才能做的检查：结构化数据是否合法、分享卡片图有没有漏提交。
+      # 这两项都是「错了不会报错、只会静默失效」的类型，所以必须在部署前拦住。
+      - name: 结构化数据检查
+        run: npm run check:jsonld
+
+      - name: 静态资源检查（分享卡片 / favicon / robots）
+        run: npm run check:assets
 
       # 凭证守卫：没有配 CLOUDFLARE_API_TOKEN 时给出明确提示并跳过部署，
       # 而不是抛一个看不懂的认证错误。

@@ -66,6 +66,18 @@ export default defineConfig({
           items: [{ autogenerate: { directory: 'academics' } }],
         },
         {
+          label: '课程与资料',
+          items: [
+            { label: '课程资料索引', link: '/courses/' },
+            { label: '课程参考书目', link: '/courses/books/' },
+            { label: '外部资料库地图', slug: 'guides/archives' },
+          ],
+        },
+        {
+          label: '技能入门',
+          items: [{ autogenerate: { directory: 'skills' } }],
+        },
+        {
           label: '科研与深造',
           items: [{ autogenerate: { directory: 'research' } }],
         },
@@ -88,7 +100,11 @@ export default defineConfig({
         },
         {
           label: '参与写作',
-          items: [{ label: '怎么贡献一篇经验帖', slug: 'contribute' }],
+          items: [
+            { label: '怎么贡献一篇经验帖', slug: 'contribute' },
+            { label: '贡献者', link: '/contributors/' },
+            { label: '更新日志', link: '/changelog/' },
+          ],
         },
       ],
       head: [

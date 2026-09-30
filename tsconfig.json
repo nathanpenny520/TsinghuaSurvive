@@ -1,5 +1,17 @@
 {
   "extends": "astro/tsconfigs/strict",
-  "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist", "node_modules", ".npm-cache"]
+  "include": [
+    ".astro/types.d.ts",
+    "**/*"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules",
+    ".npm-cache",
+    ".wrangler",
+    ".wrangler-logs",
+    "reference",
+    "ssast-readme.github.io",
+    "scripts/gen"
+  ]
 }

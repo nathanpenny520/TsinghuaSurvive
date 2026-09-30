@@ -56,6 +56,7 @@ const year = new Date().getFullYear();
 
   .site-notice__copy {
     margin-top: 0.75rem !important;
-    color: var(--sl-color-gray-4);
+    /* gray-4 在深色下对比度不足 3:1，小字读起来吃力；gray-3 达标 */
+    color: var(--sl-color-gray-3);
   }
 </style>

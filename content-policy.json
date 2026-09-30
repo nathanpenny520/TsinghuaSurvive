@@ -5,7 +5,9 @@
   "_staleAfterMonths": "文章 frontmatter 的 reviewedAt 超过这个月数，页面顶部自动出现「可能已过期」提示",
 
   "linkVerifiedStaleAfterMonths": 12,
-  "_linkVerifiedStaleAfterMonths": "src/data/links.ts 里的 verified 日期超过这个月数，内容检查会给出警告",
+  "_linkVerifiedStaleAfterMonths": "src/data/links.ts 里的 reviewedAt（人工核对日期）或 src/data/link-status.json 的实测结果超过这个月数，内容检查会给出警告",
+
+  "_linkCheckCadence": "链接分两层：check:links 脚本实测「网址是否活着」（写入 link-status.json），reviewedAt 记录「人确认过入口还是干这件事」。两者都过期才会同时告警。",
 
   "placeholderAuthors": ["待补充", "TODO", ""],
 
