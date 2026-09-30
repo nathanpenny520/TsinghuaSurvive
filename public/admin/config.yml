@@ -115,7 +115,7 @@ collections:
   #    可能丢掉没声明的字段。改动后跑 `npm run check:admin`。
   - name: start
     label: 开始之前
-    label_singular: 页面
+    label_singular: 开始之前页面
     folder: src/content/docs/start
     extension: md
     description: 如何使用本站、免责声明与内容边界。
@@ -229,7 +229,7 @@ collections:
   # ── 经验帖（.md，正文主力，推荐从这里改）──────────────────────────────
   - name: freshman
     label: 新生入学
-    label_singular: 文章
+    label_singular: 新生入学文章
     folder: src/content/docs/freshman
     extension: md
     slug: *doc-slug
@@ -237,7 +237,7 @@ collections:
 
   - name: academics
     label: 学业
-    label_singular: 文章
+    label_singular: 学业文章
     folder: src/content/docs/academics
     extension: md
     slug: *doc-slug
@@ -245,7 +245,7 @@ collections:
 
   - name: research
     label: 科研与深造
-    label_singular: 文章
+    label_singular: 科研与深造文章
     folder: src/content/docs/research
     extension: md
     slug: *doc-slug
@@ -253,7 +253,7 @@ collections:
 
   - name: campus
     label: 校园生活
-    label_singular: 文章
+    label_singular: 校园生活文章
     folder: src/content/docs/campus
     extension: md
     slug: *doc-slug
@@ -261,7 +261,7 @@ collections:
 
   - name: mindset
     label: 心态与避坑
-    label_singular: 文章
+    label_singular: 心态与避坑文章
     folder: src/content/docs/mindset
     extension: md
     slug: *doc-slug
@@ -269,7 +269,7 @@ collections:
 
   - name: skills
     label: 技能入门
-    label_singular: 文章
+    label_singular: 技能入门文章
     folder: src/content/docs/skills
     extension: md
     slug: *doc-slug
@@ -283,7 +283,7 @@ collections:
   # 所以单独分组、写清楚提示，并且照样走 PR + 预览 + CI 兜底。
   - name: freshman-mdx
     label: 新生入学（含清单组件）
-    label_singular: 页面
+    label_singular: 新生入学（组件页）
     folder: src/content/docs/freshman
     extension: mdx
     slug: *doc-slug
@@ -292,7 +292,7 @@ collections:
 
   - name: academics-mdx
     label: 学业（含小工具）
-    label_singular: 页面
+    label_singular: 学业（组件页）
     folder: src/content/docs/academics
     extension: mdx
     slug: *doc-slug
@@ -301,7 +301,7 @@ collections:
 
   - name: skills-mdx
     label: 技能入门（板块首页）
-    label_singular: 页面
+    label_singular: 技能入门（组件页）
     folder: src/content/docs/skills
     extension: mdx
     slug: *doc-slug
@@ -310,7 +310,7 @@ collections:
 
   - name: courses-mdx
     label: 课程与资料
-    label_singular: 页面
+    label_singular: 课程与资料（组件页）
     folder: src/content/docs/courses
     extension: mdx
     slug: *doc-slug
@@ -319,7 +319,7 @@ collections:
 
   - name: guides-mdx
     label: 实用工具
-    label_singular: 页面
+    label_singular: 实用工具（组件页）
     folder: src/content/docs/guides
     extension: mdx
     slug: *doc-slug

@@ -1,5 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="清华生存指南">
+  <!--
+    站点图标（浏览器标签页 / 收藏夹）与内容后台的 logo 共用这一个文件
+    —— 后台的 logo_url 就指向 /favicon.svg，改这里两处一起变。
+
+    为什么用文字画「清」而不是画路径：这个字有 11 画，手写路径既长又难维护；
+    依赖设备自带中文字体对本站是天然成立的（没有中文字体的设备本来也读不了这个站）。
+    字体栈按各平台最常见的几款排了优先级，font-size 38 + baseline y=45 是 CJK 方块居中的常用取值。
+  -->
   <rect width="64" height="64" rx="14" fill="#660874"/>
-  <path d="M14 44V20h6.4l6.4 13.6L33.2 20H40v24h-5.6V29.2L28.8 42h-4.4L18.8 29.2V44H14z" fill="#fff"/>
-  <path d="M44 20h6v24h-6z" fill="#fff" opacity=".85"/>
+  <text
+    x="32"
+    y="45"
+    text-anchor="middle"
+    font-size="38"
+    font-weight="600"
+    font-family="PingFang SC, Hiragino Sans GB, Microsoft YaHei, Noto Sans CJK SC, Source Han Sans SC, sans-serif"
+    fill="#ffffff"
+  >清</text>
 </svg>
