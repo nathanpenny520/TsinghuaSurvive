@@ -9,6 +9,12 @@
  * ⚠️ 这里面**没有任何院系的数字**：学分下限默认是 0，必须你自己照着培养方案填。
  *    本站不提供任何院系的学分要求，也不该提供（每届、每院系都不一样）。
  *
+ * ⚠️ 样式必须用 is:global（与 CourseExplorer、SelectionWorkbench 一致）：
+ *    这张表的行是 JS 用 innerHTML 第二次渲染出来的，而 Astro 默认的 `<style>`
+ *    是作用域样式——选择器会编译成 `.planner__table:where(.astro-xxxx) input:where(.astro-xxxx)`。
+ *    JS 插入的元素身上没有 astro-xxxx 类，样式会整片失效：输入框退化成浏览器默认的
+ *    白底黑字、行分隔线消失，**而且不报任何错**。前缀已经是 `.planner`，够独特。
+ *
  * 数据只存在浏览器 localStorage，不上传。
  */
 const DEFAULT_CATEGORIES = ['必修', '限选', '任选', '通识', '实践'];
@@ -77,7 +83,7 @@ const DEFAULT_CATEGORIES = ['必修', '限选', '任选', '通识', '实践'];
   </p>
 </section>
 
-<style>
+<style is:global>
   .planner {
     margin: 1.25rem 0 2rem;
   }
@@ -232,11 +238,11 @@ const DEFAULT_CATEGORIES = ['必修', '限选', '任选', '通识', '实践'];
     font-variant-numeric: tabular-nums;
   }
 
-  :global(:root[data-theme='light']) .planner__gap {
+  :root[data-theme='light'] .planner__gap {
     color: hsl(28, 80%, 32%);
   }
 
-  :global(:root[data-theme='light']) .planner__done {
+  :root[data-theme='light'] .planner__done {
     color: hsl(155, 70%, 25%);
   }
 
@@ -293,13 +299,51 @@ const DEFAULT_CATEGORIES = ['必修', '限选', '任选', '通识', '实践'];
       rows: [],
     };
 
+    /**
+     * localStorage 与「导入的 JSON」都是外部输入。不收敛就把值插进
+     * `value="${row.credits}"` 这类属性里，一个被改过的文件就能注入属性；
+     * 顺带也把字段缺失、类型不对的脏数据挡掉（导入旧版本文件时不至于画坏整张表）。
+     */
+    function normalizeState(value: unknown): State {
+      const raw = (value ?? {}) as Partial<State>;
+      const categories = Array.isArray(raw.categories)
+        ? raw.categories
+            .filter((item): item is Category => Boolean(item) && typeof item === 'object')
+            .map((item, index) => ({
+              name: typeof item.name === 'string' ? item.name : `类别${index + 1}`,
+              min: Math.max(0, Number(item.min) || 0),
+            }))
+        : [];
+      const safeCategories = categories.length
+        ? categories
+        : DEFAULT_CATEGORIES.map((name: string) => ({ name, min: 0 }));
+
+      const rows: Row[] = Array.isArray(raw.rows)
+        ? raw.rows
+            .filter((item): item is Row => Boolean(item) && typeof item === 'object')
+            .map((item, index) => ({
+              id: typeof item.id === 'string' ? item.id : `row-${index}`,
+              name: typeof item.name === 'string' ? item.name : '',
+              category:
+                typeof item.category === 'string' &&
+                safeCategories.some((category) => category.name === item.category)
+                  ? item.category
+                  : safeCategories[0]!.name,
+              credits: Math.max(0, Number(item.credits) || 0),
+              done: item.done === true,
+            }))
+        : [];
+
+      return { categories: safeCategories, rows };
+    }
+
     const load = (): State => {
       try {
         const raw = localStorage.getItem(STORE_KEY);
         if (!raw) return initial;
         const parsed = JSON.parse(raw) as State;
         if (!Array.isArray(parsed.categories) || !Array.isArray(parsed.rows)) return initial;
-        return parsed;
+        return normalizeState(parsed);
       } catch {
         return initial;
       }
@@ -547,7 +591,7 @@ const DEFAULT_CATEGORIES = ['必修', '限选', '任选', '通识', '实践'];
       try {
         const parsed = JSON.parse(await file.text()) as State;
         if (!Array.isArray(parsed.categories) || !Array.isArray(parsed.rows)) throw new Error('格式不对');
-        state = parsed;
+        state = normalizeState(parsed);
         save();
         render();
       } catch (error) {

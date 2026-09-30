@@ -67,6 +67,14 @@ const chrome = spawn(
   [
     '--headless',
     '--disable-gpu',
+    // Chrome 111 起，DevTools 的 WebSocket 握手会校验 Origin；
+    // 这里不是浏览器页面而是 Node 客户端，不放行就会被直接拒掉（表现为连接open后立刻error）。
+    '--remote-allow-origins=*',
+    // 受限环境（容器、CI、沙箱里的 macOS）下 Chrome 自己的沙箱常常起不来，
+    // 表现是页面建得出来但渲染进程立刻崩（Inspector.targetCrashed）、evaluate 永不返回。
+    // 这个测试只访问本地静态站点，关掉它换来的是「在任何机器上都能跑」。
+    '--no-sandbox',
+    '--disable-dev-shm-usage',
     `--remote-debugging-port=${port}`,
     `--user-data-dir=${process.env.TMPDIR ?? '/tmp'}/tsinghua-guide-e2e`,
     '--no-first-run',
@@ -177,6 +185,84 @@ try {
   check('无结果时显示空状态', emptyStateWorks === true);
 
   courses.close();
+
+  // ── 互动工具的「局部样式」─────────────────────────────────────────────
+  // 这两个工具的行是 JS 第二次渲染出来的。Astro 的 <style> 默认是作用域样式：
+  // 它给模板里的元素加一个 astro-xxxx 类，选择器编译成 `.foo:where(.astro-xxxx)`；
+  // 而 JS 用 innerHTML 插进去的元素**没有**这个类，样式会整片失效 ——
+  // 页面看起来「能用」，但输入框退化成浏览器默认的白底黑字，在深色主题上很难看，
+  // 而且不会有任何报错。这里直接量计算样式，把这种静默失效挡在部署前。
+  console.log(`\n互动工具的局部样式`);
+  const planner = await openPage(`${BASE}/academics/credit-planner/`);
+  await sleep(2000);
+
+  const plannerStyle = await planner.evaluate(`(() => {
+    // JS 渲染之后才有输入框：先加一门课，再量新插入那一行的样式
+    document.querySelector('[data-planner-add-row]')?.click();
+    const input = document.querySelector('[data-planner-rows] input[type="text"]');
+    if (!input) return { found: false };
+    const computed = getComputedStyle(input);
+    return {
+      found: true,
+      hasScopeClass: [...input.classList].some((name) => name.startsWith('astro-')),
+      // 深色主题下输入框底色应当被显式设成页面背景色，而不是浏览器默认的 field 色
+      background: computed.backgroundColor,
+      borderStyle: computed.borderTopStyle,
+      borderWidth: computed.borderTopWidth,
+    };
+  })()`);
+  check('学分表能加出一行', plannerStyle?.found === true);
+  check(
+    '学分表里 JS 插入的输入框吃到了组件样式',
+    plannerStyle?.found === true &&
+      plannerStyle.borderStyle === 'solid' &&
+      parseFloat(plannerStyle.borderWidth) > 0,
+    plannerStyle?.found ? `border: ${plannerStyle.borderWidth} ${plannerStyle.borderStyle}，底色 ${plannerStyle.background}` : '',
+  );
+  planner.close();
+
+  const workbench = await openPage(`${BASE}/academics/course-decision/`);
+  await sleep(2000);
+
+  const workbenchStyle = await workbench.evaluate(`(() => {
+    document.querySelector('[data-wb-add]')?.click();
+    const input = document.querySelector('[data-wb-rows] input[type="text"]');
+    if (!input) return { found: false };
+    const computed = getComputedStyle(input);
+    return {
+      found: true,
+      borderStyle: computed.borderTopStyle,
+      borderWidth: computed.borderTopWidth,
+    };
+  })()`);
+  check('选课工作台能加出一门课', workbenchStyle?.found === true);
+  check(
+    '选课工作台里 JS 插入的输入框吃到了组件样式',
+    workbenchStyle?.found === true &&
+      workbenchStyle.borderStyle === 'solid' &&
+      parseFloat(workbenchStyle.borderWidth) > 0,
+    workbenchStyle?.found
+      ? `border: ${workbenchStyle.borderWidth} ${workbenchStyle.borderStyle}`
+      : '',
+  );
+
+  const workbenchAdvice = await workbench.evaluate(`(() => {
+    const name = document.querySelector('[data-wb-rows] input[type="text"]');
+    name.value = '测试课A';
+    name.dispatchEvent(new Event('input', { bubbles: true }));
+    const hours = document.querySelector('[data-wb-rows] input[type="number"]');
+    hours.value = '6';
+    hours.dispatchEvent(new Event('input', { bubbles: true }));
+    return {
+      hasSummary: Boolean(document.querySelector('[data-wb-summary]')?.textContent?.trim()),
+      hasAdvice: Boolean(document.querySelector('[data-wb-advice]')?.textContent?.trim()),
+    };
+  })()`);
+  check(
+    '选课工作台会算出汇总与风险提示',
+    workbenchAdvice?.hasSummary === true && workbenchAdvice?.hasAdvice === true,
+  );
+  workbench.close();
 
   console.log(`\n常用链接页 ${BASE}/guides/links/`);
   const links = await openPage(`${BASE}/guides/links/`);
