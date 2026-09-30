@@ -37,6 +37,16 @@ jobs:
       - name: 内容检查
         run: npm run check:content
 
+      # 后台配置检查：确认后台声明的字段能装下所有 frontmatter。
+      # 漏一个字段不会报任何错，但作者在后台保存一次就会把那个字段丢掉。
+      - name: 后台配置检查
+        run: npm run check:admin
+
+      # 媒体检查（源码）：视频语法糖写法、外链图片是不是用了会失效的图床。
+      # 这类问题构建查不出来：写法错了只是页面少一块，构建照样返回 0。
+      - name: 媒体与视频检查
+        run: npm run check:media
+
       # 课程索引与 reference/ 的一致性。CI 上没有 reference/（那是十几 GB 的本地参考资料），
       # 脚本检测不到就跳过并以 0 退出，不会误报。
       - name: 课程索引一致性
@@ -52,6 +62,11 @@ jobs:
 
       - name: 静态资源检查（分享卡片 / favicon / robots）
         run: npm run check:assets
+
+      # 视频与图片的产物比对：数一遍产物里的视频容器和源码里的语法糖是否一致。
+      # 必需，因为 Astro 的内容加载器出错时**构建仍然以 0 退出**，那一页正文会整个变空。
+      - name: 媒体产物比对
+        run: npm run check:media:dist
 
       # 凭证守卫：没有配 CLOUDFLARE_API_TOKEN 时给出明确提示并跳过部署，
       # 而不是抛一个看不懂的认证错误。

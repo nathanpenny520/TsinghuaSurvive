@@ -9,11 +9,15 @@ dist/
 .npm-cache/
 .wrangler/
 .wrangler-logs/
+# wrangler 的登录令牌（用 XDG_CONFIG_HOME 重定向进来时会产生）。**里面有 OAuth 令牌，绝不能提交**
+.wrangler-config/
 
 # 环境变量与密钥：永远不要提交
 .env
 .env.*
 .dev.vars
+# 临时放一次性密钥的地方（例如让协作者帮着跑 wrangler secret put 时），用完就删
+.secrets/
 
 # 编辑器与系统
 .DS_Store

@@ -49,6 +49,13 @@ jobs:
         id: content
         run: npm run check:content
 
+      # 后台配置字段覆盖率 + 媒体/视频写法检查（都跟内容有关，放在构建之前）。
+      - name: 后台配置检查
+        run: npm run check:admin
+
+      - name: 媒体与视频检查
+        run: npm run check:media
+
       - name: 课程索引一致性
         run: npm run courses:check
 
@@ -56,8 +63,10 @@ jobs:
         id: build
         run: npm run build
 
+      # 构建之后的检查。注意最后一项不能省：Astro 内容加载器出错时构建仍然返回 0，
+      # 只有自己数一遍产物里的视频容器，才知道页面内容有没有少一块。
       - name: 结构化数据与资源检查
-        run: npm run check:jsonld && npm run check:assets
+        run: npm run check:jsonld && npm run check:assets && npm run check:media:dist
 
       # 判断能不能拿到凭证。fork PR 与未配置 token 的仓库都会走到这里。
       - name: 检查预览凭证

@@ -1,0 +1,23 @@
+{
+  "_comment": [
+    "R2 桶的 CORS 策略。用 `npm run r2:setup` 应用（或 npx wrangler r2 bucket cors set tsinghua-guide-media --file r2/cors.json --force）。",
+    "格式是 R2 API 的形状（rules[].allowed.*），不是 AWS S3 那种顶层 AllowedOrigins —— wrangler 会拒绝 S3 格式。",
+    "为什么需要它：内容后台在浏览器里直接跟 R2 的 S3 接口打交道（Sveltia 的媒体库），",
+    "上传/重命名/删除会带自定义签名头，浏览器会先发预检请求；没有这份策略，预检会被拦。"
+  ],
+  "rules": [
+    {
+      "allowed": {
+        "origins": [
+          "https://tsinghua.nathanpenny.fun",
+          "https://preview.nathanpenny.fun",
+          "http://localhost:4321"
+        ],
+        "methods": ["GET", "PUT", "DELETE", "HEAD"],
+        "headers": ["*"]
+      },
+      "exposeHeaders": ["ETag"],
+      "maxAgeSeconds": 3000
+    }
+  ]
+}

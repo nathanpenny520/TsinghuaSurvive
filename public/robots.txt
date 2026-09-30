@@ -5,4 +5,8 @@ Allow: /
 Disallow: /_astro/
 Disallow: /pagefind/
 
+# 内容后台不对外：它只是个编辑界面，被收录没有意义。
+# 页面里还有 <meta robots noindex>，_headers 里还有 X-Robots-Tag，三处一起挡。
+Disallow: /admin/
+
 Sitemap: https://tsinghua.nathanpenny.fun/sitemap-index.xml

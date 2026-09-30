@@ -1,0 +1,40 @@
+{
+  // OAuth 中转（GitHub 登录）的 Worker 配置。
+  //
+  // 为什么需要它：Sveltia CMS 是纯前端应用，拿不到 GitHub 的 client secret，
+  // 而 GitHub 的 PKCE 纯前端流程目前还没开放（官方路线图暂停中）。
+  // 所以用这个小 Worker 做「授权码 → 访问令牌」的交换：secret 只存在 Worker 的加密环境变量里，
+  // 永远不会进入浏览器或 Git 仓库。
+  //
+  // 部署（只需做一次，需要你自己的 Cloudflare 凭据）：
+  //   cd auth-worker
+  //   npx wrangler secret put GITHUB_CLIENT_ID        # 从 GitHub OAuth App 拿
+  //   npx wrangler secret put GITHUB_CLIENT_SECRET    # 从 GitHub OAuth App 拿
+  //   npx wrangler deploy
+  //
+  // 部署后这里会自动创建 auth.nathanpenny.fun 这个自定义域名（DNS 记录与证书都是自动的）。
+  // 这个域名必须与 public/admin/config.yml 里的 backend.base_url 一致，
+  // `npm run check:admin` 会检查两者有没有漂移。
+
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "tsinghua-guide-auth",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-30",
+
+  "vars": {
+    // 允许用这个中转的站点域名（逗号分隔，`*` 匹配任意子域）。
+    // 这个白名单同时是防滥用和防钓鱼的：只有从这些域名打开的页面才能拿到令牌。
+    //   tsinghua.nathanpenny.fun —— 正式站后台
+    //   preview.nathanpenny.fun  —— PR 预览后台（用 *.nathanpenny.fun 一并覆盖）
+    //   localhost                —— 本地 npm run dev 的后台
+    "ALLOWED_DOMAINS": "*.nathanpenny.fun,localhost"
+  },
+
+  // 自定义域名。不用 *.workers.dev：那个域名在境内被 DNS 污染（见 README）。
+  "routes": [
+    {
+      "pattern": "auth.nathanpenny.fun",
+      "custom_domain": true
+    }
+  ]
+}

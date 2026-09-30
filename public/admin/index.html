@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- 后台不参与搜索引擎收录：这里 + robots.txt + public/_headers 三处一起挡 -->
+    <meta name="robots" content="noindex, nofollow" />
+    <title>清华生存指南 · 内容后台</title>
+    <link rel="icon" href="/favicon.svg" />
+    <style>
+      /* 载入编辑器时的过渡画面。Sveltia 挂载后会把内容接管过去。 */
+      #boot {
+        font: 15px/1.7 system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        color: #4b4b57;
+        max-width: 40rem;
+        margin: 18vh auto 0;
+        padding: 0 1.5rem;
+      }
+      #boot h1 {
+        font-size: 1.15rem;
+        color: #660874;
+        margin: 0 0 0.75rem;
+      }
+      #boot p {
+        margin: 0.4rem 0;
+      }
+      #boot code {
+        background: #f3f0f5;
+        border-radius: 4px;
+        padding: 0.1em 0.35em;
+      }
+      #boot .bad {
+        color: #a1352c;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <!-- data-pagefind-ignore：别让「正在载入内容后台」这种字样进站内搜索索引 -->
+  <body data-pagefind-ignore>
+    <div id="boot">
+      <h1>正在载入内容后台…</h1>
+      <p>第一次打开要下载约 2MB 的编辑器，之后浏览器会缓存。</p>
+      <p id="boot-detail">如果这里一直停着不动，说明编辑器脚本没加载成功。</p>
+    </div>
+
+    <script>
+      /*
+       * 载入 Sveltia CMS。
+       *
+       * 顺序刻意设计成「本地优先、CDN 兜底」：
+       *   1. 先试 /admin/vendor/sveltia-cms.js —— 仓库自带的那一份（用 `npm run admin:vendor` 生成）。
+       *      站点跑在 Cloudflare 上，这份文件跟页面同域，校园网里一定能拿到。
+       *   2. 没有本地副本（默认情况）时才去固定版本的 unpkg。
+       *
+       * 版本号必须锁死：Sveltia 还是 beta，直接用 latest 会在某天悄悄换掉行为。
+       */
+      (function () {
+        var VERSION = '0.225.0';
+        var CDN = 'https://unpkg.com/@sveltia/cms@' + VERSION + '/dist/sveltia-cms.js';
+        var boot = document.getElementById('boot');
+        var detail = document.getElementById('boot-detail');
+
+        function done() {
+          if (boot) boot.remove();
+        }
+
+        function fail() {
+          if (!detail) return;
+          detail.innerHTML =
+            '<span class="bad">编辑器没能加载。</span><br />' +
+            '本地没有 <code>public/admin/vendor/sveltia-cms.js</code>，而 CDN（unpkg）也拿不到。' +
+            '在能上网的机器上跑 <code>npm run admin:vendor</code> 生成本地副本再提交即可。' +
+            '细节见 HANDOVER.md 的「站内后台」一节。';
+        }
+
+        function loadCdn() {
+          var s = document.createElement('script');
+          s.src = CDN;
+          s.onload = done;
+          s.onerror = fail;
+          document.head.appendChild(s);
+        }
+
+        var local = document.createElement('script');
+        local.src = './vendor/sveltia-cms.js';
+        local.onload = done;
+        local.onerror = loadCdn; // 404 也走这里：没提交本地副本是默认状态，不是错误
+        document.head.appendChild(local);
+      })();
+    </script>
+  </body>
+</html>

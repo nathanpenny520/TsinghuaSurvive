@@ -1,0 +1,381 @@
+# yaml-language-server: $schema=https://unpkg.com/@sveltia/cms/schema/sveltia-cms.json
+#
+# 站内后台配置（Sveltia CMS）—— 让不会 Git 的人也能改内容、插图、嵌视频。
+#
+# 这个文件是**公开**的（仓库是 public，站点也是公开的）：
+#   - 里面不允许出现任何密钥。R2 的 Secret Access Key 由每个编辑者第一次用媒体库时在
+#     浏览器里输入，存在自己的 localStorage，永远不进仓库（官方设计如此）。
+#   - access_key_id / bucket / account_id / public_url 不是密钥，可以放这里。
+#
+# 改这个文件之后要跑 `npm run check:admin`，它会校验字段没写漏、媒体库没留占位符。
+#
+# 后台地址：https://tsinghua.nathanpenny.fun/admin/
+# 维护说明：仓库根目录 HANDOVER.md 的「站内后台」一节。
+
+backend:
+  name: github
+  repo: nathanpenny520/TsinghuaSurvive
+  branch: main
+  # OAuth 中转（auth-worker/，一个 13KB 的 Cloudflare Worker）。
+  # 它只做「授权码 → 访问令牌」的交换：client secret 只存在 Worker 的加密环境变量里，
+  # 不进浏览器、不进仓库。部署步骤见 auth-worker/README.md。
+  # ⚠️ 这个地址必须与 auth-worker/wrangler.jsonc 的 routes 一致（`npm run check:admin` 会校验）。
+  base_url: https://auth.nathanpenny.fun
+  # 默认用 GitHub 登录：点一下按钮就行，编辑者不需要自己创建和管理令牌。
+  # 保留 token 作为**备用**（万一中转 Worker 挂了不至于谁都进不来）。
+  # 想彻底去掉令牌按钮，把这里改成 [oauth] 即可。
+  auth_methods: [oauth, token]
+  # 收窄授权范围：本站是公开仓库，public_repo 就够（默认的 repo 还包含所有私有仓库读写）。
+  # 注意 schema 只允许 repo / public_repo 两个值，不能写成 "public_repo,user"。
+  # 万一登录后提示权限不足，把它改回 repo。
+  auth_scope: public_repo
+  # 提交信息跟仓库现有的中文提交风格保持一致。
+  # ⚠️ 这个选项属于 backend，不能写在顶层 —— 写错位置 CMS 只会静默忽略（2026-09-30 实测踩过）。
+  commit_messages:
+    create: 'docs(内容): 后台新增《{{title}}》'
+    update: 'docs(内容): 后台更新《{{title}}》'
+    delete: 'docs(内容): 后台删除《{{title}}》'
+    uploadMedia: 'docs(媒体): 后台上传 {{filename}}'
+    deleteMedia: 'docs(媒体): 后台删除 {{filename}}'
+
+# 编辑工作流：每次保存都开一个 PR 分支，而不是直推 main。
+# 这样 PR 上会自动跑全套 CI（内容检查/构建/资源检查）并部署到 preview.nathanpenny.fun，
+# 维护者看过、CI 全绿才合并。**这是「后台方便」不等于「质量下降」的关键开关。**
+publish_mode: editorial_workflow
+
+app_title: 清华生存指南 · 内容后台
+site_url: https://tsinghua.nathanpenny.fun
+logo_url: /favicon.svg
+show_preview_links: true
+
+# 文件名（URL 里的 slug）规则：作者在保存时手填（下面每个集合用 YAML 锚点引用）。
+#
+# 为什么必须让作者手填：本站内容检查（scripts/check-content.ts）要求文件名是 ASCII slug，
+# 中文文件名在微信里转发会变成一长串 %E5%AD%A6...。中文标题自动生成的 slug 会被 CI 拦下，
+# 所以这里不开自动生成，而是让人填，并在填写时就按规则校验。
+#
+# ⚠️ `slug` 在顶层和集合级**不是同一套选项**：顶层只认编码/大小写这类；
+#    editable / pattern / hint 属于集合级。写错层级时 CMS 只会静默忽略（2026-09-30 实测踩过），
+#    所以每个集合都要显式写 `slug:`；锚点定义在第一个集合上（顶层不允许出现自定义键）。
+
+
+# ── 媒体库（图片、短视频）─────────────────────────────────────────────────
+#
+# 为什么用 Cloudflare R2 而不是仓库：
+#   图片和视频不占 Git 仓库体积，clone 不会越来越慢，历史里也不会留下永远删不掉的大文件。
+#   R2 免费额度 10GB、出网流量免费，对本站量级足够。
+#
+# ⚠️ 首次使用前必须做的四件事（详见 HANDOVER.md「站内后台」一节）：
+#   1. 建桶：npx wrangler r2 bucket create tsinghua-guide-media
+#   2. 建 R2 API 令牌（Object Read & Write，限定这个桶），把 Access Key ID 填到下面
+#   3. 给桶配公开访问域名（推荐自定义域名 media.nathanpenny.fun），填到 public_url
+#   4. 配 CORS（允许 https://tsinghua.nathanpenny.fun 和 http://localhost:4321）
+#
+# 占位符没换掉时 `npm run check:admin` 会给出警告（不阻断部署），后台仍可改文字，只是传不了图。
+media_libraries:
+  # 关掉「仓库内媒体库」，所有媒体只走 R2，避免图片被误存进 Git。
+  default: false
+
+  cloudflare_r2:
+    # R2 API 令牌的 Access Key ID（2026-09-30 由站点维护者创建）。
+    # 它不是密钥：官方文档明确说 Access Key ID 可以放在客户端配置里；
+    # 真正的 Secret Access Key 由每个编辑者第一次打开媒体库时在浏览器里输入一次，不进仓库。
+    access_key_id: 0d1c5f79e255a59fb33c0e108d2a186e
+    bucket: tsinghua-guide-media
+    # 这个 ID 仓库里已经有（.github/workflows/deploy.yml 的注释里），不是秘密
+    account_id: aa23021279f1ffd6901d7093879554f3
+    # 桶的公开域名：2026-09-30 用 `npm run r2:setup` 接好，curl 实测 200 且 CORS 头正确
+    public_url: https://media.nathanpenny.fun
+    prefix: uploads/
+
+  all:
+    # 单文件上限 30MB：图片上传前会被浏览器转成 WebP 并缩到 2048 长边，实际落盘只有几百 KB；
+    # 这条上限是为了拦住「手滑传了一个 500MB 的录屏」。超过 30MB 的录屏请传 B 站再嵌入。
+    max_file_size: 31457280
+    # 手机原名（IMG_1234.jpg）会泄漏信息、也不便管理，统一改成年月日 + 短随机串
+    slugify_filename: true
+    filename_template: '{{year}}{{month}}{{day}}-{{uuid_short}}'
+    # 压缩发生在**上传前的浏览器里**，不是构建时：手机拍的照片会被转成 WebP、长边缩到 2048、
+    # 剥掉 EXIF（含定位信息）。这一步同时解决了「图片太大」和「隐私泄露」两个问题。
+    transformations:
+      raster_image:
+        format: webp
+        quality: 85
+        width: 2048
+        height: 2048
+      svg:
+        optimize: true
+
+collections:
+  # ── 开始之前 ──────────────────────────────────────────────────────────
+  #
+  # ⚠️ 下面这份字段表是所有文章共用的：用 YAML 锚点 &doc-fields 定义在第一个集合上，
+  #    后面的集合用 *doc-fields 引用（Sveltia 的配置不允许顶层出现 fields 这种自定义键）。
+  #    它必须覆盖 src/content/docs 下出现过的**全部** frontmatter 字段，否则用后台保存时
+  #    可能丢掉没声明的字段。改动后跑 `npm run check:admin`。
+  - name: start
+    label: 开始之前
+    label_singular: 页面
+    folder: src/content/docs/start
+    extension: md
+    description: 如何使用本站、免责声明与内容边界。
+    # 文件名（网址）规则，锚点定义在这里，后面的集合引用它
+    slug: &doc-slug
+      editable: true
+      pattern:
+        - '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+        - '只能用小写英文字母、数字和连字符，例如 course-selection'
+      hint: '会变成网址，必须是英文/拼音。例如「选课怎么排」→ course-selection'
+    fields: &doc-fields
+      - name: title
+        label: 标题
+        widget: string
+        hint: 写中文标题。文件名（网址）在保存时会单独问你。
+
+      - name: description
+        label: 一句话摘要
+        widget: text
+        hint: 会出现在搜索结果和分享卡片里，也是读者决定点不点开的关键。
+
+      - name: summary
+        label: 卡片上的一句话
+        widget: string
+        required: false
+        hint: 比摘要更短。不填就退回用「一句话摘要」。
+
+      - name: stage
+        label: 适用阶段
+        widget: select
+        multiple: true
+        default: ['全阶段']
+        options: ['本科新生', '本科低年级', '本科高年级', '研究生', '全阶段']
+
+      - name: tags
+        label: 主题标签
+        widget: list
+        required: false
+        default: []
+        hint: 会生成 /tags/<标签>/ 聚合页，尽量复用已有标签。
+
+      - name: authors
+        label: 作者署名
+        widget: list
+        required: false
+        default: []
+        hint: 昵称 + 院系 + 年级，或者写「匿名学长」。留「待补充」会被内容检查一直提醒。
+
+      - name: status
+        label: 内容状态
+        widget: select
+        default: draft
+        options:
+          - { label: 草稿（还没核对过，卡片上会标「待核对」）, value: draft }
+          - { label: 已定稿（内容已逐条核对）, value: stable }
+          - { label: 已过期（保留页面，顶部标红提示）, value: outdated }
+
+      - name: reviewedAt
+        label: 最近一次逐条核对的日期
+        widget: datetime
+        type: date
+        format: YYYY-MM-DD
+        required: false
+        picker_utc: true
+        hint: |-
+          本站最重要的字段：填了表示你亲自逐条核实过文中的规则、时间、流程。
+          没查证过就不要填（保持「草稿」）。超过 6 个月没重新核对，页面顶部会自动出现「可能已过期」提醒。
+
+      - name: banner
+        label: 页面顶部提示条
+        widget: object
+        required: false
+        fields:
+          - name: content
+            label: 提示文字
+            widget: text
+            required: false
+            hint: 例如「本文涉及的制度性细节尚未逐条核对，请以官方通知为准。」
+
+      - name: sidebar
+        label: 目录设置
+        widget: object
+        required: false
+        fields:
+          - name: order
+            label: 排序数字
+            widget: number
+            required: false
+            hint: 同目录内数字小的在前。不要和同目录其他文章重复，否则内容检查会报错。
+          - name: label
+            label: 目录里显示的名字
+            widget: string
+            required: false
+            hint: 不填就用标题。
+          - name: hidden
+            label: 在目录里隐藏
+            widget: boolean
+            required: false
+            default: false
+
+      - name: body
+        label: 正文
+        widget: richtext
+        # raw 在前 = 默认打开「原文模式」。这样 :::tip 容器、表格、<iframe>、MDX 里的组件都不会被编辑器改写。
+        modes: [raw, rich_text]
+        hint: |-
+          支持的写法：`:::tip[标题]`、`:::note`、`:::caution`、`:::danger` 提示块；表格；`- [ ]` 复选框；
+          站内链接写成绝对路径（如 /academics/gpa/，内容检查会验证它存在）；
+          视频写 `:::bilibili[BV号]` 或 `:::video[视频文件地址]`（见「怎么贡献一篇经验帖」）。
+
+  # ── 经验帖（.md，正文主力，推荐从这里改）──────────────────────────────
+  - name: freshman
+    label: 新生入学
+    label_singular: 文章
+    folder: src/content/docs/freshman
+    extension: md
+    slug: *doc-slug
+    fields: *doc-fields
+
+  - name: academics
+    label: 学业
+    label_singular: 文章
+    folder: src/content/docs/academics
+    extension: md
+    slug: *doc-slug
+    fields: *doc-fields
+
+  - name: research
+    label: 科研与深造
+    label_singular: 文章
+    folder: src/content/docs/research
+    extension: md
+    slug: *doc-slug
+    fields: *doc-fields
+
+  - name: campus
+    label: 校园生活
+    label_singular: 文章
+    folder: src/content/docs/campus
+    extension: md
+    slug: *doc-slug
+    fields: *doc-fields
+
+  - name: mindset
+    label: 心态与避坑
+    label_singular: 文章
+    folder: src/content/docs/mindset
+    extension: md
+    slug: *doc-slug
+    fields: *doc-fields
+
+  - name: skills
+    label: 技能入门
+    label_singular: 文章
+    folder: src/content/docs/skills
+    extension: md
+    slug: *doc-slug
+    fields: *doc-fields
+
+  # ── 含组件的页面（.mdx）──────────────────────────────────────────────
+  #
+  # 为什么单独列出来：一个集合只能对应一种扩展名（官方文档明确：CMS 只列出配置里那一种扩展名
+  # 的文件），而这些页面里有 imported JSX 组件（<Steps>、<LinkGrid>、勾选清单等）。
+  # 编辑器默认打开「原文模式」，组件会原样保留；但改这类页面比改纯文字风险高，
+  # 所以单独分组、写清楚提示，并且照样走 PR + 预览 + CI 兜底。
+  - name: freshman-mdx
+    label: 新生入学（含清单组件）
+    label_singular: 页面
+    folder: src/content/docs/freshman
+    extension: mdx
+    slug: *doc-slug
+    description: ⚠️ 这一页含可勾选清单组件。改正文没问题，但不要删掉 import 那几行。
+    fields: *doc-fields
+
+  - name: academics-mdx
+    label: 学业（含小工具）
+    label_singular: 页面
+    folder: src/content/docs/academics
+    extension: mdx
+    slug: *doc-slug
+    description: ⚠️ 选课决策工作台、学分缺口表这类页面含 JSX 组件，改动前请先看 PR 预览。
+    fields: *doc-fields
+
+  - name: skills-mdx
+    label: 技能入门（板块首页）
+    label_singular: 页面
+    folder: src/content/docs/skills
+    extension: mdx
+    slug: *doc-slug
+    description: ⚠️ 板块索引页，含组件。
+    fields: *doc-fields
+
+  - name: courses-mdx
+    label: 课程与资料
+    label_singular: 页面
+    folder: src/content/docs/courses
+    extension: mdx
+    slug: *doc-slug
+    description: ⚠️ 含组件。课程索引本身是脚本生成的，改之前看 README 的「课程资料索引」一节。
+    fields: *doc-fields
+
+  - name: guides-mdx
+    label: 实用工具
+    label_singular: 页面
+    folder: src/content/docs/guides
+    extension: mdx
+    slug: *doc-slug
+    description: ⚠️ 含链接网格组件；其中「校内常用链接」「资料下载」的数据来自 src/data/，不在正文里。
+    fields: *doc-fields
+
+  # ── 站点页面（单文件集合）─────────────────────────────────────────────
+  - name: site-pages
+    label: 站点页面
+    description: 首页、404、贡献说明这几个结构性页面。改动影响全站，请务必看 PR 预览。
+    files:
+      - name: home
+        label: 首页
+        file: src/content/docs/index.mdx
+        fields:
+          - { name: title, label: 标题, widget: string }
+          - { name: description, label: 一句话摘要, widget: text }
+          - name: template
+            label: 版式
+            widget: select
+            required: false
+            options: [splash, doc]
+          - name: hero
+            label: 首屏
+            widget: object
+            required: false
+            fields:
+              - { name: tagline, label: 副标题, widget: text, required: false }
+              - name: actions
+                label: 按钮
+                widget: list
+                required: false
+                fields:
+                  - { name: text, label: 按钮文字, widget: string }
+                  - { name: link, label: 链接, widget: string, hint: '站内写绝对路径，例如 /freshman/arrival-checklist/；站外写完整网址。' }
+                  - { name: icon, label: 图标, widget: select, required: false, options: [right-arrow, external, star, download, document, pencil, rocket, setting] }
+                  - { name: variant, label: 样式, widget: select, required: false, options: [primary, secondary, minimal, link] }
+          - { name: body, label: 正文, widget: richtext, modes: [raw, rich_text] }
+
+      - name: notfound
+        label: 404 页面
+        file: src/content/docs/404.mdx
+        fields:
+          - { name: title, label: 标题, widget: string }
+          - { name: description, label: 一句话摘要, widget: text }
+          - { name: template, label: 版式, widget: select, required: false, options: [splash, doc] }
+          - name: sidebar
+            label: 目录设置
+            widget: object
+            required: false
+            fields:
+              - { name: hidden, label: 在目录里隐藏, widget: boolean, required: false, default: false }
+          - { name: pagefind, label: 参与站内搜索, widget: boolean, required: false, default: true }
+          - { name: body, label: 正文, widget: richtext, modes: [raw, rich_text] }
+
+      - name: contribute
+        label: 怎么贡献一篇经验帖
+        file: src/content/docs/contribute.mdx
+        fields: *doc-fields

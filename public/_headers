@@ -1,0 +1,16 @@
+# 自定义响应头（Cloudflare Workers 静态资源支持这个文件，和 Pages 一样）
+#
+# 用途：给内容后台补一道「别收录」的头。
+# 为什么三处都写（这里 + robots.txt + 页面里的 <meta robots>）：
+#   后台是公开可访问的地址，收录它没有任何好处。任一处失效时另外两处还在，
+#   这是本站处理「静默失效」的常规做法。
+#
+# 注意：这里只加无害的头（noindex）。真正的写权限在 GitHub 那边
+# ——没有 PAT 的人即使打开后台也只能看到登录页。
+
+/admin/*
+  X-Robots-Tag: noindex, nofollow
+
+# 后台配置里含 R2 的 access_key_id 等标识（不是密钥，但也没有公开的意义）
+/admin/config.yml
+  X-Robots-Tag: noindex, nofollow

@@ -37,7 +37,14 @@ function walkHtml(dir) {
     if (statSync(full).isDirectory()) out.push(...walkHtml(full));
     else if (name.endsWith('.html')) out.push(full);
   }
-  return out.sort();
+  return out
+    .filter((file) => {
+      // 内容后台（public/admin/）是个编辑器界面，不是内容页，既没有也不需要 JSON-LD，
+      // 而且它刻意不参与收录。所以排除掉，不要让「每页都要有结构化数据」这条规则误伤它。
+      const rel = relative(DIST, file).replace(/\\/g, '/');
+      return rel !== 'admin/index.html' && !rel.startsWith('admin/');
+    })
+    .sort();
 }
 
 const files = walkHtml(DIST);

@@ -2,6 +2,8 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import sitemap from '@astrojs/sitemap';
+import { satteri } from '@astrojs/markdown-satteri';
+import { mediaEmbedPlugin } from './src/utils/media-embed.mjs';
 
 /**
  * 站点地址：决定 sitemap、canonical、OG 卡片里的绝对链接。
@@ -20,6 +22,24 @@ export default defineConfig({
   // 纯静态站点：构建产物在 dist/，由 Cloudflare Workers 静态资源托管
   output: 'static',
   trailingSlash: 'always',
+
+  markdown: {
+    /**
+     * Markdown 处理器：Sätteri（Astro 7 的默认实现）。
+     *
+     * 这里必须写成显式的 `satteri({...})`，因为要挂一个插件；参数与 Astro 的默认值
+     * 完全一致（Astro 内部就是 `satteri()`），所以渲染行为不变，只是多了一条语法糖。
+     *
+     * 为什么不用 `markdown.remarkPlugins`：那需要额外装 @astrojs/markdown-remark、
+     * 把全站的 Markdown 管线换回 unified。为了一个视频语法糖换掉整个渲染器不划算。
+     *
+     * 语法糖：`::bilibili[BV号]` / `::video[https://…mp4]` → 响应式 16:9 容器。
+     * 实现与报错说明见 src/utils/media-embed.mjs。
+     */
+    processor: satteri({
+      mdastPlugins: [mediaEmbedPlugin],
+    }),
+  },
 
   integrations: [
     starlight({
