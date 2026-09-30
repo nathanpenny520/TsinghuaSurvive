@@ -133,11 +133,12 @@ export const campusLinks: CampusLink[] = [
     desc: '全国大学英语四六级考试的报名入口。免修英语、毕业审核和部分交流项目会看这个成绩，**报名窗口很短**，别等通知转几手才想起来。',
     group: '教学与选课',
     reach: '公网',
-    note:
-      '报名与缴费时间以官方通知为准。这条只能人工核对：该站首页是个 410 字节的空壳，标题和正文都是空的，' +
-      '真正的内容由页内 AJAX 去 resource.neea.edu.cn 取回来再注入，所以 npm run verify:links 抓不到任何佐证' +
-      '（原始证据见 .review/link-verification.json），需要自己点开确认一次再填 reviewedAt',
+    note: '报名与缴费时间以官方通知为准。这条是我们唯一没能自动核对过的入口，请自己点开确认一次',
     origin: '维护者收藏夹',
+    // 为什么它没有 reviewedAt：该站首页是个 410 字节的空壳，标题和正文都是空的，
+    // 真正的内容由页内 AJAX 去 resource.neea.edu.cn 取回来再注入 #mbox。
+    // 所以 `npm run verify:links` 抓不到任何佐证（原始证据见 .review/link-verification.json，
+    // 结论 suspect），脚本按设计拒绝写回。这条只能人工点开确认后手填 reviewedAt。
   },
   {
     name: '四六级成绩查询',

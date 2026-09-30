@@ -134,16 +134,23 @@ git add -A && git commit -m "docs: 更新选课时间线" && git push
 #### 注意 `.md` 与 `.mdx` 的一个差别（踩过一次）
 
 正文里要写 JS（比如 `courses/materials.mdx` 那样从 `src/data/` 导入数据来渲染）时必须用 `.mdx`，
-而且**顶层的 `const` 要写成 `export const`**：
+而且**顶层的声明要写成 `export const`**：
 
 ```mdx
 export const kindsInUse = ALL_KINDS.filter(...);   // ✅
 const kindsInUse = ALL_KINDS.filter(...);          // ❌ 构建失败
 ```
 
-裸 `const` 会让 `npm run build` 报
-`Could not parse expression with oxc: Expected ',' or ')' but found ':' (mdx-jsx:unexpected-character)`，
-但 **`astro check` 会通过** —— 所以这一类问题只有真跑一次 build 才能发现。别只看 `check:all`。
+**实测结论（2026-09-30 亲自验过，不是听说）**：裸 `const` 时
+`astro check` 报 **0 errors**，但 `npm run build` 直接失败。也就是说这一类问题
+**`npm run check:all` 抓不到，只有真跑一次 build 才会暴露**。报错文案随写法不同：
+
+- `const G = { 往年题: { … } };`（对象字面量）→
+  `Could not parse expression with oxc: Expected ',' or ')' but found ':' (mdx-jsx:unexpected-character)`
+- `const x = ARR.filter(Boolean);`（出现在 `import` 之后的普通语句）→
+  `Unexpected statement in code: only import/exports are supported (mdxjs-rs:oxc)`
+
+两种写法的修法一样：加 `export`。提 PR 前请本地跑一次 `npm run build`，别只跑 `check:all`。
 
 ### 提交前的自动检查
 
@@ -264,7 +271,9 @@ npm run check:content && npm run build
 
 #### 写这类组件必须用 `is:global` 样式（踩过一次）
 
-这三个工具的形态都是「模板渲染一遍 + JS 用 innerHTML 再渲染一遍」。Astro 的 `<style>` **默认是作用域样式**，
+`CreditPlanner` 和 `SelectionWorkbench` 这两个工具的形态都是「模板渲染一遍 + JS 用 innerHTML 再渲染一遍」。
+（`Checklist` 不是：它整块 DOM 都由模板渲染，`grep innerHTML src/components/Checklist.astro` 是 0，所以没有这个隐患。）
+Astro 的 `<style>` **默认是作用域样式**，
 选择器会编译成 `.foo:where(.astro-xxxx) input:where(.astro-xxxx)`；而 `astro-xxxx` 只在构建时加到**模板元素**上，
 **JS 插入的元素没有这个类**，于是那部分样式整片失效——输入框退回浏览器默认的白底黑字、行分隔线消失，
 **而且没有任何报错或构建警告**。

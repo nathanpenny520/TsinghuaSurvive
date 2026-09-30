@@ -89,7 +89,7 @@ export const archives: Record<ArchiveId, Archive> = {
     license: '贡献者编写部分采用 CC BY-SA 4.0；课程材料版权归各自作者',
     strength: '往年题与考试资料最全，覆盖从大一到大四加研究生',
     caution:
-      '库里明确写着「别背 repo 里的东西」——每年题目会变，助教也知道这份库存在。资料用来复习和对照思路，不是用来押题或交作业。',
+      '库里「数据结构」那门课的 README 原话是「不要再 Naive 地背这个 Repo 里的东西了……每年 Cheatsheet 都会回收」——题目每年会变。资料用来复习和对照思路，不是用来押题或交作业。',
     links: [
       {
         label: '校内 GitLab 镜像',

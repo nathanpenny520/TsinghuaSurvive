@@ -7,7 +7,7 @@
  *    控件由 JS 打开时才显示。关掉 JS 就是一张完整的课程清单。
  * 2. **样式走全局，不用 Astro 的作用域类**：作用域会给页面上每个元素加一个
  *    astro-xxxxxxxx 类，142 张卡片 + 185 条资料 ≈ 2500 个元素，光这些类名就有 40 KB。
- *    这里的类名统一带 cg- 前缀，不会和别处撞车。
+ *    这里的类名带 `explorer__` / `cg-` 两个前缀，不会和别处撞车。
  * 3. **搜索靠卡片自身文本**：不再往每个卡片上写一份 data-search 副本（那又是 14 KB），
  *    JS 启动时把 textContent 读一次并缓存。
  */
@@ -205,7 +205,7 @@ function groupSources(course: (typeof courses)[number]) {
 </div>
 
 <style is:global>
-  /* 类名统一 cg- 前缀（course guide）。用全局样式，避免 Astro 给每个元素加作用域类。 */
+  /* 类名带 explorer__ / cg- 两个前缀。用全局样式，避免 Astro 给每个元素加作用域类。 */
   .explorer { margin-top: 1.25rem; }
 
   .explorer__controls {

@@ -453,6 +453,8 @@
 
     let state = load();
     let seq = 0;
+    /** 删除的冷却时间戳：双击时第二次点击会落在重绘后同一位置的按钮上（也就是下一行） */
+    let lastRemoveAt = 0;
     const nextId = () => `wb-${Date.now()}-${seq++}`;
 
     const save = () => {
@@ -749,7 +751,11 @@
 
       const hoursIndex = indexOf(dataset.wbHours);
       if (hoursIndex >= 0) {
-        state.rows[hoursIndex]!.hours = Number(target.value) || 0;
+        const raw = Number(target.value);
+        const hours = Number.isFinite(raw) ? Math.max(0, raw) : 0;
+        state.rows[hoursIndex]!.hours = hours;
+        // 手打负数时状态里不留负数，否则汇总会出现「每周投入合计 -5 小时」这种没意义的结果
+        if (raw < 0) target.value = '0';
         save();
         renderSummary();
         return;
@@ -789,6 +795,11 @@
 
       const removeIndex = target.dataset.wbRemove;
       if (removeIndex !== undefined) {
+        // 删除会同步重绘整块 DOM：双击的第二次点击会命中同一位置上「下一行」的按钮，
+        // 于是连删两门课。加个冷却，比让读者自己发现少了一门强。
+        const now = Date.now();
+        if (now - lastRemoveAt < 350) return;
+        lastRemoveAt = now;
         state.rows.splice(Number(removeIndex), 1);
         save();
         render();
@@ -843,9 +854,12 @@
     root.querySelector('[data-wb-export]')?.addEventListener('click', () => {
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
       const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
+      link.href = url;
       link.download = 'selection-workbench.json';
       link.click();
+      // 立刻 revoke 在部分浏览器上会让下载拿不到数据，放到下一个事件循环再释放
+      setTimeout(() => URL.revokeObjectURL(url), 0);
     });
 
     root.querySelector('[data-wb-import]')?.addEventListener('click', () => {

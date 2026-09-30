@@ -575,9 +575,12 @@ const DEFAULT_CATEGORIES = ['必修', '限选', '任选', '通识', '实践'];
     root.querySelector('[data-planner-export]')?.addEventListener('click', () => {
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
       const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
+      link.href = url;
       link.download = 'credit-planner.json';
       link.click();
+      // 立刻 revoke 在部分浏览器上会让下载拿不到数据，放到下一个事件循环再释放
+      setTimeout(() => URL.revokeObjectURL(url), 0);
     });
 
     root.querySelector('[data-planner-import]')?.addEventListener('click', () => {

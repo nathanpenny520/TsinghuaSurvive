@@ -71,7 +71,7 @@ const chrome = spawn(
   [
     '--headless',
     '--disable-gpu',
-    // 这两个参数和 e2e-smoke.mjs 里的是同一组，原因见那里的注释：
+    // 这几个参数和 e2e-smoke.mjs 里的是同一组，原因见那里的注释：
     // Chrome 111 起 DevTools 的 WebSocket 会校验 Origin（Node 客户端要放行），
     // 受限环境里 Chrome 自己的沙箱起不来会让渲染进程直接崩、evaluate 永不返回。
     '--remote-allow-origins=*',

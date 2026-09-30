@@ -246,21 +246,48 @@ try {
       : '',
   );
 
+  // 不只验「JS 跑起来了」：喂一组能确定触发规则的输入，要求算出来的提示里真的出现对应标签。
+  // 只断言「advice 非空」是没用的——只要表里有课程，就总会附一条固定的「下一步」。
   const workbenchAdvice = await workbench.evaluate(`(() => {
     const name = document.querySelector('[data-wb-rows] input[type="text"]');
     name.value = '测试课A';
     name.dispatchEvent(new Event('input', { bubbles: true }));
+
     const hours = document.querySelector('[data-wb-rows] input[type="number"]');
     hours.value = '6';
     hours.dispatchEvent(new Event('input', { bubbles: true }));
+
+    // 基线填 1，让「每周 6 小时 > 承受基线」这条必然触发
+    const baseline = document.querySelector('[data-wb-baseline-input]');
+    baseline.value = '1';
+    baseline.dispatchEvent(new Event('input', { bubbles: true }));
+
+    // 勾「期末考试」但不勾任何能缓冲期末的环节 → 必然触发「一锤定音」
+    document.querySelector('[data-wb-assess="0"][data-wb-assess-value="期末考试"]')?.click();
+
+    const advice = document.querySelector('[data-wb-advice]').textContent || '';
+    const summary = document.querySelector('[data-wb-summary]').textContent || '';
     return {
-      hasSummary: Boolean(document.querySelector('[data-wb-summary]')?.textContent?.trim()),
-      hasAdvice: Boolean(document.querySelector('[data-wb-advice]')?.textContent?.trim()),
+      adviceText: advice,
+      summaryText: summary,
+      firedOverload: advice.includes('排超了'),
+      firedSinglePoint: advice.includes('一锤定音'),
+      hasNextStep: advice.includes('下一步'),
+      tags: (advice.match(/\\[[^\\]]+\\]/g) || []).length,
     };
   })()`);
+
   check(
     '选课工作台会算出汇总与风险提示',
-    workbenchAdvice?.hasSummary === true && workbenchAdvice?.hasAdvice === true,
+    workbenchAdvice?.summaryText.includes('小时') === true && workbenchAdvice?.hasNextStep === true,
+    workbenchAdvice ? `汇总渲染=${workbenchAdvice.summaryText.includes('小时')}` : '',
+  );
+  check(
+    '选课工作台的规则真的会按输入触发',
+    workbenchAdvice?.firedOverload === true && workbenchAdvice?.firedSinglePoint === true,
+    workbenchAdvice
+      ? `排超了=${workbenchAdvice.firedOverload} 一锤定音=${workbenchAdvice.firedSinglePoint} 共 ${workbenchAdvice.tags} 条`
+      : '',
   );
   workbench.close();
 
