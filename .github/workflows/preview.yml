@@ -46,6 +46,7 @@ jobs:
         run: npm run check
 
       - name: 内容检查
+        id: content
         run: npm run check:content
 
       - name: 构建
@@ -83,10 +84,12 @@ jobs:
       # 把预览链接写到 PR 评论里。同一个 PR 反复推送时更新原评论，不刷屏。
       - name: 评论预览链接
         if: always() && github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           READY: ${{ steps.creds.outputs.ready }}
           REASON: ${{ steps.creds.outputs.reason }}
+          CHECK_OUTCOME: ${{ steps.content.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
         with:
           script: |
             const marker = '<!-- pr-preview -->';
@@ -104,6 +107,24 @@ jobs:
                 '> 这是 PR 分支的实时预览。预览环境是公开地址，请不要在里面放未脱敏的内容。',
                 `> 每次推送都会更新这个预览。构建日志：${runUrl}`,
               ].join('\n');
+            } else if (process.env.CHECK_OUTCOME === 'failure' || process.env.BUILD_OUTCOME === 'failure') {
+              // 校验没通过时不要含糊其辞，要说清是「哪一步挂了」。
+              // 否则作者会以为只是没配凭证，从而忽略真正的错误。
+              body = [
+                marker,
+                '### ❌ 校验未通过，预览未部署',
+                '',
+                '`npm run check:content`（或构建）失败了，所以没有部署预览。**上面的报错注解里有具体文件和行号。**',
+                '',
+                '常见原因：',
+                '- 站内链接指向了不存在的页面（改名或移动文章后最容易漏）',
+                '- 文件名不是英文小写加连字符',
+                '- `reviewedAt` 写在了未来',
+                '- 同一目录下 `sidebar.order` 冲突',
+                '',
+                '本地跑 `npm run check:all` 可以复现。',
+                `完整日志：${runUrl}`,
+              ].join('\n');
             } else if (process.env.REASON === 'no-token') {
               body = [
                 marker,
@@ -116,7 +137,7 @@ jobs:
                 marker,
                 '### ℹ️ 预览未部署',
                 '',
-                '本次只做了构建与内容校验。本地跑 `npm run dev` 可以看到最终效果。',
+                '本次只做了构建与内容校验（来自 fork 的 PR 拿不到仓库 Secrets）。本地跑 `npm run dev` 可以看到最终效果。',
               ].join('\n');
             }
 
