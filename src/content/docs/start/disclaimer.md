@@ -53,3 +53,5 @@ sidebar:
 ## 发现内容越界
 
 如果你认为某篇内容侵犯了你的权益、泄露了隐私，或者表述不当，请到 [GitHub Issues](https://github.com/nathanpenny520/TsinghuaSurvive/issues/new) 说明，我们会尽快处理——**这类问题我们优先响应，必要时先下线再讨论**。
+
+[故意死链](/definitely-not-a-real-page/)
