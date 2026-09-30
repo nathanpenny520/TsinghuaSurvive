@@ -2,9 +2,13 @@
   "$comment": "由 npm run check:links 生成，请勿手工编辑。只证明网址当前可访问（HTTP < 400），不代表页面内容已人工核对。",
   "checkedAt": "2026-09-30",
   "network": "未标注（本地网络）",
-  "total": 47,
-  "reachable": 47,
+  "total": 49,
+  "reachable": 48,
   "results": {
+    "https://cet-bm.neea.edu.cn/": {
+      "ok": false,
+      "status": 412
+    },
     "https://zhjw.cic.tsinghua.edu.cn/": {
       "ok": true,
       "status": 200
@@ -29,11 +33,11 @@
       "ok": true,
       "status": 200
     },
-    "https://cet-bm.neea.edu.cn/": {
+    "https://cjcx.neea.edu.cn/": {
       "ok": true,
       "status": 200
     },
-    "https://cjcx.neea.edu.cn/": {
+    "https://tsinghua.app/courses": {
       "ok": true,
       "status": 200
     },
@@ -158,6 +162,10 @@
       "status": 200
     },
     "https://www.chsi.com.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://database.feiyue.online/": {
       "ok": true,
       "status": 200
     },

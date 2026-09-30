@@ -66,6 +66,14 @@ export const resources: Resource[] = [
     internal: true,
   },
   {
+    name: '《大学如何学》课程资料（学业方法模板）',
+    url: 'https://cloud.tsinghua.edu.cn/d/b41948f21a62412087aa/',
+    desc: '一门学业指导课的课件与模板：SQ3R 阅读法、备考计划表、甘特图与晨间日记模板、与导师沟通自评表、生涯决策平衡单、简历范例等。**适合「知道该努力但不知道从哪下手」的时候翻。**',
+    group: '学业与选课',
+    format: '校内云盘',
+    checkedAt: '2026-09-30',
+  },
+  {
     name: '联系导师 / 问老师事情的邮件怎么写',
     url: '/mindset/talking-to-advisors/',
     desc: '邮件只要四件事：你是谁、你要什么、为什么找他、怎么继续。附写法与追问节奏。',

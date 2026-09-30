@@ -122,6 +122,7 @@ sidebar:
 - [清华大学计算机系学生科协技能引导文档](https://docs.net9.org/)
 - [软件学院 ReadMe 互助文档](https://ssast-readme.github.io/)
 - [CS 自学指南](https://csdiy.wiki/)
+- [清华大学飞跃数据库](https://database.feiyue.online/)：学生整理的申请**案例库**，按方向、项目与年份组织。看别人"什么背景、申了什么、结果如何"，比读任何攻略都直观；但**案例是个体经验，不能替代当年的项目要求**
 
 **站内相关**：[怎么进实验室做科研](/research/finding-a-lab/)（研究经历与推荐信怎么积累）、[绩点到底是怎么算的](/academics/gpa/)、[怎么和老师、导师、辅导员沟通](/mindset/talking-to-advisors/)。看到一条经验，先问三个问题：**这是哪一年的？说的是哪个国家/哪类项目？写的人和我背景像吗？** 三个都答不上来，这条信息只能当线索。
 

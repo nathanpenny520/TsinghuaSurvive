@@ -133,12 +133,14 @@ export const campusLinks: CampusLink[] = [
     desc: '全国大学英语四六级考试的报名入口。免修英语、毕业审核和部分交流项目会看这个成绩，**报名窗口很短**，别等通知转几手才想起来。',
     group: '教学与选课',
     reach: '公网',
-    note: '报名与缴费时间以官方通知为准。这条是我们唯一没能自动核对过的入口，请自己点开确认一次',
+    note: '报名与缴费时间以官方通知为准',
     origin: '维护者收藏夹',
-    // 为什么它没有 reviewedAt：该站首页是个 410 字节的空壳，标题和正文都是空的，
-    // 真正的内容由页内 AJAX 去 resource.neea.edu.cn 取回来再注入 #mbox。
-    // 所以 `npm run verify:links` 抓不到任何佐证（原始证据见 .review/link-verification.json，
-    // 结论 suspect），脚本按设计拒绝写回。这条只能人工点开确认后手填 reviewedAt。
+    // 由站点维护者人工确认（2026-09-30）：该站首页返回一个 412 状态、410 字节的空壳，标题和正文都是空的，
+    // 真正的内容由页内 AJAX 去 resource.neea.edu.cn 取回来再注入 #mbox；这导致
+    // `npm run verify:links` 抓不到任何佐证、按设计拒绝写回（结论见 .review/link-verification.json），
+    // 所以这条的核对方式是 human 而不是 auto —— 两者在页面上是两个不同的可信度级别，别混。
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'human',
   },
   {
     name: '四六级成绩查询',
@@ -147,6 +149,17 @@ export const campusLinks: CampusLink[] = [
     group: '教学与选课',
     reach: '公网',
     origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: 'courseX（课程信息共享计划）',
+    url: 'https://tsinghua.app/courses',
+    desc: '按学期整理的课程信息共享站，能看到某门课在往年学期的开课情况与基本信息。**课程索引回答「资料在哪」，它回答「这门课什么时候开过」**，两者互补。',
+    group: '教学与选课',
+    reach: '公网',
+    note: '学生自建，非学校官方；信息按学期更新，以教学门户和院系通知为准',
+    origin: '维护者提供的资料',
     reviewedAt: '2026-09-30',
     verifiedBy: 'auto',
   },
@@ -474,6 +487,17 @@ export const campusLinks: CampusLink[] = [
     group: '成长与出路',
     reach: '公网',
     origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '清华大学飞跃数据库（推研 / 出国案例库）',
+    url: 'https://database.feiyue.online/',
+    desc: '学生整理的经验案例库：按案例、专业、方向、项目组织，能看到别人申请什么、什么背景、走到哪一步。**想了解"这条路真实长什么样"时，先看案例，再谈规划。**',
+    group: '成长与出路',
+    reach: '公网',
+    note: '学生自建，非学校官方；案例是个体经验，不能替代当年官方通知',
+    origin: '维护者提供的资料',
     reviewedAt: '2026-09-30',
     verifiedBy: 'auto',
   },

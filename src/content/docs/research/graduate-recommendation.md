@@ -110,6 +110,7 @@ sidebar:
 - [清华大学计算机系学生科协技能引导文档](https://docs.net9.org/)
 - [软件学院 ReadMe 互助文档](https://ssast-readme.github.io/)
 - [未央书院学习资料](https://weiyangxuexi.github.io/)
+- [清华大学飞跃数据库](https://database.feiyue.online/)：学生整理的推研/出国**案例库**，按专业与方向组织。想了解"这条路真实长什么样"时先看案例，但**案例是个体经验，不能当规则用**
 
 **站内相关**：科研经历怎么积累见[怎么进实验室做科研](/research/finding-a-lab/)；成绩怎么算、怎么影响各种资格见[绩点到底是怎么算的](/academics/gpa/)；和老师沟通的方式见[怎么和老师、导师、辅导员沟通](/mindset/talking-to-advisors/)；课程与培养方案的规则见[各类课程怎么选](/academics/course-types/)。
 
