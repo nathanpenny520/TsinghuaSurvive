@@ -50,6 +50,7 @@ jobs:
         run: npm run check:content
 
       - name: 构建
+        id: build
         run: npm run build
 
       # 判断能不能拿到凭证。fork PR 与未配置 token 的仓库都会走到这里。
