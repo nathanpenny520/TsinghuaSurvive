@@ -127,6 +127,28 @@ export const campusLinks: CampusLink[] = [
     reviewedAt: '2026-09-30',
     verifiedBy: 'auto',
   },
+  {
+    name: '四六级报名（CET）',
+    url: 'https://cet-bm.neea.edu.cn/',
+    desc: '全国大学英语四六级考试的报名入口。免修英语、毕业审核和部分交流项目会看这个成绩，**报名窗口很短**，别等通知转几手才想起来。',
+    group: '教学与选课',
+    reach: '公网',
+    note:
+      '报名与缴费时间以官方通知为准。这条只能人工核对：该站首页是个 410 字节的空壳，标题和正文都是空的，' +
+      '真正的内容由页内 AJAX 去 resource.neea.edu.cn 取回来再注入，所以 npm run verify:links 抓不到任何佐证' +
+      '（原始证据见 .review/link-verification.json），需要自己点开确认一次再填 reviewedAt',
+    origin: '维护者收藏夹',
+  },
+  {
+    name: '四六级成绩查询',
+    url: 'https://cjcx.neea.edu.cn/',
+    desc: '查历次四六级成绩。需要成绩证明时也在这里办，不用回头翻旧截图。',
+    group: '教学与选课',
+    reach: '公网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
 
   // ── 信息与账号 ──────────────────────────────────────────────
   {
@@ -203,6 +225,17 @@ export const campusLinks: CampusLink[] = [
   },
 
   // ── 图书馆与科研 ────────────────────────────────────────────
+  {
+    name: 'Abook（高教社教材配套资源）',
+    url: 'https://abook.hep.com.cn/',
+    desc: '高等教育出版社教材的配套数字课程与资源。用统编教材的课，这里常有习题解答和拓展材料。',
+    group: '图书馆与科研',
+    reach: '公网',
+    note: '需要自己注册；只有高教社的教材能在上面找到',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
   {
     name: '清华大学图书馆',
     url: 'https://lib.tsinghua.edu.cn/',
@@ -382,6 +415,48 @@ export const campusLinks: CampusLink[] = [
 
   // ── 成长与出路 ──────────────────────────────────────────────
   {
+    name: '托福（TOEFL）报名',
+    url: 'https://www.toefl.cn/',
+    desc: '出国申请的语言考试报名入口。考位要提前抢，**备考期和期末撞车是最常见的安排失误**。',
+    group: '成长与出路',
+    reach: '公网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: 'GRE 报名',
+    url: 'https://takethegre.cn/',
+    desc: '北美研究生入学考试的报名入口。不是所有项目都要，**先确认目标项目的要求再决定考不考**。',
+    group: '成长与出路',
+    reach: '公网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: 'WYAST（未央科协学生站）',
+    url: 'https://wyast.github.io/',
+    desc: '学生自建的资讯、教程与学习资源站，偏工科方向。可以看看同龄人在学什么。',
+    group: '成长与出路',
+    reach: '未实测',
+    note: '学生自建，不是学校官方；内容按届更新，别当制度依据',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: 'Advice Hub（学业建议）',
+    url: 'https://liuyifan22.github.io/advice/',
+    desc: '学生整理的学业建议：怎么规划学期、怎么选方向、踩过哪些坑。和本站同类，可以对照着看。',
+    group: '成长与出路',
+    reach: '未实测',
+    note: '学生自建，不是学校官方；经验贴不能替代官方规定',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
     name: '清华大学就业信息网',
     url: 'https://career.tsinghua.edu.cn/',
     desc: '实习与校招信息、宣讲会日程、职业发展中心的服务入口。',
@@ -449,6 +524,17 @@ export const campusLinks: CampusLink[] = [
     desc: '全校院系一览，顺着能找到各院系官网与教师主页。找信息时的第一条线索。',
     group: '官方与资讯',
     reach: '公网',
+    origin: '维护者收藏夹',
+    reviewedAt: '2026-09-30',
+    verifiedBy: 'auto',
+  },
+  {
+    name: '未央书院官网（院系官网的样子）',
+    url: 'https://www.wyc.tsinghua.edu.cn/index.htm',
+    desc: '这里放一个书院官网当例子，重点不是它本身：**培养方案的细节、选课限制、替代与免修，第一站应该是你自己院系的官网和教务**，而不是任何第三方文档（包括本站）。',
+    group: '官方与资讯',
+    reach: '公网',
+    note: '每个院系都有自己的官网，从「院系设置」进',
     origin: '维护者收藏夹',
     reviewedAt: '2026-09-30',
     verifiedBy: 'auto',

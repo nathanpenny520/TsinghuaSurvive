@@ -2,8 +2,8 @@
   "$comment": "由 npm run check:links 生成，请勿手工编辑。只证明网址当前可访问（HTTP < 400），不代表页面内容已人工核对。",
   "checkedAt": "2026-09-30",
   "network": "未标注（本地网络）",
-  "total": 39,
-  "reachable": 39,
+  "total": 47,
+  "reachable": 47,
   "results": {
     "https://zhjw.cic.tsinghua.edu.cn/": {
       "ok": true,
@@ -26,6 +26,14 @@
       "status": 200
     },
     "https://szsj.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://cet-bm.neea.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://cjcx.neea.edu.cn/": {
       "ok": true,
       "status": 200
     },
@@ -54,6 +62,10 @@
       "status": 200
     },
     "https://webvpn.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://abook.hep.com.cn/": {
       "ok": true,
       "status": 200
     },
@@ -125,6 +137,22 @@
       "ok": true,
       "status": 200
     },
+    "https://www.toefl.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://takethegre.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://wyast.github.io/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://liuyifan22.github.io/advice/": {
+      "ok": true,
+      "status": 200
+    },
     "https://career.tsinghua.edu.cn/": {
       "ok": true,
       "status": 200
@@ -150,6 +178,10 @@
       "status": 200
     },
     "https://www.tsinghua.edu.cn/yxsz.htm": {
+      "ok": true,
+      "status": 200
+    },
+    "https://www.wyc.tsinghua.edu.cn/index.htm": {
       "ok": true,
       "status": 200
     },
