@@ -38,14 +38,30 @@ npm run dev        # http://localhost:4321
 其他命令：
 
 ```bash
-npm run build      # 构建到 dist/
-npm run preview    # 预览构建产物
-npm run check      # 类型与内容校验（提 PR 前跑一下）
-npm run deploy     # 构建并部署到 Cloudflare Workers
+npm run build              # 构建到 dist/
+npm run preview            # 预览构建产物
+npm run check              # 类型检查（astro check）
+npm run check:content      # 内容检查：死链、中文文件名、占位符、过期核对日期
+npm run check:all          # 上面两个一起跑 ← 提 PR 前跑这个
+npm run check:content:strict  # 连「债务警告」也当错误（发布前用）
+npm run og                 # 重新生成社交分享卡片图（public/og.png）
+npm run deploy             # 构建并部署到 Cloudflare Workers
 ```
 
 > **提示**：如果 `wrangler` 报 `EPERM ... .wrangler/logs`，说明它没权限写用户目录。设置
 > `export WRANGLER_LOG_PATH="$PWD/.wrangler-logs"` 即可把日志重定向到项目内。
+> 同理 `npm` 报 `EPERM ... ~/.npm` 时，设置 `export npm_config_cache="$PWD/.npm-cache"`。
+
+### 站点的几个自动化机制
+
+| 机制 | 位置 | 作用 |
+| --- | --- | --- |
+| **时效看门狗** | `src/components/Banner.astro` | `reviewedAt` 超过 6 个月没重新核对 → 页面顶部自动出现过期提醒；`status: outdated` → 红色警告 |
+| **按阶段 / 按标签浏览** | `src/pages/stages/`、`src/pages/tags/` | 从 frontmatter 的 `stage` / `tags` **自动聚合**，不需要手工维护分类 |
+| **内容检查** | `scripts/check-content.ts` | 抓构建抓不到的问题：站内死链、中文文件名、未来日期、order 冲突、占位符 |
+| **结构化数据** | `src/components/Head.astro` | 每页注入 JSON-LD `Article`。署名是占位符时署成「本站」这个组织，**不编造人名** |
+| **分享卡片图** | `scripts/generate-og.py` | 生成 1200×630 的 `public/og.png`，脚本可复现 |
+| **统一阈值** | `content-policy.json` | 看门狗和内容检查脚本读同一份配置，避免两边阈值漂移 |
 
 ---
 
@@ -67,24 +83,39 @@ Tsinghua-guide/
 │  │  │  ├─ 404.md              自定义 404
 │  │  │  ├─ start/              本站说明
 │  │  │  ├─ freshman/           新生入学
-│  │  │  ├─ academics/          学业（选课、绩点……）
+│  │  │  ├─ academics/          学业（选课、绩点、考试……）
 │  │  │  ├─ research/           科研与深造
 │  │  │  ├─ campus/             校园生活
 │  │  │  ├─ mindset/            心态与避坑
 │  │  │  └─ guides/             实用工具（链接、资料）
 │  │  └─ i18n/zh-CN.json     界面文案覆盖
-│  ├─ components/            自定义组件
-│  │  ├─ Footer.astro           站脚（免责声明 + 纠错入口）
+│  ├─ pages/                 自定义路由（不走 Starlight 的文档路由）
+│  │  ├─ stages/             按阶段浏览（自动聚合）
+│  │  ├─ tags/               按标签浏览（自动聚合）
+│  │  └─ rss.xml.ts          RSS feed
+│  ├─ components/
+│  │  ├─ Banner.astro           ★ 时效看门狗（覆盖 Starlight）
+│  │  ├─ Head.astro             ★ JSON-LD 结构化数据（覆盖 Starlight）
+│  │  ├─ Footer.astro           文章元信息 + 免责声明（覆盖 Starlight）
+│  │  ├─ ArticleMeta.astro      阶段/标签/作者/核对日期
+│  │  ├─ ArticleGrid.astro      文章卡片网格
 │  │  ├─ LinkGrid.astro         常用链接卡片墙
 │  │  └─ ResourceList.astro     资料下载列表
 │  ├─ data/
 │  │  ├─ links.ts            ★ 校内常用链接（改这里就更新页面）
-│  │  └─ resources.ts        ★ 资料下载清单（改这里就更新页面）
+│  │  ├─ resources.ts        ★ 资料下载清单（改这里就更新页面）
+│  │  ├─ browse.ts           浏览页的 collection 查询（过滤规则只有一份）
+│  │  └─ policy.ts           时效策略（读 content-policy.json）
 │  └─ styles/custom.css      主题色（清华紫）与中文排版
-└─ public/                   favicon、robots.txt
+├─ scripts/
+│  ├─ check-content.ts       内容检查（CI 里跑，会阻断部署）
+│  └─ generate-og.py         生成分享卡片图
+├─ content-policy.json       ★ 时效阈值（看门狗与检查脚本共用）
+├─ wrangler.jsonc            正式站配置
+└─ wrangler.preview.jsonc    PR 预览站配置
 ```
 
-**两个 `★` 之外的规则**：日常写作只需要碰 `src/content/docs/`，加链接只碰 `src/data/`。
+**带 `★` 之外的规则**：日常写作只需要碰 `src/content/docs/`，加链接只碰 `src/data/`。
 
 ---
 
@@ -100,8 +131,9 @@ stage: ['本科低年级']              # 本科新生/本科低年级/本科高
 tags: ['选课', '培养方案']
 authors: ['你的昵称（xx 院系 xx 级）']
 status: stable                    # draft / stable / outdated
+reviewedAt: 2026-09-30            # 你亲自逐条核对过文中事实的日期 ← 决定看门狗
 summary: 卡片上显示的一句话
-banner:                           # 可选：页面顶部横幅
+banner:                           # 可选：页面顶部横幅（手动说明）
   content: 本文规则尚未核对，请以官方通知为准。
 sidebar:
   order: 10                       # 目录排序，小的在前
@@ -112,10 +144,19 @@ sidebar:
 
 字段写错会在 `npm run build` 时**报错并指出是哪个文件**，不会生成坏页面。
 
+**`reviewedAt` 是最需要认真对待的一个字段**：填了表示你逐条核实过文中事实，超过 6 个月没重新核对，页面顶部会自动出现橙色「可能已过期」提醒。**制度性内容没查证过就不要填**，并把 `status` 设成 `draft`。三个字段的分工：
+
+| 字段 | 效果 |
+| --- | --- |
+| `status: draft` | 卡片上显示「待核对」标签 |
+| `status: outdated` | 页面顶部红色过期警告 |
+| `reviewedAt` | 超过阈值 → 顶部橙色自动提醒；不填 → 页脚显示「尚未标注」 |
+
 正文里可以用的排版语法：
 
 - 提示块：`:::tip`、`:::note`、`:::caution`、`:::danger`，带标题写成 `:::tip[标题]`
 - 需要 JSX 组件（`<Steps>`、`<Aside>`、`<LinkCard>`）时，把文件后缀改成 `.mdx` 并在 frontmatter 下方 `import`
+- **站内链接写相对站点的绝对路径**（如 `/academics/gpa/`），`npm run check:content` 会验证它是否存在
 
 ---
 
@@ -168,7 +209,7 @@ npm run deploy
 
 ### 自动部署
 
-**已配好并实测通过**：推送到 `main` 会自动构建并部署，不需要手动跑任何命令。流程是「安装依赖 → `npm run check` → `npm run build` → `wrangler deploy`」。
+**已配好并实测通过**：推送到 `main` 会自动构建并部署，不需要手动跑任何命令。流程是「安装依赖 → `astro check` → `check:content` → `build` → `wrangler deploy`」。
 
 | Secret | 状态 |
 | --- | --- |
@@ -176,6 +217,14 @@ npm run deploy
 | `CLOUDFLARE_API_TOKEN` | ✅ 已配置（权限最小集合见 [HANDOVER.md](./HANDOVER.md) 第 5 节） |
 
 token 失效时工作流会给出一条 `::warning::` 注解并只构建不部署，不会静默失败。
+
+### PR 预览
+
+提 PR 后机器人会评论一个预览链接：**<https://preview.nathanpenny.fun>**（独立的预览 Worker，由 `wrangler.preview.jsonc` 配置）。
+
+- 每次推送更新同一个预览，评论也会更新而不是刷屏。
+- **来自 fork 的 PR 没有预览** —— 这是有意的安全取舍：给 fork PR 开凭证等于把 Cloudflare 账号交给陌生代码。工作流用的是 `pull_request` 而不是 `pull_request_target`。
+- 预览地址是公开的，**不要在里面放未脱敏的内容**。
 
 要跳过 CI 手动发布，本地跑 `npm run deploy` 即可。
 

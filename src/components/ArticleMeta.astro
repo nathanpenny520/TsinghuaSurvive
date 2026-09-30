@@ -1,0 +1,126 @@
+---
+/**
+ * 文章底部的元信息条：适用阶段、主题标签、作者、最后核对日期。
+ *
+ * 数据全部来自 frontmatter（stage / tags / authors / reviewedAt），
+ * 放在正文之后、翻页之前，由 Footer 覆盖组件调用。
+ * 首页（splash）和 404 页不显示。
+ */
+import { formatYearMonth } from '../data/policy';
+
+const data = Astro.locals.starlightRoute.entry.data as {
+  template?: string;
+  stage?: string[];
+  tags?: string[];
+  authors?: string[];
+  reviewedAt?: Date;
+  status?: string;
+};
+
+const isPlainPage = data.template !== 'splash';
+const stage = (data.stage ?? []).filter(Boolean);
+const tags = (data.tags ?? []).filter(Boolean);
+const authors = (data.authors ?? []).filter((a) => a && a !== '待补充' && a !== 'TODO');
+const reviewedAt = data.reviewedAt instanceof Date ? data.reviewedAt : undefined;
+
+const show = isPlainPage && (stage.length > 0 || tags.length > 0 || authors.length > 0 || reviewedAt);
+---
+
+{
+  show && (
+    <aside class="article-meta" aria-label="本文信息">
+      {stage.length > 0 && (
+        <div class="article-meta__row">
+          <span class="article-meta__label">适用阶段</span>
+          <span class="article-meta__values">
+            {stage.map((s) => (
+              <a class="article-meta__chip" href={`/stages/${encodeURIComponent(s)}/`}>
+                {s}
+              </a>
+            ))}
+          </span>
+        </div>
+      )}
+
+      {tags.length > 0 && (
+        <div class="article-meta__row">
+          <span class="article-meta__label">主题</span>
+          <span class="article-meta__values">
+            {tags.map((t) => (
+              <a class="article-meta__chip" href={`/tags/${encodeURIComponent(t)}/`}>
+                {t}
+              </a>
+            ))}
+          </span>
+        </div>
+      )}
+
+      <div class="article-meta__row">
+        {authors.length > 0 && (
+          <>
+            <span class="article-meta__label">作者</span>
+            <span class="article-meta__values">{authors.join('、')}</span>
+          </>
+        )}
+        <span class="article-meta__label article-meta__label--push">最后核对</span>
+        <span class="article-meta__values">
+          {reviewedAt ? formatYearMonth(reviewedAt) : '尚未标注'}
+        </span>
+      </div>
+    </aside>
+  )
+}
+
+<style>
+  .article-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 2.5rem;
+    padding: 1rem 1.15rem;
+    border: 1px solid var(--sl-color-gray-6);
+    border-radius: 0.6rem;
+    background: var(--sl-color-gray-7, var(--sl-color-black));
+    font-size: var(--sl-text-sm);
+  }
+
+  .article-meta__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .article-meta__label {
+    color: var(--sl-color-gray-3);
+    white-space: nowrap;
+  }
+
+  /* 作者和核对日期同行时，把「最后核对」推到右边 */
+  .article-meta__label--push {
+    margin-inline-start: auto;
+  }
+
+  .article-meta__values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    color: var(--sl-color-gray-1);
+  }
+
+  .article-meta__chip {
+    display: inline-block;
+    padding: 0.05rem 0.55rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 999px;
+    color: var(--sl-color-gray-2);
+    text-decoration: none;
+    font-size: var(--sl-text-xs);
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .article-meta__chip:hover {
+    border-color: var(--sl-color-accent);
+    color: var(--sl-color-accent-high);
+  }
+</style>

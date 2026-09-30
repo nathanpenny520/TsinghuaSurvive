@@ -9,6 +9,10 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
+    "check:content": "tsx scripts/check-content.ts",
+    "check:content:strict": "tsx scripts/check-content.ts --strict",
+    "check:all": "npm run check && npm run check:content",
+    "og": "python3 scripts/generate-og.py",
     "deploy": "npm run build && wrangler deploy",
     "deploy:dry": "npm run build && wrangler deploy --dry-run"
   },
@@ -16,6 +20,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.4",
     "@astrojs/starlight": "^0.42.4",
     "astro": "^7.3.5",
@@ -23,7 +28,9 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3",
-    "wrangler": "^4.144.0"
+    "wrangler": "^4.144.0",
+    "yaml": "^2.9.1"
   }
 }

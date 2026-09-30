@@ -23,13 +23,31 @@
 | Zone | `nathanpenny.fun`（status: active） |
 | Zone ID | `068decbde572025a27b25b97080e4355` |
 | Zone 的 NS | `anton.ns.cloudflare.com`, `mona.ns.cloudflare.com` |
-| Worker 名称 | `tsinghua-guide` |
+| Worker 名称（正式） | `tsinghua-guide` |
 | Custom Domain ID | `4185b3075488e7e75699ac5e82db5500b545e3df` |
 | 证书 ID | `21a021b9-dcc7-4d03-98ee-2e46106ccb78` |
+| Worker 名称（PR 预览） | `tsinghua-guide-preview` |
+| 预览域名 | `https://preview.nathanpenny.fun` |
 | GitHub 仓库 | <https://github.com/nathanpenny520/TsinghuaSurvive>（public，main） |
 | 本地路径 | `TsinghuaSurvive/Tsinghua-guide/` |
 
-Cloudflare 侧**只有一个 Worker、一个自定义域名，没有任何 KV / R2 / D1 / Durable Object**。不需要担心有隐藏资源产生费用。
+Cloudflare 侧有**两个 Worker、两个自定义域名，没有任何 KV / R2 / D1 / Durable Object**。不需要担心有隐藏资源产生费用。
+
+> 预览 Worker 是给 PR 用的独立环境，不是正式站。**如果确认不再需要预览功能**，
+> 可以删掉它：`npx wrangler delete --config wrangler.preview.jsonc`，并删除 `.github/workflows/preview.yml`。
+
+站点功能一览（都是构建期完成的，**没有任何运行时**）：
+
+| 能力 | 实现位置 |
+| --- | --- |
+| 全文搜索（中文分词） | Starlight 内置 Pagefind |
+| 按阶段 / 按标签浏览 | `src/pages/stages/`、`src/pages/tags/`，从 frontmatter 自动聚合 |
+| 时效看门狗 | `src/components/Banner.astro`（覆盖 Starlight 组件） |
+| 文章元信息（阶段/标签/作者/核对日期） | `src/components/ArticleMeta.astro`，由 Footer 调用 |
+| JSON-LD 结构化数据 | `src/components/Head.astro`（覆盖 Starlight 组件） |
+| 分享卡片图 | `public/og.png`，由 `scripts/generate-og.py` 生成 |
+| RSS | `src/pages/rss.xml.ts` |
+| 时效阈值单一来源 | `content-policy.json` |
 
 仓库 Secrets 现状（**两个都已配好，CI 已实测跑通**）：
 
@@ -96,11 +114,28 @@ OUTLINE.md               内容路线图（哪些写了、哪些没写）
 ```bash
 cd TsinghuaSurvive/Tsinghua-guide
 npm run dev            # http://localhost:4321，改 Markdown 自动热更新
-# 改完
+npm run check:all      # 提 PR 前跑一遍（类型检查 + 内容检查）
 git add -A && git commit -m "docs: 更新选课时间线" && git push
 ```
 
-推送到 `main` 会自动部署（配好 token 之后）。
+推送到 `main` 会自动部署。
+
+### 提交前的自动检查
+
+```bash
+npm run check:all              # 类型检查 + 内容检查
+npm run check:content          # 只跑内容检查
+npm run check:content:strict   # 连「债务警告」也当错误（发布前用）
+```
+
+内容检查（`scripts/check-content.ts`）会抓这些**构建本身抓不到**的问题：
+
+| 级别 | 检查项 |
+| --- | --- |
+| **错误**（阻断部署） | 站内链接指向不存在的页面（带文件:行号）、文件名不是 ASCII slug、`reviewedAt` 写在未来、同目录 `sidebar.order` 冲突、`links.ts` 里有重名条目或非法网址、资料填了提取码却没链接 |
+| **警告**（只提示） | 作者还是占位符、`status: draft` 数量、链接没有 `verified` 或超过 12 个月未确认、资料还是 `TODO`、文章超过 6 个月未核对 |
+
+**这四项错误检测都做过注入测试验证过会真的触发**，不是写了没用。
 
 ### 加一个校内链接
 
@@ -109,6 +144,14 @@ git add -A && git commit -m "docs: 更新选课时间线" && git push
 ### 加一份资料
 
 编辑 `src/data/resources.ts`，`url` 填网盘链接。留空或写 `'TODO'` 时页面显示「待补充」，不会渲染死链。**文件本体不要进仓库。**
+
+### 重新生成分享卡片图
+
+```bash
+npm run og             # 需要 python3 + Pillow
+```
+
+图片内容在 `scripts/generate-og.py` 顶部改。**中文标题改动后一定要重新生成**，否则分享出去的卡片还是旧标题。
 
 ### 部署
 
@@ -177,7 +220,15 @@ npx wrangler delete                 # 删除 Worker（自定义域名的 DNS 记
 | 站点打不开但 Cloudflare 显示已部署 | 先分清是 DNS 问题还是部署问题：`curl --resolve tsinghua.nathanpenny.fun:443:172.67.207.247 https://tsinghua.nathanpenny.fun/` 绕过 DNS 直连 |
 | 搜索搜不到中文 | Pagefind 支持中文分词但**不做词干化**，所以「选课」和「选课规则」不会互相命中。搜短词（2–3 字），并靠 tags 补足 |
 | 构建报 frontmatter 错误 | 这是**设计如此**。按报错指出的文件修正字段，字段定义见 `src/content.config.ts` |
-| 页面上的「内容可能已过期」横幅 | 来自文章 frontmatter 的 `banner.content`，更新内容后删掉即可 |
+| 部署刚完成时个别页面 404 | **部署传播竞态**，几秒后自行恢复。我实测遇到过一次：`/freshman/dorm-and-network/` 在部署完成后立刻请求返回 404，重试即 200。确认方法：等 10 秒再请求一次，仍 404 才是真问题 |
+| 中文标签/阶段页返回 307 | **正常**。Cloudflare 把原始 UTF-8 路径（`/tags/选课/`）307 规范化到百分号编码形式，浏览器自动跟随，最终 200。爬虫和社交平台也能正确跟随 |
+| 页面顶部出现橙色的过期提醒 | 这是**看门狗**在工作：`reviewedAt` 超过 `content-policy.json` 里的 `staleAfterMonths`（默认 6 个月）。重新核对内容后更新 `reviewedAt` 即可 |
+| 页面顶部出现红色的过期警告 | 作者把 `status` 设成了 `outdated`。内容修好后改成 `stable` |
+| 分享出去的卡片图还是旧标题 | `public/og.png` 是**静态文件**，改站点标题后要跑 `npm run og` 重新生成 |
+| 想调整「多久算过期」 | 改 `content-policy.json` 的 `staleAfterMonths`，**站点看门狗和 CI 检查脚本同时生效**（这是刻意设计的单一来源） |
+| 内容检查报「站内链接指向不存在的页面」 | 改文件名或移动文章后没同步引用。报错里有文件:行号，按行号改。中文标签链接（`/tags/选课/`）和编码形式都已被正确识别，不会误报 |
+| 预览链接 404 或 PR 上没有预览评论 | 先看 PR 是不是来自 **fork**（fork PR 拿不到 Secrets，设计如此）。其次确认 `wrangler.preview.jsonc` 里的预览域名是否创建成功 |
+| 想删掉预览环境 | `npx wrangler delete --config wrangler.preview.jsonc`，并删除 `.github/workflows/preview.yml` |
 
 ---
 

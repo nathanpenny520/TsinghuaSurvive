@@ -1,0 +1,99 @@
+---
+/**
+ * 覆盖 Starlight 的 Banner 组件，把「内容时效看门狗」装到每一页顶部。
+ *
+ * Starlight 在 Page.astro 里是**无条件**渲染 <Banner /> 的，所以这个组件每页都会执行，
+ * 我可以在这里做动态判断。优先级：
+ *
+ *   1. status: outdated        → 红色警告（作者已明确标记过期）
+ *   2. reviewedAt 超过阈值      → 橙色提醒（时间到了，该重新核对）
+ *   3. frontmatter.banner      → 原样渲染作者手写的内容（保留 Starlight 原生行为）
+ *   4. 都没有                   → 不渲染
+ *
+ * 阈值来自 content-policy.json，与 CI 的内容检查脚本共用。
+ */
+import { policy, monthsSince, formatYearMonth, isStale } from '../data/policy';
+
+const data = Astro.locals.starlightRoute.entry.data;
+const manual = data.banner?.content;
+
+// 自定义扩展字段：StarlightPage 合成出来的 entry 里可能没有，所以都要兜底
+const status = (data as { status?: 'draft' | 'stable' | 'outdated' }).status;
+const reviewedAt = (data as { reviewedAt?: Date }).reviewedAt;
+
+const isOutdated = status === 'outdated';
+const isTimeStale = !isOutdated && reviewedAt instanceof Date && isStale(reviewedAt);
+
+const months = reviewedAt instanceof Date ? monthsSince(reviewedAt) : 0;
+
+const variant = isOutdated ? 'danger' : isTimeStale ? 'stale' : 'info';
+const show = isOutdated || isTimeStale || Boolean(manual);
+---
+
+{
+  show && (
+    <div class:list={['watchdog', `watchdog--${variant}`]} data-pagefind-ignore>
+      {isOutdated && (
+        <p>
+          <strong>⚠ 本篇已标记为过期。</strong>
+          其中的规则、时间节点可能已经不成立，请以官方通知为准；也欢迎你
+          <a href="/contribute/">直接更新这一页</a>。
+        </p>
+      )}
+      {isTimeStale && (
+        <p>
+          <strong>⏳ 本篇已 {months} 个月没有重新核对。</strong>
+          最后核对于 {reviewedAt && formatYearMonth(reviewedAt)}，超过 {policy.staleAfterMonths} 个月。
+          涉及时间节点和规则的部分请务必再去官方渠道确认一次。
+        </p>
+      )}
+      {manual && <p set:html={manual} />}
+    </div>
+  )
+}
+
+<style>
+  .watchdog {
+    padding: 0.7rem var(--sl-nav-pad-x);
+    font-size: var(--sl-text-sm);
+    line-height: 1.7;
+    text-align: center;
+    text-wrap: balance;
+    box-shadow: var(--sl-shadow-sm);
+  }
+
+  .watchdog p {
+    margin: 0 auto;
+    max-width: 60rem;
+  }
+
+  .watchdog p + p {
+    margin-top: 0.35rem;
+    padding-top: 0.35rem;
+    border-top: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  }
+
+  .watchdog a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* 作者明确标记过期：用危险色，最醒目 */
+  .watchdog--danger {
+    background-color: var(--sl-color-red-low, #4b1113);
+    color: var(--sl-color-red-high, #ffd7d9);
+  }
+
+  /* 时间到了：用橙色提醒 */
+  .watchdog--stale {
+    background-color: var(--sl-color-orange-low, #4d2b0a);
+    color: var(--sl-color-orange-high, #ffe6c7);
+  }
+
+  /* 作者手写的说明：沿用 Starlight 原本的强调色横幅 */
+  .watchdog--info {
+    background-color: var(--sl-color-banner-bg, var(--sl-color-bg-accent));
+    color: var(--sl-color-banner-text, var(--sl-color-text-invert));
+  }
+</style>

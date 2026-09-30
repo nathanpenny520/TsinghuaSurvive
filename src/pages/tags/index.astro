@@ -1,0 +1,77 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { publishedDocs, tagIndex } from '../../data/browse';
+
+const docs = await publishedDocs();
+const tags = tagIndex(docs);
+const sorted = [...tags.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0], 'zh-Hans-CN'));
+const total = sorted.reduce((sum, [, list]) => sum + list.length, 0);
+---
+
+<StarlightPage
+  frontmatter={{
+    title: '按标签浏览',
+    description: '按选课、绩点、保研、食堂等主题查找经验帖。',
+    tableOfContents: false,
+  }}
+>
+  <p>
+    共 {sorted.length} 个主题、{total} 篇文章。同一个主题下的文章按目录顺序排列。
+  </p>
+
+  {
+    sorted.length === 0 ? (
+      <p>还没有任何标签。给文章 frontmatter 加上 <code>tags</code> 就会出现在这里。</p>
+    ) : (
+      <ul class="tag-cloud">
+        {sorted.map(([tag, list]) => (
+          <li>
+            <a class="tag-cloud__item" href={`/tags/${encodeURIComponent(tag)}/`}>
+              <span class="tag-cloud__name">{tag}</span>
+              <span class="tag-cloud__count">{list.length}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  <h2>或者按阶段找</h2>
+  <p>
+    如果你更关心「我现在该看什么」，去看<a href="/stages/">按阶段浏览</a>——
+    那边按大一、大二、保研前等阶段归类。
+  </p>
+</StarlightPage>
+
+<style>
+  .tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1.25rem 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tag-cloud__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 999px;
+    text-decoration: none;
+    color: var(--sl-color-gray-1);
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .tag-cloud__item:hover {
+    border-color: var(--sl-color-accent);
+    color: var(--sl-color-accent-high);
+  }
+
+  .tag-cloud__count {
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+  }
+</style>

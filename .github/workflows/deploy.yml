@@ -29,8 +29,13 @@ jobs:
       - name: 安装依赖
         run: npm ci
 
-      - name: 类型与内容校验
+      - name: 类型检查
         run: npm run check
+
+      # 内容检查：死链、中文文件名、未来日期、占位符与过期核对日期。
+      # 默认模式只把「真错误」当失败，占位符之类的债务只提示，不阻断部署。
+      - name: 内容检查
+        run: npm run check:content
 
       - name: 构建
         run: npm run build

@@ -1,0 +1,30 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import ArticleGrid from '../../components/ArticleGrid.astro';
+import { publishedDocs, tagIndex } from '../../data/browse';
+
+export async function getStaticPaths() {
+  const docs = await publishedDocs();
+  const tags = tagIndex(docs);
+  return [...tags.entries()].map(([tag, entries]) => ({
+    params: { tag },
+    props: { tag, entries },
+  }));
+}
+
+const { tag, entries } = Astro.props;
+---
+
+<StarlightPage
+  frontmatter={{
+    title: `标签：${tag}`,
+    description: `清华生存指南中所有与「${tag}」相关的经验帖。`,
+    tableOfContents: false,
+  }}
+>
+  <p>
+    共 {entries.length} 篇。<a href="/tags/">← 返回全部标签</a>
+  </p>
+
+  <ArticleGrid entries={entries} emptyHint="这个标签下还没有文章。" />
+</StarlightPage>

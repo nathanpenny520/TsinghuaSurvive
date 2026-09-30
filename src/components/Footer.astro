@@ -1,13 +1,18 @@
 ---
 /**
- * 覆盖 Starlight 默认页脚：保留「编辑此页 / 最近更新 / 上一页下一页」，
- * 在下面追加一段全站统一的免责声明与纠错入口。
+ * 覆盖 Starlight 默认页脚。
+ *
+ * 顺序：文章元信息（阶段/标签/作者/核对日期）→ 原页脚（编辑此页、翻页）→ 全站免责声明。
+ * Page.astro 里是 <MarkdownContent> 紧跟 <Footer />，所以这里渲染的内容恰好落在正文之后。
  */
 import Default from '@astrojs/starlight/components/Footer.astro';
+import ArticleMeta from './ArticleMeta.astro';
 
 const repo = 'https://github.com/nathanpenny520/TsinghuaSurvive';
 const year = new Date().getFullYear();
 ---
+
+<ArticleMeta />
 
 <Default />
 

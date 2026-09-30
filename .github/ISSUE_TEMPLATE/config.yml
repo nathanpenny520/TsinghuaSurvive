@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 站内使用说明
+    url: https://tsinghua.nathanpenny.fun/start/how-to-use/
+    about: 先看看本站的组织方式和页面上的标记是什么意思
+  - name: 免责声明与内容边界
+    url: https://tsinghua.nathanpenny.fun/start/disclaimer/
+    about: 投稿前请先确认哪些内容不能写

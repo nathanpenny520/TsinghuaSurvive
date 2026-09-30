@@ -1,0 +1,92 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { publishedDocs, stageIndex, sortStageNames } from '../../data/browse';
+
+const docs = await publishedDocs();
+const stages = stageIndex(docs);
+const names = sortStageNames([...stages.keys()]);
+
+/** 每个阶段配一句「现在该关心什么」，让这个页面比一串链接更有用 */
+const STAGE_HINT: Record<string, string> = {
+  本科新生: '先把账号、宿舍、选课这三件事办利索，别急着规划四年。',
+  本科低年级: '这一年决定后面两年的选择空间：绩点、进组、英语。',
+  本科高年级: '保研、考研、出国、就业，四条路要开始收敛了。',
+  研究生: '科研节奏、导师沟通、毕业要求，和本科完全不是一套逻辑。',
+  全阶段: '和年级关系不大的通用内容：生活、心情、办事流程。',
+};
+---
+
+<StarlightPage
+  frontmatter={{
+    title: '按阶段浏览',
+    description: '按大一、大二、保研前等阶段，看你现在该关心什么。',
+    tableOfContents: false,
+  }}
+>
+  <p>
+    同一篇文章可能出现在多个阶段——它讲的事横跨几年。不知道从哪看起的话，
+    <strong>先挑和你现在最接近的那一栏</strong>。
+  </p>
+
+  {
+    names.map((name) => (
+      <section>
+        <h2>
+          <a href={`/stages/${encodeURIComponent(name)}/`}>{name}</a>
+        </h2>
+        {STAGE_HINT[name] && <p class="stage-hint">{STAGE_HINT[name]}</p>}
+        <ul class="stage-list">
+          {stages.get(name)?.map((entry) => (
+            <li>
+              <a href={entry.id === 'index' ? '/' : `/${entry.id}/`}>{entry.data.title}</a>
+              <span class="stage-list__desc">
+                {entry.data.summary ?? entry.data.description}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+
+  <p>
+    <a href="/tags/">→ 也可以按主题浏览</a>
+  </p>
+</StarlightPage>
+
+<style>
+  .stage-hint {
+    margin-top: -0.5rem;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+    line-height: 1.75;
+  }
+
+  .stage-list {
+    margin: 0.75rem 0 2rem;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .stage-list li {
+    margin: 0;
+    padding: 0.7rem 0.95rem;
+    border-left: 2px solid var(--sl-color-accent);
+    background: var(--sl-color-gray-7, var(--sl-color-black));
+  }
+
+  .stage-list a {
+    font-weight: 600;
+  }
+
+  .stage-list__desc {
+    display: block;
+    margin-top: 0.2rem;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+    line-height: 1.7;
+  }
+</style>

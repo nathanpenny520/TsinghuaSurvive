@@ -1,0 +1,30 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import ArticleGrid from '../../components/ArticleGrid.astro';
+import { publishedDocs, stageIndex } from '../../data/browse';
+
+export async function getStaticPaths() {
+  const docs = await publishedDocs();
+  const stages = stageIndex(docs);
+  return [...stages.entries()].map(([stage, entries]) => ({
+    params: { stage },
+    props: { stage, entries },
+  }));
+}
+
+const { stage, entries } = Astro.props;
+---
+
+<StarlightPage
+  frontmatter={{
+    title: `阶段：${stage}`,
+    description: `清华生存指南中适用于「${stage}」的经验帖。`,
+    tableOfContents: false,
+  }}
+>
+  <p>
+    共 {entries.length} 篇。<a href="/stages/">← 返回全部阶段</a>
+  </p>
+
+  <ArticleGrid entries={entries} emptyHint="这个阶段下还没有文章。" />
+</StarlightPage>

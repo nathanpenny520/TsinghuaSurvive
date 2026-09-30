@@ -27,12 +27,12 @@ import { Card, CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
 <CardGrid>
   <LinkCard
     title="刚拿到录取通知书"
-    href="/freshman/arrival-checklist/"
-    description="报到前一周的清单：证件、行李、宿舍、网络、一卡通。"
+    href="/stages/本科新生/"
+    description="报到清单、军训、宿舍与网络、第一周要办的账号。"
   />
   <LinkCard
     title="正在选课 / 对绩点发懵"
-    href="/academics/course-selection/"
+    href="/tags/选课/"
     description="培养方案怎么读、选课怎么排、绩点是怎么算出来的。"
   />
   <LinkCard
@@ -43,7 +43,7 @@ import { Card, CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
   <LinkCard
     title="生活上的琐事"
     href="/campus/food-and-study/"
-    description="食堂、自习位、出行、以及哪里能安静待一下午。"
+    description="食堂、自习位、出行，以及看病报销这类平时不关心的事。"
   />
   <LinkCard
     title="感觉有点撑不住"
@@ -56,6 +56,11 @@ import { Card, CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
     description="校内常用网站跳转，以及可下载的资料清单。"
   />
 </CardGrid>
+
+<p style="font-size: var(--sl-text-sm); color: var(--sl-color-gray-3)">
+  也可以直接 <a href="/stages/">按阶段浏览</a> 或 <a href="/tags/">按标签浏览</a>——
+  这两个页面的分类是自动从文章里聚合的，随内容更新。
+</p>
 
 ## 这个站是怎么组织内容的
 

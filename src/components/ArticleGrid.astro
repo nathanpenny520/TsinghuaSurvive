@@ -1,0 +1,201 @@
+---
+/**
+ * 文章卡片网格。给「按标签浏览」「按阶段浏览」两个页面复用。
+ *
+ * 卡片里显示的是 frontmatter 里作者已经填好的 stage / summary / tags，
+ * 这正是 content.config.ts 定义了但之前没有任何页面读取的那批字段。
+ */
+import { policy, monthsSince, isStale } from '../data/policy';
+
+type Entry = {
+  id: string;
+  data: {
+    title: string;
+    description?: string;
+    summary?: string;
+    stage?: string[];
+    tags?: string[];
+    status?: string;
+    reviewedAt?: Date;
+    sidebar?: { hidden?: boolean };
+  };
+};
+
+interface Props {
+  entries: Entry[];
+  /** 空状态提示语 */
+  emptyHint?: string;
+}
+
+const { entries, emptyHint = '这个分类下还没有文章。' } = Astro.props;
+
+/** collection 的 id 是路径形式，index 对应站点根路径 */
+function hrefFor(id: string): string {
+  return id === 'index' ? '/' : `/${id}/`;
+}
+
+const visible = entries.filter((e) => e.id !== '404' && !e.data.sidebar?.hidden);
+---
+
+{
+  visible.length === 0 ? (
+    <p class="article-grid__empty">{emptyHint}</p>
+  ) : (
+    <ul class="article-grid">
+      {visible.map((entry) => {
+        const reviewedAt = entry.data.reviewedAt instanceof Date ? entry.data.reviewedAt : undefined;
+        const stale = reviewedAt ? isStale(reviewedAt) : false;
+        const months = reviewedAt ? monthsSince(reviewedAt) : 0;
+        return (
+          <li class="article-grid__item">
+            <a class="article-grid__link" href={hrefFor(entry.id)}>
+              <span class="article-grid__title">{entry.data.title}</span>
+              <span class="article-grid__desc">{entry.data.summary ?? entry.data.description}</span>
+              <span class="article-grid__meta">
+                {(entry.data.stage ?? []).map((s) => (
+                  <span class="article-grid__tag">{s}</span>
+                ))}
+                {(entry.data.tags ?? []).slice(0, 4).map((t) => (
+                  <span class="article-grid__tag article-grid__tag--soft">#{t}</span>
+                ))}
+              </span>
+              <span class="article-grid__footer">
+                {entry.data.status === 'draft' && (
+                  <span class="article-grid__badge article-grid__badge--draft">待核对</span>
+                )}
+                {stale && (
+                  <span class="article-grid__badge article-grid__badge--stale">
+                    已 {months} 个月未更新
+                  </span>
+                )}
+                {entry.data.status === 'outdated' && (
+                  <span class="article-grid__badge article-grid__badge--outdated">已过期</span>
+                )}
+              </span>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  )
+}
+
+{
+  /* 阈值提示：让读者知道这些标记是按什么规则打上的 */
+  visible.some((e) => e.data.reviewedAt) && (
+    <p class="article-grid__legend">
+      标记规则：<code>已过期</code> 指作者明确标注内容失效；
+      <code>待核对</code> 指部分制度性细节尚未逐条核实；
+      超过 {policy.staleAfterMonths} 个月未重新核对的内容会自动提示。
+    </p>
+  )
+}
+
+<style>
+  .article-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+    gap: 0.9rem;
+    margin: 1.5rem 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .article-grid__item {
+    margin: 0;
+  }
+
+  .article-grid__link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    height: 100%;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.6rem;
+    background: var(--sl-color-black);
+    text-decoration: none;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+
+  .article-grid__link:hover {
+    border-color: var(--sl-color-accent);
+    transform: translateY(-2px);
+  }
+
+  .article-grid__title {
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--sl-color-white);
+  }
+
+  .article-grid__desc {
+    font-size: var(--sl-text-sm);
+    line-height: 1.7;
+    color: var(--sl-color-gray-2);
+  }
+
+  .article-grid__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: auto;
+    padding-top: 0.5rem;
+  }
+
+  .article-grid__tag {
+    padding: 0.05rem 0.5rem;
+    border: 1px solid var(--sl-color-accent);
+    border-radius: 999px;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-accent-high);
+    white-space: nowrap;
+  }
+
+  .article-grid__tag--soft {
+    border-color: var(--sl-color-gray-5);
+    color: var(--sl-color-gray-3);
+  }
+
+  .article-grid__footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    min-height: 1.2rem;
+  }
+
+  .article-grid__badge {
+    padding: 0.05rem 0.45rem;
+    border-radius: 0.25rem;
+    font-size: var(--sl-text-xs);
+    white-space: nowrap;
+  }
+
+  .article-grid__badge--draft {
+    background: var(--sl-color-orange-low, #4d2b0a);
+    color: var(--sl-color-orange-high, #ffe6c7);
+  }
+
+  .article-grid__badge--stale {
+    background: var(--sl-color-orange-low, #4d2b0a);
+    color: var(--sl-color-orange-high, #ffe6c7);
+  }
+
+  .article-grid__badge--outdated {
+    background: var(--sl-color-red-low, #4b1113);
+    color: var(--sl-color-red-high, #ffd7d9);
+  }
+
+  .article-grid__empty,
+  .article-grid__legend {
+    font-size: var(--sl-text-sm);
+    line-height: 1.75;
+    color: var(--sl-color-gray-3);
+  }
+
+  @media (max-width: 40rem) {
+    .article-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

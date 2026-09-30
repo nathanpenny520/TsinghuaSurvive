@@ -1,0 +1,133 @@
+name: PR Preview
+
+# 给每个 PR 构建并部署到一个独立的预览 Worker，然后把预览链接评论到 PR 上。
+#
+# 为什么不用 Cloudflare 自带的 Preview URL：
+# 它挂在 *.<账号>.workers.dev 上，而该域名在境内被 DNS 污染，贡献者打不开。
+# 所以这里用一个独立的 Worker + 自定义域名 preview.nathanpenny.fun。
+#
+# ⚠️ 安全说明：这里刻意使用 pull_request 而不是 pull_request_target。
+# pull_request_target 会让 fork 来的 PR 拿到仓库 Secrets（能操作 Cloudflare 账号），
+# 那是明确的提权风险。代价是：**来自 fork 的 PR 拿不到 Secrets，无法生成预览**，
+# 只有仓库内分支的 PR 有预览。这是有意的取舍，不是疏漏。
+#
+# ⚠️ 预览环境是公开可访问的，不要往 PR 里放未脱敏的内容（见内容红线）。
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 类型检查
+        run: npm run check
+
+      - name: 内容检查
+        run: npm run check:content
+
+      - name: 构建
+        run: npm run build
+
+      # 判断能不能拿到凭证。fork PR 与未配置 token 的仓库都会走到这里。
+      - name: 检查预览凭证
+        id: creds
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          IS_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
+        run: |
+          if [ "$IS_FORK" = "true" ]; then
+            echo "::notice title=跳过预览::来自 fork 的 PR 拿不到仓库 Secrets，无法生成预览。请本地 npm run dev 查看效果。"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "reason=fork" >> "$GITHUB_OUTPUT"
+          elif [ -z "$CF_TOKEN" ]; then
+            echo "::warning title=跳过预览::仓库缺少 CLOUDFLARE_API_TOKEN，无法生成预览。配置见 HANDOVER.md。"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "reason=no-token" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # --env="" 是必须的：让 wrangler 明确使用顶层环境
+      - name: 部署预览
+        if: steps.creds.outputs.ready == 'true'
+        id: deploy
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --config wrangler.preview.jsonc
+
+      # 把预览链接写到 PR 评论里。同一个 PR 反复推送时更新原评论，不刷屏。
+      - name: 评论预览链接
+        if: always() && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@v7
+        env:
+          READY: ${{ steps.creds.outputs.ready }}
+          REASON: ${{ steps.creds.outputs.reason }}
+        with:
+          script: |
+            const marker = '<!-- pr-preview -->';
+            const url = 'https://preview.nathanpenny.fun';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            let body;
+            if (process.env.READY === 'true') {
+              body = [
+                marker,
+                '### 🔍 预览已部署',
+                '',
+                `**${url}**`,
+                '',
+                '> 这是 PR 分支的实时预览。预览环境是公开地址，请不要在里面放未脱敏的内容。',
+                `> 每次推送都会更新这个预览。构建日志：${runUrl}`,
+              ].join('\n');
+            } else if (process.env.REASON === 'no-token') {
+              body = [
+                marker,
+                '### ⚠️ 预览未部署',
+                '',
+                '仓库缺少 `CLOUDFLARE_API_TOKEN`，只做了构建校验。配置步骤见 `HANDOVER.md`。',
+              ].join('\n');
+            } else {
+              body = [
+                marker,
+                '### ℹ️ 预览未部署',
+                '',
+                '本次只做了构建与内容校验。本地跑 `npm run dev` 可以看到最终效果。',
+              ].join('\n');
+            }
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number, per_page: 100,
+            });
+            const existing = comments.find((c) => c.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }

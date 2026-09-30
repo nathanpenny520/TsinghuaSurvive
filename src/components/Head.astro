@@ -1,0 +1,82 @@
+---
+/**
+ * 覆盖 Starlight 的 Head 组件：保留它原本的 head 输出，额外注入结构化数据（JSON-LD）。
+ *
+ * 为什么要覆盖 Head 而不是塞在页脚：JSON-LD 放在 <head> 里是规范做法，
+ * 而且这里是唯一能同时拿到 route data 和 site 配置的注入点。
+ *
+ * 注意：不生成 SearchAction —— 站内搜索是 Pagefind 客户端搜索，不响应查询参数，
+ * 声明 SearchAction 会是假的。宁可不写。
+ */
+import { formatISODate } from '../data/policy';
+
+const { head, entry, lastUpdated, lang } = Astro.locals.starlightRoute;
+const data = entry.data;
+
+const siteUrl = Astro.site ?? new URL('https://tsinghua.nathanpenny.fun');
+const canonical = new URL(Astro.url.pathname, siteUrl).href;
+
+const SITE_NAME = '清华生存指南';
+
+const isSplash = data.template === 'splash';
+const is404 = entry.id === '404';
+
+/** 占位作者名不能进结构化数据 */
+const PLACEHOLDER_AUTHORS = new Set(['待补充', 'TODO', '匿名', '']);
+
+const authors = ((data as { authors?: string[] }).authors ?? []).filter(
+  (a) => !PLACEHOLDER_AUTHORS.has(a.trim())
+);
+
+const tags = ((data as { tags?: string[] }).tags ?? []).filter(Boolean);
+const stage = ((data as { stage?: string[] }).stage ?? []).filter(Boolean);
+const reviewedAt = (data as { reviewedAt?: Date }).reviewedAt;
+
+// 优先用人工核对日期，没有就退回 git 最后提交时间。两个都不编。
+const dateModified =
+  reviewedAt instanceof Date
+    ? formatISODate(reviewedAt)
+    : lastUpdated instanceof Date
+      ? formatISODate(lastUpdated)
+      : undefined;
+
+const publisher = {
+  '@type': 'Organization',
+  name: SITE_NAME,
+  url: siteUrl.href,
+};
+
+const jsonLd =
+  isSplash || is404
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: SITE_NAME,
+        url: siteUrl.href,
+        description: data.description,
+        inLanguage: lang,
+        publisher,
+      }
+    : {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: data.title,
+        description: data.description,
+        inLanguage: lang,
+        url: canonical,
+        mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+        // 没有真实署名时，署成「本站」这个集体，而不是编一个人名
+        author: authors.length
+          ? authors.map((name) => ({ '@type': 'Person', name }))
+          : publisher,
+        publisher,
+        ...(dateModified ? { dateModified } : {}),
+        ...(tags.length ? { keywords: tags.join(', ') } : {}),
+        ...(stage.length ? { about: stage.join('、') } : {}),
+        isPartOf: { '@type': 'WebSite', name: SITE_NAME, url: siteUrl.href },
+      };
+---
+
+{head.map(({ tag: Tag, attrs, content }) => <Tag {...attrs} set:html={content} />)}
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />

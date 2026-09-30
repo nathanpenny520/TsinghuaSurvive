@@ -1,0 +1,26 @@
+{
+  // PR 预览环境的 Worker 配置。
+  //
+  // 为什么单独开一个 Worker，而不是用 Cloudflare 的 Preview URL：
+  // Preview URL 挂在 <版本>-<worker>.<账号>.workers.dev 上，而 workers.dev
+  // 在境内被 DNS 污染（实测解析到美国 IP 后超时），贡献者根本打不开，
+  // 预览就失去了意义。用独立 Worker + 自定义域名才能真的看到效果。
+  //
+  // 注意：这个预览地址是**公开可访问**的。不要往预览分支里放未脱敏的内容。
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "tsinghua-guide-preview",
+  "compatibility_date": "2026-09-30",
+
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  },
+
+  "routes": [
+    {
+      "pattern": "preview.nathanpenny.fun",
+      "custom_domain": true
+    }
+  ]
+}

@@ -40,9 +40,14 @@ export default defineConfig({
       // 右上角社交图标
       social: [{ icon: 'github', label: 'GitHub', href: REPO }],
       customCss: ['./src/styles/custom.css'],
-      // 组件覆盖：站点页脚 + 首页 Hero
+      // 组件覆盖：
+      //   Footer —— 文章元信息 + 全站免责声明
+      //   Banner —— 内容时效看门狗（reviewedAt 过期自动提示）
+      //   Head   —— 注入 JSON-LD 结构化数据
       components: {
         Footer: './src/components/Footer.astro',
+        Banner: './src/components/Banner.astro',
+        Head: './src/components/Head.astro',
       },
       sidebar: [
         {
@@ -75,6 +80,8 @@ export default defineConfig({
         {
           label: '实用工具',
           items: [
+            { label: '按阶段浏览', link: '/stages/' },
+            { label: '按标签浏览', link: '/tags/' },
             { label: '校内常用链接', slug: 'guides/links' },
             { label: '资料下载', slug: 'guides/resources' },
           ],
@@ -87,10 +94,34 @@ export default defineConfig({
       head: [
         // 微信 / QQ 分享卡片
         { tag: 'meta', attrs: { property: 'og:locale', content: 'zh_CN' } },
+        { tag: 'meta', attrs: { property: 'og:site_name', content: '清华生存指南' } },
         { tag: 'meta', attrs: { name: 'theme-color', content: '#660874' } },
         {
           tag: 'meta',
           attrs: { name: 'keywords', content: '清华大学,清华生存指南,选课,绩点,保研,新生攻略,学长经验' },
+        },
+        // 社交分享卡片图（由 scripts/generate-og.py 生成，全站统一一张）
+        {
+          tag: 'meta',
+          attrs: { property: 'og:image', content: `${SITE}/og.png` },
+        },
+        { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
+        { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
+        {
+          tag: 'meta',
+          attrs: { property: 'og:image:alt', content: '清华生存指南 —— 来自学长学姐的经验分享' },
+        },
+        { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
+        { tag: 'meta', attrs: { name: 'twitter:image', content: `${SITE}/og.png` } },
+        // RSS 订阅（阅读器会自动发现）
+        {
+          tag: 'link',
+          attrs: {
+            rel: 'alternate',
+            type: 'application/rss+xml',
+            title: '清华生存指南',
+            href: `${SITE}/rss.xml`,
+          },
         },
         // 百度/搜狗等中文搜索引擎的收录验证位（拿到验证码后填这里）
         // { tag: 'meta', attrs: { name: 'baidu-site-verification', content: 'TODO' } },

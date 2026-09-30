@@ -1,0 +1,16 @@
+{
+  "_comment": "内容时效与占位符策略。站点的时效看门狗（src/components/Banner.astro）和 CI 内容检查（scripts/check-content.mjs）共用这一份，避免两边阈值漂移。",
+
+  "staleAfterMonths": 6,
+  "_staleAfterMonths": "文章 frontmatter 的 reviewedAt 超过这个月数，页面顶部自动出现「可能已过期」提示",
+
+  "linkVerifiedStaleAfterMonths": 12,
+  "_linkVerifiedStaleAfterMonths": "src/data/links.ts 里的 verified 日期超过这个月数，内容检查会给出警告",
+
+  "placeholderAuthors": ["待补充", "TODO", ""],
+
+  "placeholderUrlValues": ["TODO", ""],
+
+  "sidebarOrderWarning": 999,
+  "_sidebarOrderWarning": "sidebar.order 大于等于这个值时提示作者补排序"
+}
