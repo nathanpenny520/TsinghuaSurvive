@@ -23,11 +23,11 @@ dist/
 .DS_Store
 *.log
 
-# 参考资料：为写内容而克隆的第三方资料库，体积很大（单个可达 10 GB），
+# 参考资料：为写内容而克隆的第三方资料库，体积很大（单个可达 13 GB，合计约 24 GB），
+# 全部放在 reference/ 下（2026-10-03 起，软件学院那份也从仓库根移进来了）。
 # 只用于本地扫描（scripts/build-course-index.mjs），扫描结果已提交为
 # src/data/course-index.json，所以仓库里不需要它们。
 reference/
-ssast-readme.github.io/
 
 # 链接人工核对的临时工作目录（生成核对清单与问题清单，不进仓库）
 .review/

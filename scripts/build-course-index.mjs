@@ -8,7 +8,7 @@
  *   reference/REKCARC-TSC-UHT/            计算机系课程攻略（按学期分的课程目录）
  *   reference/WeiYangXueXi.github.io/     未央书院学习资料共享计划（mkdocs）
  *   reference/sast-skill-docs/            计算机系学生科协技能引导文档（mkdocs）
- *   ssast-readme.github.io/               软件学院 ReadMe 互助文档（mkdocs）
+ *   reference/ssast-readme.github.io/     软件学院 ReadMe 互助文档（mkdocs）
  *
  * 用法：
  *   node scripts/build-course-index.mjs          # 重新生成 src/data/course-index.json
@@ -61,8 +61,8 @@ const ARCHIVES = {
     courseIndex: join(REF, 'sast-skill-docs/docs/courses/index.md'),
   },
   readme: {
-    dir: join(ROOT, 'ssast-readme.github.io'),
-    nav: join(ROOT, 'ssast-readme.github.io/mkdocs.yml'),
+    dir: join(REF, 'ssast-readme.github.io'),
+    nav: join(REF, 'ssast-readme.github.io/mkdocs.yml'),
   },
 };
 
@@ -412,7 +412,7 @@ function scanWeiyang() {
 /** ReadMe：nav 结构是 板块 → 课程 → 文档，课程名固定在 trail 第 2 个位置 */
 function scanReadme() {
   if (!existsSync(ARCHIVES.readme.nav)) {
-    warn('没有找到 ssast-readme.github.io/mkdocs.yml，跳过 ReadMe 互助文档');
+    warn('没有找到 reference/ssast-readme.github.io/mkdocs.yml，跳过 ReadMe 互助文档');
     return;
   }
   const entries = loadNav(ARCHIVES.readme.nav);
