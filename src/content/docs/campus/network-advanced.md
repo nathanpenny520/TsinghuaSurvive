@@ -4,11 +4,10 @@ description: 准入与准出是怎么回事、命令行怎么认证、Linux 连 
 stage: ['本科高年级', '研究生', '全阶段']
 tags: ['网络', '工具', '命令行', '科研']
 authors: ['本站编辑整理']
-status: stable
+status: draft
 summary: 给要跑服务器、用 Linux 或想搞清校园网机制的人：认证原理、命令行工具、常见疑难与边界。
 banner:
-  content: 本文讲的是机制与排查思路，涉及具体客户端与配置的部分以信息化技术中心的最新说明为准。认证系统在 2024 年末升级过一次，第三方工具的可用性会随上游项目变化，用前先看项目页。
-reviewedAt: 2026-10-03
+  content: 本文的机制、命令与配置整理自社区资料（thu.services）并在校园网内做过部分复核，但没有逐条对照信息化技术中心的最新说明——涉及具体客户端、端口与客户端软件的部分，请以官方说明为准。认证系统在 2024 年末升级过一次，第三方工具的可用性会随上游项目变化，用前先看项目页。
 sidebar:
   order: 5
 ---
@@ -80,7 +79,7 @@ sudo systemctl enable --now goauthing.service
 | [tunet-rust](https://github.com/Berrysoft/tunet-rust) | CLI / GUI / 服务 | 可用；带流量与余额监控 |
 | [tunet_bash](https://github.com/adamanteye/tunet_bash) | Bash 脚本 | 可用；轻量 |
 | 官方 Tunet-2025 | Windows GUI / Linux CLI | 可用；入口见[校内常用链接](/guides/links/) |
-| tunet-python / tunet-c / TsinghuaTunet | Python / C | **未适配新系统**，最后提交在升级之前 |
+| tunet-python / tunet-c / TsinghuaTunet | Python / C | 上游标注为「未测试」，最后提交都在升级之前（很可能没适配），别在服务器上用 |
 | auth-tsinghua、TsinghuaNet | JS / C# | 已停止维护，项目已重定向到上面的替代品 |
 
 :::caution[别在服务器上跑停更的工具]

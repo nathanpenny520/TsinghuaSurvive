@@ -1,24 +1,10 @@
 {
   "$comment": "由 npm run check:links 生成，请勿手工编辑。只证明网址当前可访问（HTTP < 400），不代表页面内容已人工核对。",
   "checkedAt": "2026-10-03",
-  "network": "未标注（本地网络）",
+  "network": "清华校园网（无线 183.173.x，DNS 166.111.8.28）",
   "total": 60,
-  "reachable": 57,
+  "reachable": 60,
   "results": {
-    "https://cet-bm.neea.edu.cn/": {
-      "ok": false,
-      "status": 412
-    },
-    "https://reserves.lib.tsinghua.edu.cn/": {
-      "ok": false,
-      "status": null,
-      "error": "getaddrinfo ENOTFOUND reserves.lib.tsinghua.edu.cn"
-    },
-    "https://ecard.tsinghua.edu.cn/": {
-      "ok": false,
-      "status": null,
-      "error": "getaddrinfo ENOTFOUND ecard.tsinghua.edu.cn"
-    },
     "https://zhjw.cic.tsinghua.edu.cn/": {
       "ok": true,
       "status": 200
@@ -40,6 +26,10 @@
       "status": 200
     },
     "https://szsj.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://cet-bm.neea.edu.cn/": {
       "ok": true,
       "status": 200
     },
@@ -127,6 +117,10 @@
       "ok": true,
       "status": 200
     },
+    "https://ereserves.lib.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
     "https://lib-tsinghua.wqxuetang.com/": {
       "ok": true,
       "status": 200
@@ -160,6 +154,10 @@
       "status": 200
     },
     "https://zijing.tsinghua.edu.cn/tp_jp/h6?m=jp": {
+      "ok": true,
+      "status": 200
+    },
+    "https://card.tsinghua.edu.cn/": {
       "ok": true,
       "status": 200
     },

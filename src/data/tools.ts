@@ -7,8 +7,10 @@
  *   有的还会读取你页面上的成绩和课表。两类东西的可信度结构不一样，混在一张表里会误导人。
  *
  * 关于 `status` 和 `access` 两个字段：
- *   - `access` 只回答「在校内网络能不能打开」。GitHub 网页端在校园网里打不开（实测结论见
- *     /guides/links/），所以托管在 GitHub 的工具一律标「需代理」。
+ *   - `access` 只回答「在校内网络能不能打开」。托管在 GitHub 的工具标「需代理」，
+ *     读法是**「打不开的时候挂代理」**，不是「一定打不开」：站内 2026-09-30 实测
+ *     `github.com` 网页端超时，但 2026-10-03 在校园网内连续 5 次复测都是 200
+ *     —— 这条通道的可达性是时变的，所以别把它当永久结论（复测记录见 /guides/links/）。
  *   - `status` 不是感觉出来的，取证据的顺序是：
  *       1. 上游 thuservices 自己写的状态（「可用 / 不再维护 / 未测试」）；
  *       2. 托管在 GitHub 的项目，查仓库 API 的 `archived` 与 `pushed_at`：
@@ -73,7 +75,7 @@ export const tools: StudentTool[] = [
   {
     name: 'NextTHUxk（选课增强扩展）',
     url: 'https://github.com/smartThise/NextTHUxk',
-    desc: '在选课页面上叠一层工作台：按类型/学分/时间筛选全校课程、预选阶段估算中签概率、抽签阶段看课余量与候补排名、暂存多套课表方案。功能最多，也最需要你自己核对它读走了什么。',
+    desc: '在选课页面上叠一层工作台：按类型/学分/时间筛选全校课程、预选阶段估算中签概率、抽签阶段看课余量与候补排名、暂存多套课表方案。功能覆盖面最广，也最需要你自己核对它读走了什么。',
     group: '选课与课表',
     platforms: 'Chrome / Firefox 扩展',
     status: '活跃',
@@ -84,7 +86,7 @@ export const tools: StudentTool[] = [
   {
     name: '选课冲突标记（油猴脚本）',
     url: 'https://greasyfork.org/en/scripts/408340-tsinghuacourseconflictmarker',
-    desc: '在选课操作界面把与已选课程时间冲突的候选课标红，鼠标悬停能看到和哪几门撞。选课季抢志愿时最省事的一个小工具。',
+    desc: '在选课操作界面把与已选课程时间冲突的候选课标红，鼠标悬停能看到和哪几门撞。选课季抢志愿时能省一点反复对照的工夫。',
     group: '选课与课表',
     platforms: '油猴（Tampermonkey）脚本',
     status: '未核实',
@@ -101,7 +103,7 @@ export const tools: StudentTool[] = [
     status: '活跃',
     access: '未实测',
     origin: 'thuservices（thu.services）工具汇总',
-    note: '作者标注仍在开发中，功能会变；志愿顺序最终还是以你自己的培养方案为准',
+    note: '状态依据是上游一句「脚本还在开发中」（greasyfork 在校园网内不可达，查不到更新日期）；功能会变，志愿顺序最终还是以你自己的培养方案为准',
   },
   {
     name: 'THUCourseHelper（课表 App）',
@@ -140,14 +142,14 @@ export const tools: StudentTool[] = [
   // ── 网络学堂与 INFO ─────────────────────────────────────────
   {
     name: 'THUInfo（移动端助手）',
-    url: 'https://github.com/UNIDY2002/THUInfo',
-    desc: '把网络学堂、校历、图书馆、教室信息等整合到一个 App 里，有 App Store 分发，是这类工具里完成度最高的一个。',
+    url: 'https://github.com/thu-info-community/thu-info-app',
+    desc: '把网络学堂、校历、图书馆、教室信息等整合到一个 App 里，有 App Store 分发，是这类工具里维护最勤的一个（最近一次提交在 2026-09）。',
     group: '网络学堂与 INFO',
     platforms: 'iOS / Android',
     status: '活跃',
     access: '需代理',
     origin: 'thuservices（thu.services）工具汇总',
-    note: '要以你的账号登录第三方 App —— 介意的话用自己的设备与专用密码，并留意权限',
+    note: '要以你的账号登录第三方 App —— 介意的话用自己的设备与专用密码，并留意权限。项目已从 UNIDY2002/THUInfo 迁到 thu-info-community/thu-info-app',
   },
   {
     name: 'LearnX（网络学堂客户端）',
@@ -161,13 +163,14 @@ export const tools: StudentTool[] = [
   },
   {
     name: 'Learn-Project（浏览器扩展）',
-    url: 'https://github.com/xxr3376/Learn-Project',
+    url: 'https://github.com/Harry-Chen/Learn-Helper',
     desc: '把网络学堂里散落的事项按时间线和类型重排，明确今天该交什么。',
     group: '网络学堂与 INFO',
     platforms: 'Chrome / Firefox / Edge 扩展',
     status: '活跃',
     access: '需代理',
     origin: 'thuservices（thu.services）工具汇总',
+    note: '项目已从 xxr3376/Learn-Project 迁到 Harry-Chen/Learn-Helper',
   },
   {
     name: 'thu-learn-downloader',
@@ -178,7 +181,7 @@ export const tools: StudentTool[] = [
     status: '已停止',
     access: '需代理',
     origin: 'thuservices（thu.services）工具汇总',
-    note: '上游写「可用」，但作者已在 2026-09 归档仓库 —— 现在仍能下载，出问题不会再有人修。课程材料有版权，**下载只供自己复习**，不要再转发或上传到公开网盘',
+    note: '上游写「可用」，但作者已在 2026-09 归档仓库 —— 现在仍能下载，出问题不会再有人修。边界：这是**把课件作业拉到本地**的工具，不含刷课时、不含批量提交；课程材料有版权，**下载只供自己复习**，不要再转发或上传到公开网盘',
   },
   {
     name: 'INFO 新闻 RSS（InfoTsinghuaRSS）',
@@ -312,6 +315,7 @@ export const tools: StudentTool[] = [
     status: '不活跃',
     access: '需代理',
     origin: 'thuservices（thu.services）工具汇总',
+    note: '存档里可能仍含他人的具体信息。**看到具体的人和事，不要截图传播**',
   },
   {
     name: '在线退学（工具导航）',

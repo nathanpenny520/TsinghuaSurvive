@@ -21,7 +21,7 @@
 | **加一个第三方工具** | `src/data/tools.ts` | 加一条记录：`status`（活跃/不活跃/已停止/**未核实**）与 `access`（公网/校园网/需代理/未实测）。**状态栏抄上游项目页写的**，不要凭印象填「活跃」—— 那一个字会被当成"可以放心用" |
 | **加一门课 / 一个资料库** | `scripts/build-course-index.mjs` | 资料库目录变了就重新生成：`npm run courses`（详见下面「课程资料索引」一节） |
 | **加一个技能页** | `src/content/docs/skills/` 新建 `.md` | 结构和语气照抄同目录其他文章；侧边栏是 `autogenerate`，不用改配置 |
-| **检查网址还活着吗** | 跑 `npm run check:links` | 实测所有校内链接，结果写进 `src/data/link-status.json`，页面上会显示「实测可访问 / 打不开」 |
+| **检查网址还活着吗** | 跑 `npm run check:links` | 实测所有校内链接，结果写进 `src/data/link-status.json`，页面上会显示「实测可访问 / 打不开」。**在校园网里跑就加上测点标注**：`LINK_CHECK_NETWORK='清华校园网（无线，DNS 166.111.8.28）' npm run check:links`，否则这份结果会被误读成「校外也能开」 |
 | **人工核对链接入口** | 跑 `npm run review:links` | 生成一份本地核对清单（浏览器里逐条点「没问题 / 有问题」），导出后 `review:links:apply` 自动把日期写回 `links.ts` |
 | **课程书目 / 课程↔技能** | 自动派生 | `/courses/books/` 与技能页的映射表都从 `course-index.json` 读，不用手工维护 |
 | **改站内互动工具** | `src/components/Checklist.astro`、`CreditPlanner.astro` | 报到清单（可勾选）与学分缺口表（自动算）。数据只存浏览器 localStorage，**没有后端、不上传** |
@@ -352,6 +352,18 @@ src/data/course-index.json         课程名 / 类别 / 学期 / 参考书目 / 
 
 页面上因此有三个角标，缺哪个就标哪个。`npm run check:content` 会提醒你：实测结果超过 12 个月没更新、
 某条链接实测失败、或者还有多少条没人人工核对过（进「债务总账」）。
+
+:::caution[先看清测点：在校园网里测「校外能不能开」是测不出来的]
+`check:links` / `verify:links` 的结果取决于**在哪台机器上跑**。本机实测就在清华校园网内
+（无线 `183.173.x`、DNS `166.111.8.28`），所以：
+
+- `getaddrinfo ENOTFOUND`（NXDOMAIN）= **域名真的没了**，别解释成「校外打不开」——
+  这一轮就踩过：上游给的两个入口其实已经下线；
+- 校内能开 200 ≠ 校外能开。跑之前用 `LINK_CHECK_NETWORK='清华校园网（…）'` 标注测点，
+  这条标注会写进 `link-status.json`，页面上的「实测」角标也跟着它一起被理解。
+- 同一个通道还会**时通时不通**（`github.com` 网页端 2026-09-30 超时、2026-10-03 复测 200），
+  所以结论要带日期，别写成永久事实。
+:::
 
 ### 先跑脚本核对（能省掉大部分人工）
 

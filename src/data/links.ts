@@ -81,7 +81,7 @@ export const campusLinks: CampusLink[] = [
     group: '教学与选课',
     reach: '校园网',
     origin: '学校官方',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -91,7 +91,7 @@ export const campusLinks: CampusLink[] = [
     group: '教学与选课',
     reach: '校园网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -101,7 +101,7 @@ export const campusLinks: CampusLink[] = [
     group: '教学与选课',
     reach: '校园网',
     origin: '学校官方',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -111,7 +111,7 @@ export const campusLinks: CampusLink[] = [
     group: '教学与选课',
     reach: '公网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -121,7 +121,7 @@ export const campusLinks: CampusLink[] = [
     group: '教学与选课',
     reach: '校园网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -131,7 +131,7 @@ export const campusLinks: CampusLink[] = [
     group: '教学与选课',
     reach: '校园网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -157,7 +157,7 @@ export const campusLinks: CampusLink[] = [
     group: '教学与选课',
     reach: '公网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -168,7 +168,7 @@ export const campusLinks: CampusLink[] = [
     reach: '公网',
     note: '学生自建，非学校官方；信息按学期更新，以教学门户和院系通知为准',
     origin: '维护者提供的资料',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
 
@@ -180,7 +180,7 @@ export const campusLinks: CampusLink[] = [
     group: '信息与账号',
     reach: '校园网',
     origin: '学校官方',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -190,7 +190,7 @@ export const campusLinks: CampusLink[] = [
     group: '信息与账号',
     reach: '公网',
     origin: '学校官方',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -201,7 +201,7 @@ export const campusLinks: CampusLink[] = [
     reach: '校园网',
     note: '改密码、绑手机要靠它，建议开学就记下这个入口',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -211,7 +211,7 @@ export const campusLinks: CampusLink[] = [
     group: '信息与账号',
     reach: '校园网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -221,7 +221,7 @@ export const campusLinks: CampusLink[] = [
     group: '信息与账号',
     reach: '校园网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -232,7 +232,7 @@ export const campusLinks: CampusLink[] = [
     reach: '公网',
     note: '连不上校园网时也能打开（用手机流量）——所以它是排查网络问题的第一站',
     origin: '资料库（ReadMe 互助文档）',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -242,7 +242,7 @@ export const campusLinks: CampusLink[] = [
     group: '信息与账号',
     reach: '公网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -272,7 +272,7 @@ export const campusLinks: CampusLink[] = [
     url: 'https://login.tsinghua.edu.cn/',
     desc: '官方认证工具与认证页入口，替代了旧的 Tunet-2018。无人值守的服务器、Linux 机器另有命令行认证方案，见「校园网进阶」那一页。',
     group: '信息与账号',
-    reach: '公网',
+    reach: '校园网',
     note: '2024 年末认证系统升级过一轮，本页之外的第三方工具可用性要以各自项目页为准',
     origin: 'thuservices（thu.services）信息汇总',
     reviewedAt: '2026-10-03',
@@ -288,7 +288,7 @@ export const campusLinks: CampusLink[] = [
     reach: '公网',
     note: '需要自己注册；只有高教社的教材能在上面找到',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -298,7 +298,7 @@ export const campusLinks: CampusLink[] = [
     group: '图书馆与科研',
     reach: '公网',
     origin: '学校官方',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -308,7 +308,7 @@ export const campusLinks: CampusLink[] = [
     group: '图书馆与科研',
     reach: '校园网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -318,7 +318,7 @@ export const campusLinks: CampusLink[] = [
     group: '图书馆与科研',
     reach: '校园网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -328,7 +328,7 @@ export const campusLinks: CampusLink[] = [
     group: '图书馆与科研',
     reach: '校园网',
     origin: '资料库（未央学习）',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -338,7 +338,7 @@ export const campusLinks: CampusLink[] = [
     group: '图书馆与科研',
     reach: '校园网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -348,7 +348,7 @@ export const campusLinks: CampusLink[] = [
     group: '图书馆与科研',
     reach: '校园网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -358,7 +358,7 @@ export const campusLinks: CampusLink[] = [
     group: '图书馆与科研',
     reach: '公网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -368,17 +368,19 @@ export const campusLinks: CampusLink[] = [
     group: '图书馆与科研',
     reach: '公网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
     name: '教参服务平台（课程教材电子版）',
-    url: 'https://reserves.lib.tsinghua.edu.cn/',
-    desc: '在版权允许的范围内提供课程教材与教参的扫描电子版。**教材太贵、图书馆只有两三本时，先来这里搜。**',
+    url: 'https://ereserves.lib.tsinghua.edu.cn/',
+    desc: '清华大学电子教学参考书服务平台：在版权允许的范围内提供课程教材与教参的扫描电子版。**教材太贵、图书馆只有两三本时，先来这里搜。**',
     group: '图书馆与科研',
     reach: '校园网',
-    note: '校外要先连 WebVPN；平台上没有的书可以按图书馆页面上的方式申请扫描',
+    note: '校外要先连 WebVPN；平台上没有的书，可以按图书馆页面上的方式申请扫描',
     origin: 'thuservices（thu.services）信息汇总',
+    reviewedAt: '2026-10-03',
+    verifiedBy: 'auto',
   },
   {
     name: '文泉学堂（清华社电子图书）',
@@ -410,7 +412,7 @@ export const campusLinks: CampusLink[] = [
     group: '办事与生活',
     reach: '校园网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -420,7 +422,7 @@ export const campusLinks: CampusLink[] = [
     group: '办事与生活',
     reach: '校园网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -430,7 +432,7 @@ export const campusLinks: CampusLink[] = [
     group: '办事与生活',
     reach: '校园网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -440,7 +442,7 @@ export const campusLinks: CampusLink[] = [
     group: '办事与生活',
     reach: '校园网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -450,7 +452,7 @@ export const campusLinks: CampusLink[] = [
     group: '办事与生活',
     reach: '校园网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -458,7 +460,7 @@ export const campusLinks: CampusLink[] = [
     url: 'https://pt.tsinghua.edu.cn/',
     desc: '网上报修、校医院各科室挂号、校内各单位电话、动态校园地图、客房与订车服务都在这里。**宿舍东西坏了的第一站。**',
     group: '办事与生活',
-    reach: '公网',
+    reach: '校园网',
     note: '报修和挂号通常需要登录，具体流程以平台内说明为准',
     origin: 'thuservices（thu.services）信息汇总',
     reviewedAt: '2026-10-03',
@@ -476,20 +478,22 @@ export const campusLinks: CampusLink[] = [
     verifiedBy: 'auto',
   },
   {
-    name: '校园一卡通自助查询',
-    url: 'https://ecard.tsinghua.edu.cn/',
-    desc: '查校园卡余额与消费流水。**只能在校内网络访问**，校外打不开不是链接坏了。',
+    name: '校园卡系统（新版）',
+    url: 'https://card.tsinghua.edu.cn/',
+    desc: '新版校园卡的综合服务网站：充值、挂失解挂、密码修改、流水查询。微信小程序「清华校园卡」是同源入口，手机上更方便。',
     group: '办事与生活',
     reach: '校园网',
-    note: '校外的替代办法是微信里的「清华大学信息服务」，或到圈存机、自助查询机上查',
+    note: '旧的 ecard.tsinghua.edu.cn 已经解析不到了（实测 2026-10-03），别再用旧链接',
     origin: 'thuservices（thu.services）信息汇总',
+    reviewedAt: '2026-10-03',
+    verifiedBy: 'auto',
   },
   {
     name: '虚拟仿真教学资源平台（VR）',
     url: 'https://vr.tsinghua.edu.cn/',
     desc: '校内虚拟仿真实验与教学资源入口，部分课程会指定在上面做实验；也有公共教室的 VR 导览，找教室时用得上。',
     group: '办事与生活',
-    reach: '公网',
+    reach: '校园网',
     origin: 'thuservices（thu.services）信息汇总',
     reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
@@ -513,7 +517,7 @@ export const campusLinks: CampusLink[] = [
     group: '校内平台与 AI',
     reach: '校园网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -523,7 +527,7 @@ export const campusLinks: CampusLink[] = [
     group: '校内平台与 AI',
     reach: '校园网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -534,7 +538,7 @@ export const campusLinks: CampusLink[] = [
     reach: '校园网',
     note: '账号与可用范围以官方说明为准',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -545,7 +549,7 @@ export const campusLinks: CampusLink[] = [
     reach: '未实测',
     note: '第三方站点，不是学校官方，信息可能滞后',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
 
@@ -557,7 +561,7 @@ export const campusLinks: CampusLink[] = [
     group: '成长与出路',
     reach: '公网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -567,7 +571,7 @@ export const campusLinks: CampusLink[] = [
     group: '成长与出路',
     reach: '公网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -578,7 +582,7 @@ export const campusLinks: CampusLink[] = [
     reach: '未实测',
     note: '学生自建，不是学校官方；内容按届更新，别当制度依据',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -589,7 +593,7 @@ export const campusLinks: CampusLink[] = [
     reach: '未实测',
     note: '学生自建，不是学校官方；经验贴不能替代官方规定',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -599,7 +603,7 @@ export const campusLinks: CampusLink[] = [
     group: '成长与出路',
     reach: '公网',
     origin: '学校官方',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -609,7 +613,7 @@ export const campusLinks: CampusLink[] = [
     group: '成长与出路',
     reach: '公网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -620,7 +624,7 @@ export const campusLinks: CampusLink[] = [
     reach: '公网',
     note: '学生自建，非学校官方；案例是个体经验，不能替代当年官方通知',
     origin: '维护者提供的资料',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -630,7 +634,7 @@ export const campusLinks: CampusLink[] = [
     group: '成长与出路',
     reach: '公网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -640,7 +644,7 @@ export const campusLinks: CampusLink[] = [
     group: '成长与出路',
     reach: '公网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
 
@@ -652,7 +656,7 @@ export const campusLinks: CampusLink[] = [
     group: '官方与资讯',
     reach: '公网',
     origin: '学校官方',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -662,7 +666,7 @@ export const campusLinks: CampusLink[] = [
     group: '官方与资讯',
     reach: '公网',
     origin: '学校官方',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -672,7 +676,7 @@ export const campusLinks: CampusLink[] = [
     group: '官方与资讯',
     reach: '公网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -683,7 +687,7 @@ export const campusLinks: CampusLink[] = [
     reach: '公网',
     note: '每个院系都有自己的官网，从「院系设置」进',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -693,7 +697,7 @@ export const campusLinks: CampusLink[] = [
     group: '官方与资讯',
     reach: '校园网',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
   {
@@ -704,7 +708,7 @@ export const campusLinks: CampusLink[] = [
     reach: '公网',
     note: '校外访问全文请走图书馆数据库导航，别自己买',
     origin: '维护者收藏夹',
-    reviewedAt: '2026-09-30',
+    reviewedAt: '2026-10-03',
     verifiedBy: 'auto',
   },
 ];

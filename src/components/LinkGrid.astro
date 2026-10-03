@@ -116,7 +116,7 @@ const humanCount = campusLinks.filter((l) => l.reviewedAt && l.verifiedBy !== 'a
                 )}
               </div>
               <p class="guide-card__desc" set:html={descHtml(item.desc)} />
-              {item.note && <p class="guide-card__note">提示：{item.note}</p>}
+              {item.note && <p class="guide-card__note" set:html={`提示：${descHtml(item.note)}`} />}
               <div class="guide-card__meta">
                 <span>{new URL(item.url).hostname}</span>
                 {item.origin && <span>来源：{item.origin}</span>}
