@@ -64,7 +64,7 @@ sudo systemctl enable --now goauthing.service
 ```
 
 :::note[一个很实际的细节]
-未认证状态下校园网通常打不开 GitHub。GoAuthing 的发布文件在
+未认证时连 GitHub 也打不开，而认证工具恰好托管在 GitHub 上。GoAuthing 的发布文件在
 [TUNA 镜像](https://mirrors.tuna.tsinghua.edu.cn/github-release/z4yx/GoAuthing/LatestRelease/) 有备份 ——
 **先有鸡还是先有蛋的问题，在这里是被解决过的**：还没认证也能从校内镜像把认证工具拉下来。
 :::

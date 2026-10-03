@@ -32,8 +32,8 @@ import { Steps, Aside } from '@astrojs/starlight/components';
 
 2. 点 **Sign in with GitHub** → 在 GitHub 页面点授权，就回到后台了。
 
-   这一步需要能打开 GitHub（`github.com`）：**在校园网里请先开代理（或用手机流量）**，
-   因为授权页在 github.com 上。授权成功后拿到的是长效登录，**之后改内容、传图、提交都不用再开代理**。
+   这一步要能打开 GitHub（授权页在 `github.com` 上）：**校园网里先挂代理或用手机流量**。
+   授权后拿到的是长效登录，**之后改内容、传图、提交都不再需要代理**。
 
 3. 左边选分类（新生入学 / 学业 / 科研与深造 / 校园生活 / 心态与避坑 / 技能入门……）→ 点开要改的文章 → 直接改。
 
@@ -46,10 +46,9 @@ import { Steps, Aside } from '@astrojs/starlight/components';
 </Steps>
 
 :::note[登录相关的两个细节]
-- **为什么要开代理**：GitHub 的授权页在 `github.com`，校园网实测打不开。只有登录这一步需要它；
-  后台本身（读写内容、传图）走的是 `api.github.com`，校园网实测通。
-- **登录不了怎么办**：登录页上还有一个 **Sign In Using Access Token** 的备用入口（自己生成一个 GitHub 令牌粘贴进去）。
-  平时不需要用它，OAuth 出问题时才用；生成令牌的页面同样在 github.com 上，也需要代理。
+- **代理只在登录这一步要**：授权页在 `github.com` 上（国内时通时不通）；后台读写走 `api.github.com`，不用代理。
+- **登录不了怎么办**：登录页上有 **Sign In Using Access Token** 备用入口（自己生成一个 GitHub 令牌粘贴进去），
+  生成令牌那一步同样在 `github.com` 上。平时用不到，OAuth 出问题时才用。
 :::
 
 :::caution[登录等于你的仓库写权限]
@@ -95,7 +94,7 @@ B 站播放器是 iframe 嵌入：**零带宽成本、零仓库体积**，而且
 ## 直接改文件（开发者 / 批量改动）
 
 每篇页面底部都有「**编辑此页**」，点它会直接在 GitHub 上打开对应的 Markdown 文件，改完提交会自动生成 PR
-（注意：校园网里 `github.com` 网页端打不开，这条路需要代理；要批量改、要调排版的话建议用下面的本地方式）。
+（`github.com` 国内时通时不通，这条路可能要代理；批量改、调排版建议用下面的本地方式）。
 
 如果要在本地预览效果：
 

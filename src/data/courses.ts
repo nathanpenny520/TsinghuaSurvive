@@ -101,7 +101,7 @@ export const archives: Record<ArchiveId, Archive> = {
         label: 'GitHub 仓库',
         url: 'https://github.com/PKUanonym/REKCARC-TSC-UHT',
         reach: '需代理',
-        note: '校园网内 github.com 网页端打不开（实测 2026-09-30）',
+        note: '国内访问时通时不通，打不开就挂代理',
       },
       {
         label: '在线文档站',
@@ -179,7 +179,7 @@ const encodePath = (path: string) => path.split('/').map(encodeURIComponent).joi
 
 /**
  * 把「资料库 + 库内路径」组装成可点的链接。
- * 有几个库在校园网里打不开（github.com）或走校内镜像更快，
+ * 有几个库在国内访问不稳（github.com）或走校内镜像更快，
  * 所以这里返回的是**首选入口**，同时把可达性一起带出来，由页面显示角标。
  */
 export function sourceLink(ref: SourceRef): { url: string; reach: Reach; label: string } {
@@ -208,7 +208,7 @@ export function sourceLink(ref: SourceRef): { url: string; reach: Reach; label: 
   }
 }
 
-/** GitHub 上对应的目录（校园网内打不开，留给有代理的人） */
+/** GitHub 上对应的目录（国内时通时不通，留给挂代理的时候） */
 export function sourceGithubLink(ref: SourceRef): string | null {
   if (ref.archive === 'rekcarc') {
     return `https://github.com/PKUanonym/REKCARC-TSC-UHT/tree/master/${encodePath(ref.path)}`;
