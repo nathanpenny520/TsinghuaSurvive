@@ -122,6 +122,9 @@ npm config set registry https://registry.npmjs.org
 
 ## 相关资料
 
+- [校园网进阶：认证、命令行与服务器](/campus/network-advanced/)——准入/准出的机制、命令行认证、Linux 连
+  Tsinghua-Secure、服务器掉线排查。**有服务器或用 Linux 的话，那页才是你需要的。**
 - [校内常用链接](/guides/links/)——信息化用户服务平台、WebVPN、镜像站等入口都在这一页，带可达性角标。
+- [学生自建工具与脚本](/guides/tools/)——网络、课程与生活类的第三方工具清单，标了维护状态。
 - [外部资料库地图](/guides/archives/)——里面的校内 GitLab 镜像，就是「用校园网省国际流量」的典型例子。
 - [宿舍、校园网与一卡通](/freshman/dorm-and-network/)——新生入学的账号与基础设施清单。

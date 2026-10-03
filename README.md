@@ -16,8 +16,9 @@
 | **给文章插图 / 嵌视频** | 同上（后台媒体库） | 图片拖进去就会自动压成 WebP 并传到 R2（**不进 Git 仓库**）；视频写 `::bilibili[BV号]` 或 `::video[地址]` 各占一行 |
 | **写一篇新经验帖** | `src/content/docs/<分类>/` 新建 `.md` | 复制 [`src/content/docs/_template.md`](./src/content/docs/_template.md) 当模板。**文件名用英文小写加连字符**，中文标题写在 `title` 里 |
 | **改一篇已有文章** | 对应 `.md` 文件 | 后台改（推荐）；或本地改后 push；或网页端点「编辑此页 / 纠错」（需代理，见下） |
-| **加一个校内网址** | `src/data/links.ts` | 加一条记录。**亲自点开确认后填 `verified: '2026-09-30'`**，页面上的「待核对」角标才会消失 |
+| **加一个校内网址** | `src/data/links.ts` | 加一条记录。**亲自点开确认后填 `reviewedAt: '2026-10-03'` + `verifiedBy: 'human'`**，页面上的「待核对」角标才会消失（跑 `npm run verify:links` 能自动核对的那一类，写 `verifiedBy: 'auto'`） |
 | **加一份可下载资料** | `src/data/resources.ts` | `url` 填网盘链接，`code` 填提取码。**文件本体不要进仓库**，只放外链 |
+| **加一个第三方工具** | `src/data/tools.ts` | 加一条记录：`status`（活跃/不活跃/已停止/**未核实**）与 `access`（公网/校园网/需代理/未实测）。**状态栏抄上游项目页写的**，不要凭印象填「活跃」—— 那一个字会被当成"可以放心用" |
 | **加一门课 / 一个资料库** | `scripts/build-course-index.mjs` | 资料库目录变了就重新生成：`npm run courses`（详见下面「课程资料索引」一节） |
 | **加一个技能页** | `src/content/docs/skills/` 新建 `.md` | 结构和语气照抄同目录其他文章；侧边栏是 `autogenerate`，不用改配置 |
 | **检查网址还活着吗** | 跑 `npm run check:links` | 实测所有校内链接，结果写进 `src/data/link-status.json`，页面上会显示「实测可访问 / 打不开」 |
@@ -195,7 +196,7 @@ Tsinghua-guide/
 │  │  │  ├─ research/           科研与深造
 │  │  │  ├─ campus/             校园生活
 │  │  │  ├─ mindset/            心态与避坑
-│  │  │  └─ guides/             实用工具（链接、资料）
+│  │  │  └─ guides/             实用工具（链接、第三方工具、资料、模板）
 │  │  └─ i18n/zh-CN.json     界面文案覆盖
 │  ├─ pages/                 自定义路由（不走 Starlight 的文档路由）
 │  │  ├─ stages/             按阶段浏览（自动聚合）
@@ -211,6 +212,7 @@ Tsinghua-guide/
 │  │  ├─ ArticleMeta.astro      阶段/标签/作者/核对日期
 │  │  ├─ ArticleGrid.astro      文章卡片网格
 │  │  ├─ LinkGrid.astro         ★ 常用链接卡片墙（搜索 + 可达性角标）
+│  │  ├─ ToolDirectory.astro    ★ 第三方工具清单（维护状态 + 校内可达性）
 │  │  ├─ CourseExplorer.astro   ★ 课程索引的筛选界面（无 JS 也能读）
 │  │  ├─ CourseSkillMap.astro   ★ 课程 ↔ 技能映射表（数据来自课程索引）
 │  │  ├─ Checklist.astro        ★ 可勾选、会记住进度的清单（localStorage）
@@ -226,8 +228,12 @@ Tsinghua-guide/
 │  │  ├─ archives.ts         不按课程组织的资源站 + 使用红线
 │  │  ├─ git.ts              git log 读取（更新日志 / 贡献者用）
 │  │  ├─ resources.ts        ★ 资料下载清单（改这里就更新页面）
+│  │  ├─ tools.ts            ★ 学生自建工具清单（改这里就更新页面）
 │  │  ├─ browse.ts           浏览页的 collection 查询（过滤规则只有一份）
 │  │  └─ policy.ts           时效策略（读 content-policy.json）
+│  ├─ utils/
+│  │  ├─ media-embed.mjs     视频语法糖（`::bilibili` / `::video`）
+│  │  └─ card-text.ts        卡片文案转义（`**加粗**` → `<strong>`，两个卡片组件共用）
 │  └─ styles/custom.css      主题色（清华紫）与中文排版
 ├─ scripts/
 │  ├─ check-content.ts       内容检查（CI 里跑，会阻断部署）

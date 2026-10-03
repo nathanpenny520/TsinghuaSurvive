@@ -1,0 +1,149 @@
+---
+/**
+ * 学生自建工具清单：数据来自 src/data/tools.ts。
+ *
+ * 和 LinkGrid 的区别：常用链接那页回答「入口在不在」，这里必须额外回答
+ * 「谁在维护、还能不能用、校内网络能不能打开」—— 第三方工具的风险不在链接失效，
+ * 而在于你按一个停更两年的脚本把账号密码交了出去。
+ */
+import { toolsByGroup, tools, statusCheckedAt, type ToolAccess, type ToolStatus } from '../data/tools';
+import { descHtml } from '../utils/card-text';
+
+const groups = toolsByGroup();
+
+/** 校内可达性：措辞与 links.ts 的 reach 保持一致，别在一个站里用两套说法 */
+const ACCESS_CLASS: Record<ToolAccess, string> = {
+  公网: 'public',
+  校园网: 'campus',
+  需代理: 'proxy',
+  未实测: 'unknown',
+};
+const ACCESS_LABEL: Record<ToolAccess, string> = {
+  公网: '公网可开',
+  校园网: '需校园网',
+  需代理: '需代理',
+  未实测: '未实测',
+};
+
+/** 维护状态：只有「未核实」是中性词，其余都是对上游项目的判断 */
+const STATUS_CLASS: Record<ToolStatus, string> = {
+  活跃: 'live',
+  不活跃: 'idle',
+  已停止: 'dead',
+  未核实: 'unknown',
+};
+const STATUS_LABEL: Record<ToolStatus, string> = {
+  活跃: '仍在维护',
+  不活跃: '更新停滞',
+  已停止: '已停止',
+  未核实: '状态未核实',
+};
+
+const liveCount = tools.filter((t) => t.status === '活跃').length;
+const idleCount = tools.filter((t) => t.status === '不活跃' || t.status === '已停止').length;
+const unknownCount = tools.filter((t) => t.status === '未核实').length;
+---
+
+<div class="tool-summary">
+  <span>
+    共 <strong>{tools.length}</strong> 个工具 · 判为活跃 <strong>{liveCount}</strong> 个 ·
+    不活跃或已停止 <strong>{idleCount}</strong> 个 · 状态未核实 <strong>{unknownCount}</strong> 个（用前自己看项目页）·
+    维护状态核对于 {statusCheckedAt}
+  </span>
+</div>
+
+{
+  groups.map(({ group, items }) => (
+    <section class="tool-section" id={group}>
+      <h2>{group}</h2>
+      <ul class="guide-grid">
+        {items.map((item) => (
+          <li class="guide-card">
+            <div class="guide-card__head">
+              <a class="guide-card__name" href={item.url} target="_blank" rel="noopener noreferrer">
+                {item.name}
+              </a>
+            </div>
+            <div class="guide-card__tags">
+              <span class={`guide-tag guide-tag--${ACCESS_CLASS[item.access]}`}>
+                {ACCESS_LABEL[item.access]}
+              </span>
+              <span class={`guide-tag guide-tag--${STATUS_CLASS[item.status]}`}>
+                {STATUS_LABEL[item.status]}
+              </span>
+              <span class="guide-tag">{item.platforms}</span>
+            </div>
+            <p class="guide-card__desc" set:html={descHtml(item.desc)} />
+            {item.note && <p class="guide-card__note" set:html={`注意：${descHtml(item.note)}`} />}
+            <div class="guide-card__meta">
+              <span>{new URL(item.url).hostname}</span>
+              {item.origin && <span>来源：{item.origin}</span>}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))
+}
+
+<style>
+  .tool-summary {
+    margin: 1rem 0 0.5rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.6rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-2);
+  }
+
+  .tool-section {
+    margin-top: 1.75rem;
+  }
+
+  .guide-card__tags {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .guide-card__note {
+    margin: 0;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+    line-height: 1.6;
+  }
+
+  .guide-tag--public {
+    border-color: var(--sl-color-green);
+    color: var(--sl-color-green-high);
+  }
+
+  .guide-tag--campus {
+    border-color: var(--sl-color-accent);
+    color: var(--sl-color-accent-high);
+  }
+
+  .guide-tag--proxy {
+    border-color: var(--sl-color-orange);
+    color: var(--sl-color-orange-high);
+  }
+
+  .guide-tag--live {
+    border-color: var(--sl-color-green);
+    color: var(--sl-color-green-high);
+  }
+
+  .guide-tag--idle {
+    border-color: var(--sl-color-orange);
+    color: var(--sl-color-orange-high);
+  }
+
+  .guide-tag--dead {
+    border-color: var(--sl-color-red);
+    color: var(--sl-color-red-high);
+  }
+
+  .guide-tag--unknown {
+    color: var(--sl-color-gray-3);
+  }
+</style>

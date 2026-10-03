@@ -1,13 +1,23 @@
 {
   "$comment": "由 npm run check:links 生成，请勿手工编辑。只证明网址当前可访问（HTTP < 400），不代表页面内容已人工核对。",
-  "checkedAt": "2026-09-30",
+  "checkedAt": "2026-10-03",
   "network": "未标注（本地网络）",
-  "total": 49,
-  "reachable": 48,
+  "total": 60,
+  "reachable": 57,
   "results": {
     "https://cet-bm.neea.edu.cn/": {
       "ok": false,
       "status": 412
+    },
+    "https://reserves.lib.tsinghua.edu.cn/": {
+      "ok": false,
+      "status": null,
+      "error": "getaddrinfo ENOTFOUND reserves.lib.tsinghua.edu.cn"
+    },
+    "https://ecard.tsinghua.edu.cn/": {
+      "ok": false,
+      "status": null,
+      "error": "getaddrinfo ENOTFOUND ecard.tsinghua.edu.cn"
     },
     "https://zhjw.cic.tsinghua.edu.cn/": {
       "ok": true,
@@ -69,6 +79,18 @@
       "ok": true,
       "status": 200
     },
+    "https://eduroam.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://mailservice.tsinghua.org.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://login.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
     "https://abook.hep.com.cn/": {
       "ok": true,
       "status": 200
@@ -105,6 +127,14 @@
       "ok": true,
       "status": 200
     },
+    "https://lib-tsinghua.wqxuetang.com/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://tsinghua.cn.libguides.com/": {
+      "ok": true,
+      "status": 200
+    },
     "https://thos.tsinghua.edu.cn/": {
       "ok": true,
       "status": 200
@@ -122,6 +152,22 @@
       "status": 200
     },
     "https://sa.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://pt.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://zijing.tsinghua.edu.cn/tp_jp/h6?m=jp": {
+      "ok": true,
+      "status": 200
+    },
+    "https://vr.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://www.tsinghua.edu.cn/zjqh/syxx/xyjt.htm": {
       "ok": true,
       "status": 200
     },

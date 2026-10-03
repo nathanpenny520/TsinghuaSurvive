@@ -323,7 +323,7 @@ collections:
     folder: src/content/docs/guides
     extension: mdx
     slug: *doc-slug
-    description: ⚠️ 含链接网格组件；其中「校内常用链接」「资料下载」的数据来自 src/data/，不在正文里。
+    description: ⚠️ 含链接/工具网格组件；其中「校内常用链接」「学生自建工具」「资料下载」的数据来自 src/data/，不在正文里。
     fields: *doc-fields
 
   # ── 站点页面（单文件集合）─────────────────────────────────────────────

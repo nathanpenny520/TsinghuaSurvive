@@ -23,6 +23,7 @@ import { campusLinks } from '../src/data/links.ts';
 import { resources } from '../src/data/resources.ts';
 import { archives, archiveOrder, courses, sourceLink } from '../src/data/courses.ts';
 import { extraArchives } from '../src/data/archives.ts';
+import { tools, toolGroups } from '../src/data/tools.ts';
 import linkStatus from '../src/data/link-status.json' with { type: 'json' };
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -565,6 +566,49 @@ for (const archive of extraArchives) {
   }
 }
 
+// ── 检查 tools.ts（学生自建工具清单） ───────────────────────────────────
+// 这里最容易出的错不是链接写错，而是**状态栏被随手写成「活跃」**：
+// 那一个字会被读者当成「可以放心用」。所以状态与可达性都按白名单校验。
+
+const TOOL_STATUS = ['活跃', '不活跃', '已停止', '未核实'];
+const TOOL_ACCESS = ['公网', '校园网', '需代理', '未实测'];
+const toolNames = new Set<string>();
+
+for (const tool of tools) {
+  if (toolNames.has(tool.name)) {
+    error(`tools.ts 里有重名条目：${tool.name}`, 'src/data/tools.ts');
+  }
+  toolNames.add(tool.name);
+
+  try {
+    new URL(tool.url);
+  } catch {
+    error(`tools.ts：${tool.name} 的 url 不合法：${tool.url}`, 'src/data/tools.ts');
+  }
+
+  if (!TOOL_STATUS.includes(tool.status)) {
+    error(
+      `tools.ts：${tool.name} 的 status 只能是 ${TOOL_STATUS.join(' / ')}，现在写的是「${tool.status}」`,
+      'src/data/tools.ts',
+    );
+  }
+  if (!TOOL_ACCESS.includes(tool.access)) {
+    error(
+      `tools.ts：${tool.name} 的 access 只能是 ${TOOL_ACCESS.join(' / ')}，现在写的是「${tool.access}」`,
+      'src/data/tools.ts',
+    );
+  }
+  if (!toolGroups.includes(tool.group)) {
+    error(
+      `tools.ts：${tool.name} 的 group「${tool.group}」不在 toolGroups 里，页面上这一组不会出现`,
+      'src/data/tools.ts',
+    );
+  }
+  if (!tool.desc.trim()) {
+    error(`tools.ts：${tool.name} 没有写 desc`, 'src/data/tools.ts');
+  }
+}
+
 // ── 输出 ───────────────────────────────────────────────────────────────
 
 const errors = findings.filter((f) => f.level === 'error');
@@ -584,7 +628,7 @@ function emit(f: Finding) {
 if (!annotate) {
   console.log(
     `\n检查了 ${docs.length} 篇文章、${campusLinks.length} 条链接、${resources.length} 条资料、` +
-      `${courses.length} 门课（${sourcesChecked} 条资料索引）\n`,
+      `${courses.length} 门课（${sourcesChecked} 条资料索引）、${tools.length} 个第三方工具\n`,
   );
 }
 
@@ -605,6 +649,7 @@ const debt = {
     (r) => !r.url || policy.placeholderUrlValues.includes(r.url.trim()),
   ).length,
   只有书目没有资料索引的课: coursesWithoutSources,
+  状态未核实的第三方工具: tools.filter((t) => t.status === '未核实').length,
 };
 
 if (!annotate) {

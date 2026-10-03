@@ -116,7 +116,9 @@ export default defineConfig({
             { label: '按阶段浏览', link: '/stages/' },
             { label: '按标签浏览', link: '/tags/' },
             { label: '校内常用链接', slug: 'guides/links' },
+            { label: '学生自建工具与脚本', slug: 'guides/tools' },
             { label: '资料下载', slug: 'guides/resources' },
+            { label: '论文与演示模板', slug: 'guides/templates' },
           ],
         },
         {

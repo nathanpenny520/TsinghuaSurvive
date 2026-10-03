@@ -1,0 +1,102 @@
+---
+title: 论文、报告与演示模板
+description: 学位论文、课程报告、Beamer 演示与简历的现成模板清单——哪个是官方口径、哪个只是学生作品，以及交之前必须对一遍什么。
+stage: ['本科高年级', '研究生', '全阶段']
+tags: ['工具', 'LaTeX', '论文', '科研']
+authors: ['本站编辑整理']
+status: stable
+summary: 学位论文与课程文档的模板从哪找、哪些可信、交稿前要核对什么。
+reviewedAt: 2026-10-03
+sidebar:
+  order: 5
+---
+
+**模板解决的是"格式别出错"，不是"内容怎么写"。** 用之前先分清三件事：
+
+1. **交的是学位论文，还是课程报告？** 学位论文的格式由院里/研究生院定，错了要返工；课程报告宽松得多。
+2. **模板是官方发的，还是学生维护的？** 官方模板随规定更新；学生模板可能停在几年前。
+3. **你要排的是公式多的文档，还是文字为主的？** 公式多选 LaTeX/Typst，文字为主用 Word 更快 ——
+   判断标准写在[LaTeX 与校内 Overleaf](/skills/latex-and-overleaf/)。
+
+## 学位论文（最需要谨慎的一类）
+
+| 模板 | 用什么写 | 适合谁 | 现在在哪 |
+| --- | --- | --- | --- |
+| **ThuThesis** | LaTeX | 本科综合论文训练、硕士、博士、博士后出站报告 | [tuna/thuthesis](https://github.com/tuna/thuthesis) |
+| **TnTT** | Typst | 想用更现代语法的同学（**非官方**） | [tuna/thuthesis-typst](https://github.com/tuna/thuthesis-typst) |
+| **ThuWordThesis** | Word | 不打算学 LaTeX 的本科毕业论文 | [qbh16/ThuWordThesis](https://github.com/qbh16/ThuWordThesis) |
+
+**这三个都不是学校发布的正式模板**，是学生/校友项目（ThuThesis 由 TUNA 社区维护多年）。所以：
+
+:::danger[交稿前必须自己核一遍]
+院系与研究生院每年会发布当年的**格式要求**（封面、页边距、参考文献样式、盲审要求）。
+模板更新往往滞后于规定，**模板能编译通过 ≠ 符合今年的要求**。
+最稳的做法：拿院系给的样例或上一届通过盲审的终稿，对着目录与页眉页脚核一遍。
+:::
+
+## 课程作业与实验报告
+
+这类需求简单：公式要能编号、代码要能贴、交上去不显得敷衍。
+
+- **THU-coursework-template**：课程作业的 LaTeX 包，一份文档里放多道题很方便 ——
+  [zhaofeng-shu33/THU-coursework-template](https://github.com/zhaofeng-shu33/THU-coursework-template)
+- **ilatex**：作业与实验报告的模板集 —— [liblaf/ilatex](https://github.com/liblaf/ilatex)
+- **THU-Exam-LaTeX-Template**：出卷/试卷排版用 —— [VicaYang/THU-Exam-LaTeX-Template](https://github.com/VicaYang/THU-Exam-LaTeX-Template)
+- **近代物理实验报告模板**：直接在 Overleaf 上打开就能用 ——
+  [Overleaf 模板页](https://www.overleaf.com/latex/templates/thu-emp-qing-hua-da-xue-jin-dai-wu-li-shi-yan-bao-gao-mo-ban/mbgqcryqhwqd)
+
+:::tip[课程报告别看太重格式]
+老师看的是结论、数据和推导。花两小时调一个"好看"的封面，不如把误差分析写清楚。
+:::
+
+## 演示、海报与汇报
+
+组会汇报、答辩、课程 pre 都会用到。要做**对外正式场合**的材料时，先看学校的
+[视觉形象识别系统](https://vi.tsinghua.edu.cn/)（官方模板与配色规范），别自己拼一个校徽。
+
+- **THU-PPT-Theme**：清华配色与排版的 PPT 模板 —— [atomiechen/THU-PPT-Theme](https://github.com/atomiechen/THU-PPT-Theme)
+- **THU-Beamer-Theme**：LaTeX Beamer 主题，答辩最常用 ——
+  [Trinkle23897/THU-Beamer-Theme](https://github.com/Trinkle23897/THU-Beamer-Theme)，
+  也能在 [Overleaf 上直接打开](https://www.overleaf.com/latex/templates/thu-beamer-theme/vwnqmzndvwyb)
+- **thubeamer** —— [YangLaTeX/thubeamer](https://github.com/YangLaTeX/thubeamer)
+- **中文 Beamer / TsinghuaBeamear / Report Presentation**：Overleaf 模板库里的三套 ——
+  [中文 Beamer](https://www.overleaf.com/latex/templates/qing-hua-da-xue-zhong-wen-beamer-mo-ban/djcnhxpwhrks)、
+  [TsinghuaBeamear](https://www.overleaf.com/latex/templates/tsinghuabeamer/gwchbskgbvrm)、
+  [Report Presentation](https://www.overleaf.com/latex/templates/report-presentation-for-tsinghua-university/yxcbdvyctybp)
+
+## 简历、推荐信与信纸
+
+求职和申请季用得最多。**简历模板改一版就够，把时间花在改内容上。**
+
+- **CV-tsinghua-template** —— [K-Wu/CV-tsinghua-template](https://github.com/K-Wu/CV-tsinghua-template)
+- **THU-CV**（中文简历）—— [Windrain7/THU-CV](https://github.com/Windrain7/THU-CV)
+- **推荐信模板** —— [Overleaf 模板页](https://www.overleaf.com/latex/templates/thu-letter-of-recommendation-template/ghjfgfhykprk)
+- **信纸模板** —— [Overleaf 模板页](https://www.overleaf.com/latex/templates/a-simple-tsinghua-letterhead-template/zhpywsjswnjs)
+
+:::caution[简历里的两件事]
+一是**别写没发生过的经历**——背景调查和面试追问都会露；
+二是**导出成 PDF 再发**，不要发 `.tex` 或 `.docx` 让对方在自己电脑上看到排版崩掉的样子。
+:::
+
+## 模板从哪找
+
+1. **校内 Overleaf 的模板库**：<https://overleaf.tsinghua.edu.cn/templates/> ——
+   上面列出的多数模板在这里能直接新建，不用自己装环境（登录方式见 [LaTeX 与校内 Overleaf](/skills/latex-and-overleaf/)）。
+2. **Overleaf 公共模板库**：<https://www.overleaf.com/latex/templates> —— 搜 "Tsinghua"，模板更全也更杂。
+3. **图书馆的专题培训**：《如何使用 LaTeX 排版论文》每年 4 月、11 月各讲一次，
+   讲稿与示例在 [tuna/thulib-latex-talk](https://github.com/tuna/thulib-latex-talk)，
+   比模板本身更值得花时间的地方是**参考文献与图表排版**。
+
+## 用模板的三个提醒
+
+- **模板也是别人在维护的代码。** 编译不过先去看项目的 Issue；
+  改宏包内部实现是最后手段，因为下次模板更新会把你的改动冲掉。
+- **许可要看一眼。** 多数模板是开源的（MIT / LPPL / CC），但也有作者标注禁商用或需署名，
+  拿去做正式材料前确认一下。
+- **校内模板 ≠ 官方模板。** 这一页列的绝大多数是**学生作品**，校方只发布格式要求与视觉规范。
+  涉及学位论文的，一律以院系和研究生院的当年文件为准。
+
+---
+
+本页工具清单的事实来源：[thu.services](https://thu.services/)（thuservices）的《LaTeX 等模板》。
+本站补了"哪些是官方口径、交稿前核对什么"，并剔除了来源不明与已经失效的条目。

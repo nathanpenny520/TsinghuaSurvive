@@ -12,6 +12,7 @@
  *   只有后者能证明这个链接没写错，所以缺了它会显示角标。
  */
 import { linksByGroup, campusLinks } from '../data/links';
+import { descHtml, descPlain } from '../utils/card-text';
 import linkStatus from '../data/link-status.json';
 
 const groups = linksByGroup();
@@ -38,6 +39,9 @@ const REACH_CLASS: Record<string, string> = {
 const checkedCount = campusLinks.filter((l) => l.reviewedAt).length;
 const autoCount = campusLinks.filter((l) => l.reviewedAt && l.verifiedBy === 'auto').length;
 const humanCount = campusLinks.filter((l) => l.reviewedAt && l.verifiedBy !== 'auto').length;
+
+// `desc` 里用 `**重点**` 写的加粗：这里是 JSX 表达式，不转换就会被原样印出来。
+// 转换逻辑在 src/utils/card-text.ts，工具清单页（ToolDirectory）共用同一份。
 ---
 
 <div class="link-toolbar" data-link-toolbar hidden>
@@ -79,7 +83,7 @@ const humanCount = campusLinks.filter((l) => l.reviewedAt && l.verifiedBy !== 'a
         {items.map((item) => {
           const probe = status.results[item.url];
           return (
-            <li class="guide-card" data-link-card data-search={`${item.name} ${item.desc} ${group}`.toLowerCase()}>
+            <li class="guide-card" data-link-card data-search={`${item.name} ${descPlain(item.desc)} ${group}`.toLowerCase()}>
               <div class="guide-card__head">
                 <a class="guide-card__name" href={item.url} target="_blank" rel="noopener noreferrer">
                   {item.name}
@@ -111,7 +115,7 @@ const humanCount = campusLinks.filter((l) => l.reviewedAt && l.verifiedBy !== 'a
                   </span>
                 )}
               </div>
-              <p class="guide-card__desc">{item.desc}</p>
+              <p class="guide-card__desc" set:html={descHtml(item.desc)} />
               {item.note && <p class="guide-card__note">提示：{item.note}</p>}
               <div class="guide-card__meta">
                 <span>{new URL(item.url).hostname}</span>

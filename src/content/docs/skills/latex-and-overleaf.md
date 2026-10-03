@@ -146,3 +146,4 @@ LaTeX 的报错体验不友好，但有规律：
 - [TeX Live](https://tug.org/texlive/) —— 本地安装 LaTeX 环境的标准选择，装一次可以离线用很久。
 - [CTAN](https://www.ctan.org/) —— 宏包的官方索引。当报错说"缺某个宏包"时，来这里查它是什么、怎么引。
 - [校内 Overleaf](https://overleaf.tsinghua.edu.cn/) —— 校内入口，不想在本地装环境就从这里开始；使用规则以站点说明为准。
+- [论文、报告与演示模板](/guides/templates/) —— 学位论文（ThuThesis / Word 模板）、课程作业、Beamer 与简历模板的清单，以及「交稿前要核对什么」。
