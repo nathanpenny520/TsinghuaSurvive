@@ -32,6 +32,11 @@ Sveltia CMS 是纯前端应用，浏览器里不能放 GitHub 的 client secret�
 
 ## 一次性部署（需要你自己的 Cloudflare 与 GitHub 账号）
 
+> **当前状态（2026-10-03 复核）**：本站环境上这些步骤**都已经做完** —— Worker 已部署，
+> `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` 都已写入（`npx wrangler secret list --config auth-worker/wrangler.jsonc`
+> 可见，`https://auth.nathanpenny.fun/auth` 返回正常登录页）。
+> 下面的步骤留给「换 OAuth App、密钥泄漏、或别人 fork 后重建」。
+
 ### 1. 注册 GitHub OAuth App
 
 到 <https://github.com/settings/applications/new>（**需要代理**）填：
@@ -66,7 +71,7 @@ backend:
   branch: main
   base_url: https://auth.nathanpenny.fun     # 必须与 wrangler.jsonc 的 routes 一致
   auth_methods: [oauth, token]
-  auth_scope: public_repo,user
+  auth_scope: public_repo
 ```
 
 `npm run check:admin` 会校验 `base_url` 与 `wrangler.jsonc` 的路由是否一致（防止两边漂移）。
@@ -74,15 +79,17 @@ backend:
 ### 4. 验证
 
 用**代理**打开 <https://tsinghua.nathanpenny.fun/admin/> → 点 **Sign in with GitHub** →
-授权 → 应该回到后台并显示 9 个分类。之后关掉代理，读写依然正常（走 `api.github.com`）。
+授权 → 应该回到后台并显示全部 13 个集合（12 个目录集合 + 1 个单文件集合）。之后关掉代理，读写依然正常（走 `api.github.com`）。
 
 ## 安全说明
 
 - `GITHUB_CLIENT_SECRET` 只存在于 Cloudflare 的加密环境变量里，**不进 Git、不进浏览器**。
 - `ALLOWED_DOMAINS`（在 `wrangler.jsonc` 的 `vars` 里）是白名单：只有从这些域名打开的页面才能拿到令牌。
   这就是为什么它写的是 `*.nathanpenny.fun,localhost` 而不是 `*`。
-- OAuth App 的授权范围通过 `auth_scope: public_repo,user` 收窄到「公开仓库 + 用户资料」，
+- OAuth App 的授权范围通过 `auth_scope: public_repo` 收窄到「只读写公开仓库」，
   比默认的 `repo`（含所有私有仓库读写）小得多 —— 本站是公开仓库，够用。
+  **注意 schema 只允许 `repo` / `public_repo` 两个值**，写成 `public_repo,user` 这种列表会被直接拒绝
+  （实测踩过，见 `HANDOVER.md` 第 9.2 节）。
 - Worker 只做两件事：302 到 GitHub、用授权码换令牌。不认识的路由返回 404，没有别的入口。
 
 ## 升级上游代码
