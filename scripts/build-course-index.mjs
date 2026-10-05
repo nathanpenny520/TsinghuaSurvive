@@ -3,19 +3,21 @@
  * 课程资料索引生成器
  * ============================================================
  * 本站不镜像任何课程资料，只做「哪门课、在哪个资料库、有什么类型的材料」的索引。
- * 这份索引不靠人肉整理，而是从 `reference/` 下的四个公开资料库里扫出来：
+ * 这份索引不靠人肉整理，而是从本地资料库（整理后统一在 `materials/` 下）的四个公开资料库里扫出来：
  *
- *   reference/REKCARC-TSC-UHT/            计算机系课程攻略（按学期分的课程目录）
- *   reference/WeiYangXueXi.github.io/     未央书院学习资料共享计划（mkdocs）
- *   reference/sast-skill-docs/            计算机系学生科协技能引导文档（mkdocs）
- *   reference/ssast-readme.github.io/     软件学院 ReadMe 互助文档（mkdocs）
+ *   materials/学业课程/计算机系-REKCARC课程攻略/   计算机系课程攻略（按学期分的课程目录）
+ *   materials/学业课程/未央书院-学习资料共享计划/   未央书院学习资料共享计划（mkdocs）
+ *   materials/科研与技能/技能引导文档-SAST/        计算机系学生科协技能引导文档（mkdocs）
+ *   materials/互助文档/软件学院-ReadMe互助文档/    软件学院 ReadMe 互助文档（mkdocs）
+ *
+ * 每个资料库都按「整理后位置优先、旧的 `reference/` 位置兜底」解析，两处都能扫。
  *
  * 用法：
  *   node scripts/build-course-index.mjs          # 重新生成 src/data/course-index.json
  *   node scripts/build-course-index.mjs --check  # 只校验现有 JSON，不重写（CI 用）
  *
- * ⚠️ `reference/` 是本地参考资料，不进仓库。生成结果 `src/data/course-index.json`
- *    要提交进仓库，这样构建和 CI 都不依赖这些大目录。
+ * ⚠️ `materials/`（整理前是 `reference/`）是本地参考资料，不进仓库。生成结果
+ *    `src/data/course-index.json` 要提交进仓库，这样构建和 CI 都不依赖这些大目录。
  *
  * ⚠️ 课程名里如果带老师姓名/昵称（例如「面向对象程序设计基础-刘知远老师」），
  *    一律在 NAME_OVERRIDES 里归一化成课程名 —— 本站不出现对具体老师的指向。
@@ -25,7 +27,6 @@ import { join, resolve } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 
 const ROOT = resolve(import.meta.dirname, '..');
-const REF = join(ROOT, 'reference');
 const OUT = join(ROOT, 'src/data/course-index.json');
 const CHECK_ONLY = process.argv.includes('--check');
 
@@ -34,9 +35,32 @@ const warn = (msg) => warnings.push(msg);
 
 // ── 资料库位置 ─────────────────────────────────────────────────────────
 
+/**
+ * 资料库根目录：整理后优先取 `materials/` 下的位置，取不到再回落到旧的 `reference/` 克隆。
+ * 两处都没有时，对应资料库会被跳过并打提示（不是错误）——CI 上就没有这些大目录。
+ */
+const pickDir = (organized, legacy) => (existsSync(organized) ? organized : legacy);
+
+const REKCARC_DIR = pickDir(
+  join(ROOT, 'materials/学业课程/计算机系-REKCARC课程攻略'),
+  join(ROOT, 'reference/REKCARC-TSC-UHT'),
+);
+const WEIYANG_DIR = pickDir(
+  join(ROOT, 'materials/学业课程/未央书院-学习资料共享计划'),
+  join(ROOT, 'reference/WeiYangXueXi.github.io'),
+);
+const SAST_DIR = pickDir(
+  join(ROOT, 'materials/科研与技能/技能引导文档-SAST'),
+  join(ROOT, 'reference/sast-skill-docs'),
+);
+const README_DIR = pickDir(
+  join(ROOT, 'materials/互助文档/软件学院-ReadMe互助文档'),
+  join(ROOT, 'reference/ssast-readme.github.io'),
+);
+
 const ARCHIVES = {
   rekcarc: {
-    dir: join(REF, 'REKCARC-TSC-UHT'),
+    dir: REKCARC_DIR,
     /** 顶层不是课程目录的条目 */
     skipNames: new Set([
       'LICENSE',
@@ -53,16 +77,16 @@ const ARCHIVES = {
     ]),
   },
   weiyang: {
-    dir: join(REF, 'WeiYangXueXi.github.io'),
-    nav: join(REF, 'WeiYangXueXi.github.io/mkdocs.yml'),
+    dir: WEIYANG_DIR,
+    nav: join(WEIYANG_DIR, 'mkdocs.yml'),
   },
   sast: {
-    dir: join(REF, 'sast-skill-docs'),
-    courseIndex: join(REF, 'sast-skill-docs/docs/courses/index.md'),
+    dir: SAST_DIR,
+    courseIndex: join(SAST_DIR, 'docs/courses/index.md'),
   },
   readme: {
-    dir: join(REF, 'ssast-readme.github.io'),
-    nav: join(REF, 'ssast-readme.github.io/mkdocs.yml'),
+    dir: README_DIR,
+    nav: join(README_DIR, 'mkdocs.yml'),
   },
 };
 
@@ -244,7 +268,7 @@ function addCourse(
 function scanRekcarc() {
   const { dir, skipNames } = ARCHIVES.rekcarc;
   if (!existsSync(dir)) {
-    warn('没有找到 reference/REKCARC-TSC-UHT，跳过计算机系课程攻略');
+    warn(`没有找到计算机系课程攻略资料库（${dir}），跳过`);
     return;
   }
 
@@ -365,7 +389,7 @@ function loadNav(file) {
  */
 function scanWeiyang() {
   if (!existsSync(ARCHIVES.weiyang.nav)) {
-    warn('没有找到 reference/WeiYangXueXi.github.io/mkdocs.yml，跳过未央学习');
+    warn(`没有找到未央书院资料库的 mkdocs.yml（${ARCHIVES.weiyang.nav}），跳过未央学习`);
     return;
   }
   const entries = loadNav(ARCHIVES.weiyang.nav);
@@ -412,7 +436,7 @@ function scanWeiyang() {
 /** ReadMe：nav 结构是 板块 → 课程 → 文档，课程名固定在 trail 第 2 个位置 */
 function scanReadme() {
   if (!existsSync(ARCHIVES.readme.nav)) {
-    warn('没有找到 reference/ssast-readme.github.io/mkdocs.yml，跳过 ReadMe 互助文档');
+    warn(`没有找到 ReadMe 互助文档的 mkdocs.yml（${ARCHIVES.readme.nav}），跳过 ReadMe 互助文档`);
     return;
   }
   const entries = loadNav(ARCHIVES.readme.nav);
@@ -446,7 +470,7 @@ function scanReadme() {
 function scanSast() {
   const file = ARCHIVES.sast.courseIndex;
   if (!existsSync(file)) {
-    warn('没有找到 reference/sast-skill-docs/docs/courses/index.md，跳过技能引导文档的课程指引');
+    warn(`没有找到技能引导文档的课程指引（${file}），跳过技能引导文档的课程指引`);
     return;
   }
   const lines = readFileSync(file, 'utf8').split('\n');
@@ -514,7 +538,7 @@ list.sort((a, b) => {
 
 const payload = {
   $comment:
-    '由 scripts/build-course-index.mjs 从 reference/ 下的公开资料库生成，请勿手工编辑。重新生成：node scripts/build-course-index.mjs',
+    '由 scripts/build-course-index.mjs 从本地 `materials/` 资料库生成，请勿手工编辑。重新生成：node scripts/build-course-index.mjs',
   categories: CATEGORY_ORDER.filter((c) => list.some((course) => course.category === c)),
   courses: list,
 };
@@ -522,15 +546,15 @@ const payload = {
 const json = `${JSON.stringify(payload, null, 2)}\n`;
 
 if (CHECK_ONLY) {
-  // CI 和别人的机器上通常没有 reference/ 这些大目录，这时没法比对 —— 跳过而不是报错
+  // CI 和别人的机器上通常没有 materials/ 这些大目录，这时没法比对 —— 跳过而不是报错
   const inputsPresent = Object.values(ARCHIVES).some((archive) => existsSync(archive.dir));
   if (!inputsPresent) {
-    console.log('○ 没有找到 reference/ 下的资料库，跳过课程索引一致性校验（需要在本地先克隆）');
+    console.log('○ 没有找到 materials/ 下的资料库，跳过课程索引一致性校验（需要在本地先放好）');
     process.exit(0);
   }
   const current = existsSync(OUT) ? readFileSync(OUT, 'utf8') : '';
   if (current !== json) {
-    console.error('✖ src/data/course-index.json 与 reference/ 里的资料库不一致，请重新生成');
+    console.error('✖ src/data/course-index.json 与 materials/ 里的资料库不一致，请重新生成');
     process.exit(1);
   }
   console.log(`✔ 课程索引与资料来源一致（${list.length} 门课）`);

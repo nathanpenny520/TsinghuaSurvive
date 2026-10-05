@@ -76,7 +76,7 @@
 | **最全自查** | `npm run verify` | **提 PR 前跑这个**（等于 `check:all` + 构建 + 四项产物校验） |
 | **内容检查** | `npm run check:content` ｜ `check:content:strict` | `strict` 连债务警告也当错误（发布前用） |
 | **后台与媒体** | `npm run check:admin` ｜ `check:media` ｜ `check:media:dist` ｜ `check:markup` | 字段漏声明、视频语法糖、产物与源码容器数是否一致、`**加粗**` 有没有被原样印到页面上 |
-| **课程索引** | `npm run courses` ｜ `courses:check` | 前者扫 `reference/` 重新生成，后者只校验（CI 用） |
+| **课程索引** | `npm run courses` ｜ `courses:check` | 前者扫本地资料库（`materials/`，取不到回落 `reference/`）重新生成，后者只校验（CI 用） |
 | **链接** | `check:links` ｜ `verify:links [-- --apply]` ｜ `review:links [-- --open]` ｜ `review:links:apply -- <文件> [--write]` | 实测 → 语义核对 → 人工核对 |
 | **本地自检** | `npm run check:e2e -- --base http://localhost:4321` ｜ `npm run measure:perf -- --base http://127.0.0.1:4322` | 无头 Chrome；**`--base` 写 `localhost`**，`astro preview` 在 macOS 上只绑 IPv6 回环 |
 | **后台与云资源** | `admin:vendor` ｜ `auth:dry` ｜ `auth:deploy` ｜ `r2:setup [-- --check]` | 后台编辑器兜底、OAuth 中转、R2 桶 |
@@ -105,7 +105,8 @@ Tsinghua-guide/
 │  └─ styles/custom.css    清华紫主题 + 中文排版
 ├─ scripts/                检查与生成脚本（见上一节；每个脚本头部都写了「为什么存在」）
 ├─ public/admin/           ★ 站内后台（Sveltia CMS，纯静态；`config.yml` 是公开配置，不放任何密钥）
-├─ reference/              ⚠️ 本地参考资料：6 个公开资料库克隆，约 24 GB，**已在 .gitignore 里，不进仓库**
+├─ materials/              ⚠️ 本地资料库：6 个公开资料库整理后的分类版本（约 13 GB，已删各库 .git），**已在 .gitignore 里，不进仓库**
+├─ reference/              ⚠️ 整理前的旧位置（现已清空；脚本仍认它作兜底）
 ├─ auth-worker/            OAuth 中转（第三个 Worker，不随主站 CI 部署）
 └─ 文档：HANDOVER / OUTLINE / REFERENCE-NOTES / CONTENT-EDITING-PLAN（见文末地图）
 ```
@@ -133,7 +134,7 @@ flowchart LR
 | `check:content` | 站内死链、中文文件名、`reviewedAt` 写在未来、同目录 `sidebar.order` 冲突、`links.ts` 重名或非法网址、资料有提取码却没链接、课程索引引用了未定义的资料库 |
 | `check:admin` | 后台配置漏字段（漏一个字段，作者保存一次就丢一个字段）、OAuth 三处地址漂移、R2 占位符 |
 | `check:media` | 视频语法糖写错、外链图床、空 alt |
-| `courses:check` | `course-index.json` 与 `reference/` 不一致（没有 `reference/` 时自动跳过） |
+| `courses:check` | `course-index.json` 与 `materials/`（或旧的 `reference/`）里的资料库不一致（两处都没有时自动跳过） |
 | `build` | frontmatter 字段错误（报错会指出文件名） |
 | `check:jsonld` | JSON-LD 语法、同页重复 `@type`、面包屑 position 不连续、署名是占位符 |
 | `check:assets` | 分享卡片尺寸不是 1200×630、文件为空、页面引用的图不存在 |
@@ -151,14 +152,14 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  R["reference/ 下 4 个课程级资料库<br/>REKCARC / 未央 / SAST / 软件学院 ReadMe"] --> S["npm run courses<br/>（扫目录与 mkdocs nav）"]
+  R["materials/ 下 4 个课程级资料库<br/>REKCARC / 未央 / SAST / 软件学院 ReadMe"] --> S["npm run courses<br/>（扫目录与 mkdocs nav）"]
   S --> J["src/data/course-index.json<br/>课程名 / 类别 / 书目 / 库内路径+类型"]
   J --> P["/courses/<br/>可搜索、可按类别/类型/资料库筛选<br/>每条带可达性角标"]
 ```
 
 四个刻意的设计：
 
-- **`reference/` 不进仓库**：6 个库合计约 24 GB（大量 PDF，2026-10-03 实测），只在本地扫描用；扫描结果才提交，CI 与别人的机器都不需要它们。
+- **`materials/` 不进仓库**：6 个库整理后合计约 13 GB（大量 PDF，2026-10-05 实测；已删掉共约 11.3 GB 的 `.git`，24 GB → 13 GB），只在本地扫描用；扫描结果才提交，CI 与别人的机器都不需要它们。分类、来源与许可见 `materials/README.md`（该目录不进仓库，只在本地存在）。
 - **本站不镜像任何文件**：索引里存「资料库 + 库内路径」，链接指向原库 —— 规避体积与版权，又给出「哪里有材料」的确定答案。
 - **课程名会归一化**：上游目录里带老师姓名/昵称的（`面向对象程序设计基础-刘知远老师`）合并回课程名，规则在 `scripts/build-course-index.mjs` 的 `NAME_OVERRIDES`。
 - **可达性优先**：校内 GitLab 镜像排在 GitHub 前面（原因见下一节）。

@@ -47,8 +47,8 @@ jobs:
       - name: 媒体与视频检查
         run: npm run check:media
 
-      # 课程索引与 reference/ 的一致性。CI 上没有 reference/（那是十几 GB 的本地参考资料），
-      # 脚本检测不到就跳过并以 0 退出，不会误报。
+      # 课程索引与本地资料库（materials/，整理前是 reference/）的一致性。CI 上没有这些目录
+      # （那是十几 GB 的本地参考资料），脚本检测不到就跳过并以 0 退出，不会误报。
       - name: 课程索引一致性
         run: npm run courses:check
 

@@ -1,5 +1,5 @@
 {
-  "$comment": "由 scripts/build-course-index.mjs 从 reference/ 下的公开资料库生成，请勿手工编辑。重新生成：node scripts/build-course-index.mjs",
+  "$comment": "由 scripts/build-course-index.mjs 从本地 `materials/` 资料库生成，请勿手工编辑。重新生成：node scripts/build-course-index.mjs",
   "categories": [
     "数学",
     "物理",

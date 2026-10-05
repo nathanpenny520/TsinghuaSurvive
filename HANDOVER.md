@@ -175,12 +175,14 @@ npm run check:e2e -- --base http://localhost:4321
 ### 重新生成课程资料索引
 
 ```bash
-npm run courses            # 扫描 reference/ 下的资料库 → src/data/course-index.json
-npm run courses:check      # 只校验现有 JSON 与 reference/ 是否一致（CI 用）
+npm run courses            # 扫描本地资料库 → src/data/course-index.json
+npm run courses:check      # 只校验现有 JSON 与本地资料库是否一致（CI 用）
 ```
 
-`reference/` 是**本地参考资料**（6 个第三方资料库克隆，2026-10-03 实测合计约 24 GB），已写进 `.gitignore`，不要提交。
-没有它们时脚本会跳过对应资料库并打提示，`/courses/` 用已提交的 `course-index.json` 照常渲染。
+资料库 2026-10-05 从 `reference/` 整理迁移到了 `materials/`（分类与来源见 `materials/README.md`）：
+6 个第三方库合计约 13 GB（原为 24 GB，已删掉各库共约 11.3 GB 的 `.git`），已写进 `.gitignore`，不要提交。
+`scripts/build-course-index.mjs` 对每个库都按「`materials/` 优先、`reference/` 兜底」解析路径，两处都能扫。
+两处都没有时脚本会跳过对应资料库并打提示，`/courses/` 用已提交的 `course-index.json` 照常渲染。
 
 ### 链接核对：先脚本、后人工
 

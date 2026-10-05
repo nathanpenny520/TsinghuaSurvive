@@ -1,13 +1,28 @@
 # 参考项目借鉴笔记
 
-`reference/` 下那几个第三方项目，**哪些值得借鉴、落在本站哪一页、哪些明确不借鉴、为什么**。
+`materials/` 下那几个第三方项目（2026-10-05 前放在 `reference/`），**哪些值得借鉴、落在本站哪一页、哪些明确不借鉴、为什么**。
 写它的目的：后来的人不必再把那些仓库翻一遍，也不要把同样的事重新讨论一遍。
 
 > **本文回答**：借了什么（→ 落在哪）、没借什么（→ 为什么）、参考库自身状态、历轮「顺手发现」。
 > **不回答**：怎么改本站内容 → [README.md](./README.md)｜运维与排障 → [HANDOVER.md](./HANDOVER.md)｜内容缺口 → [OUTLINE.md](./OUTLINE.md)
 >
 > 图例：★ 借鉴价值 ｜ ✅ 已采纳 ｜ ❌ 明确不采纳 ｜ 🕒 结论自带过期属性 ｜ ⚠️ 踩过的坑
-> 最后更新 **2026-10-03**（第五轮：全量复核）
+> 最后更新 **2026-10-05**（第六轮：资料库整理迁移）
+>
+> 📁 **路径对照（2026-10-05 起）**：原先 6 个 clone 全在 `reference/` 平级堆放，现按内容归类到 `materials/`，
+> 顶层目录改成中文名，并删掉了各库的 `.git`（合计约 11.3 GB，24 GB → 13 GB）。本文下面提到的旧路径按此表换算：
+>
+> | 原路径 | 现路径 |
+> | --- | --- |
+> | `reference/REKCARC-TSC-UHT/` | `materials/学业课程/计算机系-REKCARC课程攻略/` |
+> | `reference/OpenDA/` | `materials/学业课程/自动化系-OpenDA课程攻略/` |
+> | `reference/WeiYangXueXi.github.io/` | `materials/学业课程/未央书院-学习资料共享计划/` |
+> | `reference/sast-skill-docs/` | `materials/科研与技能/技能引导文档-SAST/` |
+> | `reference/ssast-readme.github.io/` | `materials/互助文档/软件学院-ReadMe互助文档/` |
+> | `reference/thuservices/` | `materials/校园服务/清华常用信息与服务/` |
+> | `reference/favorites_9_30_26.html` | `materials/链接合集/清华相关书签.html` |
+>
+> 总索引在 `materials/README.md`（该目录不进仓库，只在本地存在）；各库的 commit 与许可也在那里。
 
 ---
 
@@ -25,6 +40,7 @@
 | **OpenDA** | 自动化系课程攻略（课程 Wiki） | 13 GB | 以项目页为准 | ★ | ✅ 41 提交 |
 
 六个克隆**全部可读、工作区干净、没有坏对象**（`git fsck` 无输出）；`reference/` 合计约 24 GB。
+（2026-10-05 整理后移到 `materials/`、删掉 `.git`，合计约 13 GB；各库 commit 见 `materials/README.md`。）
 逐项证据（HEAD、最近提交、体积）在 [第十节](#十第五轮全量复核2026-10-03)。
 
 > ✅ **OpenDA 本地那份是好的**（2026-10-03 复核）：`HEAD → refs/heads/main`，41 个提交，`git fsck` 无输出，
@@ -71,10 +87,10 @@
 
 上面那张体检表就是全部；这一节只记两件容易漏的事。
 
-**收藏夹导出**（`reference/favorites_9_30_26.html`，513 条）是最实用的一份输入：校内入口、资料库、工具站的真实清单都在里面。
+**收藏夹导出**（现为 `materials/链接合集/清华相关书签.html`，513 条）是最实用的一份输入：校内入口、资料库、工具站的真实清单都在里面。
 本站的链接页就是从这里筛出来的，筛掉了个人账号链接、需要绕开权限的入口、付费导流。
 
-**参考库的克隆位置**：全部在 `reference/`（软件学院那份 2026-10-03 从仓库根移了进来），已在 `.gitignore` 里，不进仓库；
+**参考库的位置**：2026-10-05 起按内容归类在 `materials/` 下（本文开头有新旧路径对照表），已在 `.gitignore` 里，不进仓库；
 `npm run courses` 扫它们生成 `src/data/course-index.json`，所以 CI 和别人的机器都不需要这些大目录。
 
 ---
@@ -238,7 +254,7 @@ gh api graphql -f query='{repository(owner:"nathanpenny520",name:"TsinghuaSurviv
 4. **mkdocs 的 nav 是嵌套的**：直接从 nav 叶子标题取课程名会把 `hw_1`、`介绍` 当成课程；正确做法是按层级位置取（脚本里 `scanWeiyang` / `scanReadme` 的注释写了原因）。
 5. **`github.com` 与 `raw.githubusercontent.com` 在校园网内时通时不通，`api.github.com` 与 SSH 稳定**（🕒 会变）：所以「给校内用户看的站点」应当优先给校内镜像，链接结论必须带日期。
 6. **上游还在长**：REKCARC 最近一次提交是 2026-09-17，本文件里任何「某个目录里有 N 个 `hw`」的数字都会过时 —— 要引用就重新数：
-   `find reference/REKCARC-TSC-UHT -type d -name hw ! -path "*/.git/*" | wc -l`（2026-10-03 数出来是 58）。
+   `find materials/学业课程/计算机系-REKCARC课程攻略 -type d -name hw | wc -l`（2026-10-03 数出来是 58）。
 
 ---
 
