@@ -131,7 +131,7 @@ git add -A && git commit -m "docs: 更新选课时间线" && git push
 | **错误**（阻断部署） | 站内链接指向不存在的页面（带文件:行号）、文件名不是 ASCII slug、`reviewedAt` 写在未来、同目录 `sidebar.order` 冲突、`links.ts` 重名或非法网址、资料有提取码却没链接、课程索引引用了未定义的资料库或拼不出链接 |
 | **警告**（只提示） | 作者还是占位符、`status: draft` 数量、链接没有 `reviewedAt` 或超过 12 个月未确认、链接实测结果过期或有链接打不开、文章超过 6 个月未核对 |
 
-CI 另外跑：`courses:check`（构建前）、构建后的 `check:jsonld` / `check:assets` / `check:feeds` / `check:media:dist`。
+CI 另外跑：`courses:check`（构建前）、构建后的 `check:jsonld` / `check:assets` / `check:markup` / `check:feeds` / `check:media:dist`。
 **错误级检测都做过注入测试验证会真的触发**，不是写了没用。
 
 ### 实测链接是否还能打开

@@ -4,6 +4,7 @@
  * 数据来源：src/data/resources.ts。url 为空或 'TODO' 时显示「待补充」，不渲染死链。
  */
 import { resources, type Resource } from '../data/resources';
+import { descHtml, descPlain } from '../utils/card-text';
 
 const available = resources.filter((r) => isReady(r));
 const pending = resources.filter((r) => !isReady(r));
@@ -23,7 +24,7 @@ const groups = [...new Set(available.map((r) => r.group))];
         {available
           .filter((r) => r.group === group)
           .map((item) => (
-            <li class="guide-card">
+            <li class="guide-card" data-search={`${item.name} ${descPlain(item.desc)} ${group}`.toLowerCase()}>
               <div class="guide-card__head">
                 <a
                   class="guide-card__name"
@@ -34,7 +35,7 @@ const groups = [...new Set(available.map((r) => r.group))];
                 </a>
                 {item.internal && <span class="guide-tag">站内</span>}
               </div>
-              <p class="guide-card__desc">{item.desc}</p>
+              <p class="guide-card__desc" set:html={descHtml(item.desc)} />
               <div class="guide-card__meta">
                 {item.format && <span class="guide-tag">{item.format}</span>}
                 {item.size && <span>{item.size}</span>}
@@ -72,7 +73,7 @@ const groups = [...new Set(available.map((r) => r.group))];
               </span>
               <span class="guide-tag guide-tag--warn">待补充</span>
             </div>
-            <p class="guide-card__desc">{item.desc}</p>
+            <p class="guide-card__desc" set:html={descHtml(item.desc)} />
             {item.format && (
               <div class="guide-card__meta">
                 <span class="guide-tag">{item.format}</span>

@@ -75,7 +75,7 @@
 | **日常开发** | `npm run dev` ｜ `npm run build` ｜ `npm run preview` ｜ `npm run check` | 本地写内容；`check` 是 `astro check` 类型检查 |
 | **最全自查** | `npm run verify` | **提 PR 前跑这个**（等于 `check:all` + 构建 + 四项产物校验） |
 | **内容检查** | `npm run check:content` ｜ `check:content:strict` | `strict` 连债务警告也当错误（发布前用） |
-| **后台与媒体** | `npm run check:admin` ｜ `check:media` ｜ `check:media:dist` | 字段漏声明、视频语法糖、产物与源码容器数是否一致 |
+| **后台与媒体** | `npm run check:admin` ｜ `check:media` ｜ `check:media:dist` ｜ `check:markup` | 字段漏声明、视频语法糖、产物与源码容器数是否一致、`**加粗**` 有没有被原样印到页面上 |
 | **课程索引** | `npm run courses` ｜ `courses:check` | 前者扫 `reference/` 重新生成，后者只校验（CI 用） |
 | **链接** | `check:links` ｜ `verify:links [-- --apply]` ｜ `review:links [-- --open]` ｜ `review:links:apply -- <文件> [--write]` | 实测 → 语义核对 → 人工核对 |
 | **本地自检** | `npm run check:e2e -- --base http://localhost:4321` ｜ `npm run measure:perf -- --base http://127.0.0.1:4322` | 无头 Chrome；**`--base` 写 `localhost`**，`astro preview` 在 macOS 上只绑 IPv6 回环 |
@@ -119,7 +119,7 @@ Tsinghua-guide/
 ```mermaid
 flowchart LR
   A["后台 / 本地 / 网页"] --> B["提交到分支 → PR"]
-  B --> C{"CI 九步<br/>check → content → admin → media<br/>→ courses:check → build<br/>→ jsonld → assets → feeds/media"}
+  B --> C{"CI 十步<br/>check → content → admin → media<br/>→ courses:check → build<br/>→ jsonld → assets → markup<br/>→ feeds/media"}
   C -- "失败" --> D["PR 上留下注解：哪个文件、哪一行"]
   C -- "通过" --> E["预览站 preview.nathanpenny.fun"]
   E --> F["合并到 main"]
@@ -137,6 +137,7 @@ flowchart LR
 | `build` | frontmatter 字段错误（报错会指出文件名） |
 | `check:jsonld` | JSON-LD 语法、同页重复 `@type`、面包屑 position 不连续、署名是占位符 |
 | `check:assets` | 分享卡片尺寸不是 1200×630、文件为空、页面引用的图不存在 |
+| `check:markup` | `**加粗**` 紧贴全角标点（`**「图库」**`）导致标记不生效、星号被原样印在页面上；banner 里写 Markdown 加粗；卡片文案漏调 `descHtml()` |
 | `check:feeds` / `check:media:dist` | sitemap 指向不存在的页面、RSS 缺字段、robots 把整站屏蔽；产物里的视频容器与源码对不上 |
 
 > ✅ 错误级检测都做过**注入测试**验证会真的触发，不是写着好看。

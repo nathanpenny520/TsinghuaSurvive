@@ -68,6 +68,10 @@ jobs:
       - name: 结构化数据与资源检查
         run: npm run check:jsonld && npm run check:assets && npm run check:media:dist
 
+      # 加粗标记泄漏检查：`**「图库」**` 这种写法不会生效，星号会原样印在页面上。
+      - name: 渲染文本检查（加粗标记有没有泄漏）
+        run: npm run check:markup
+
       # 判断能不能拿到凭证。fork PR 与未配置 token 的仓库都会走到这里。
       - name: 检查预览凭证
         id: creds
