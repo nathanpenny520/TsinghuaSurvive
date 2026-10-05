@@ -3,7 +3,7 @@ title: 怎么进实验室做科研
 description: 什么时候找导师、第一封邮件怎么写、进组之后该干什么，以及本科生科研的现实预期。
 stage: ['本科低年级', '本科高年级']
 tags: ['科研', '导师', '实验室']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: draft
 summary: 什么时候找导师、邮件怎么写、进组之后干什么。
 sidebar:

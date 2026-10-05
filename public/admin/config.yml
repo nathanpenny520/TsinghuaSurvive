@@ -337,6 +337,7 @@ collections:
         fields:
           - { name: title, label: 标题, widget: string }
           - { name: description, label: 一句话摘要, widget: text }
+          - { name: authors, label: 作者署名, widget: list, required: false, default: [], hint: '署名只是方便读者判断可信度，不是义务。' }
           - name: template
             label: 版式
             widget: select
@@ -365,6 +366,7 @@ collections:
         fields:
           - { name: title, label: 标题, widget: string }
           - { name: description, label: 一句话摘要, widget: text }
+          - { name: authors, label: 作者署名, widget: list, required: false, default: [], hint: '署名只是方便读者判断可信度，不是义务。' }
           - { name: template, label: 版式, widget: select, required: false, options: [splash, doc] }
           - name: sidebar
             label: 目录设置

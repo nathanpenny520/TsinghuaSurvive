@@ -3,7 +3,7 @@ title: 考试、退课与重修
 description: 考核形式怎么影响复习策略、什么时候该退课、以及重修这件事的真实代价。
 stage: ['本科低年级', '本科高年级']
 tags: ['考试', '退课', '重修', '成绩']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: draft
 summary: 考核形式决定复习策略，退课窗口别错过，重修先算清代价。
 banner:

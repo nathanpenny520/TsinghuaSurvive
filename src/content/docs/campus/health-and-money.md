@@ -3,7 +3,7 @@ title: 看病、报销与奖助学金
 description: 校医院怎么用、单据怎么留、报销为什么总被退，以及家庭困难时该找谁。
 stage: ['全阶段']
 tags: ['医疗', '报销', '奖助学金', '生活']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: draft
 summary: 校内看病的流程、报销的关键动作，以及经济困难时真正的求助入口。
 banner:

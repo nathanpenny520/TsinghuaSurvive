@@ -4,6 +4,7 @@ description: 本站的立场、不写什么、以及你在引用这里的内容�
 stage: ['全阶段']
 tags: ['本站说明']
 status: stable
+authors: ['Nathan Penny']
 reviewedAt: 2026-09-30
 sidebar:
   order: 2

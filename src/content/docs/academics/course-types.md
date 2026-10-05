@@ -3,7 +3,7 @@ title: 各类课程怎么选
 description: 思政、英语、体育、通识、写沟、数理、专业限选——每一类课考什么、该看哪三个指标、最容易在哪儿踩坑。
 stage: ['本科新生', '本科低年级', '本科高年级']
 tags: ['选课', '培养方案', '方法']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: draft
 summary: 按课程类别拆解考核逻辑、判断指标与核实渠道，不评价任何具体老师。
 banner:

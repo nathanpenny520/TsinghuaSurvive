@@ -3,7 +3,7 @@ title: 快递、打印与跑腿
 description: 快递到了之后通常去哪取、寄件怎么留痕、打印装订扫描怎么不出错，以及跑腿服务能用在哪、不能用在哪。
 stage: ['全阶段']
 tags: ['生活', '工具', '方法']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: stable
 summary: 取寄快递、打印装订与扫描的一般做法，以及跑腿类服务的使用边界。
 banner:

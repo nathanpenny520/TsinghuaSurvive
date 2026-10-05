@@ -3,7 +3,7 @@ title: 运动与场馆
 description: 体育课与体测的一般逻辑、场馆预约的一般流程、约不到场地时的替代方案，以及怎么把运动塞进课表。
 stage: ['全阶段']
 tags: ['生活', '方法', '新生']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: stable
 summary: 体育课与体测怎么运作、场馆怎么约、约不到怎么练，以及不受伤的几个原则。
 banner:

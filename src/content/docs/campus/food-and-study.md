@@ -3,7 +3,7 @@ title: 吃饭、自习与出门
 description: 校内吃饭怎么不排队、哪里有位置自习、出门办事的交通思路。
 stage: ['全阶段']
 tags: ['食堂', '自习', '交通', '生活']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: draft
 summary: 食堂、自习位、出行，以及哪里能安静待一下午。
 banner:

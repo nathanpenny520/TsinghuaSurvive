@@ -3,7 +3,7 @@ title: 大一最容易踩的几个坑
 description: 不是"要努力"这种废话，而是几个具体到能马上改的做法。
 stage: ['本科新生', '本科低年级']
 tags: ['心态', '时间管理', '避坑']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: stable
 summary: 大一最容易踩的坑，和几条真的有用的应对方式。
 sidebar:

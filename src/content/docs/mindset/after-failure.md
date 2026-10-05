@@ -3,7 +3,7 @@ title: 关于失败：挂科、没保上研、转专业被拒之后
 description: 失败之后最先要做的不是振作，而是把事实搞清楚。按场景列出先做什么、找谁核实、常见误区。
 stage: ['本科低年级', '本科高年级', '全阶段']
 tags: ['心态', '避坑', '成绩', '保研', '沟通']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: stable
 summary: 恐慌大多来自信息不全。先问清事实，再决定下一步。
 banner:

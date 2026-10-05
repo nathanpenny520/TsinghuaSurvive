@@ -3,7 +3,7 @@ title: 绩点到底是怎么算的
 description: 绩点和加权平均分的区别、它会影响什么、以及哪些为了提分的努力其实是白费。
 stage: ['本科新生', '本科低年级', '本科高年级']
 tags: ['绩点', '成绩', '保研']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: draft
 summary: 绩点的计算逻辑、它真正影响的事情，和不必内耗的部分。
 banner:

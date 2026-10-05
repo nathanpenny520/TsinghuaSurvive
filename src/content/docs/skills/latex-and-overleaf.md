@@ -3,7 +3,7 @@ title: LaTeX 与校内 Overleaf
 description: 什么时候真的值得用 LaTeX、最短的上手路径、中文排版要注意什么，以及交作业前必须检查的几件事。
 stage: ['全阶段', '本科低年级']
 tags: ['工具', '方法', '学习']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: draft
 summary: 该不该用 LaTeX、怎么最快上手、中文排版和交作业的坑在哪。
 banner:

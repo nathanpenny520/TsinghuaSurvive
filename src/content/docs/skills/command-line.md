@@ -3,7 +3,7 @@ title: 命令行与 Linux 基础
 description: 二十条够用的命令、路径与权限怎么理解、怎么连实验室服务器，以及报错该怎么读。
 stage: ['全阶段']
 tags: ['工具', '方法']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: stable
 summary: 最少要会哪些命令、权限和路径怎么理解、连服务器前后各该做什么。
 sidebar:

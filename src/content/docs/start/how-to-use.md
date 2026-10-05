@@ -4,6 +4,7 @@ description: 这个站怎么组织内容、页面上的状态标记是什么意�
 stage: ['全阶段']
 tags: ['本站说明']
 status: stable
+authors: ['Nathan Penny']
 reviewedAt: 2026-09-30
 sidebar:
   order: 1

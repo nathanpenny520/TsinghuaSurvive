@@ -3,7 +3,7 @@ title: 沟通的分寸：微信、邮件、见面与线上表达
 description: 加好友、问问题、发请求、写邮件、见面与群聊——把"怎么和人打交道"拆成可以照着做的动作。
 stage: ['本科新生', '本科低年级', '全阶段']
 tags: ['沟通', '社工', '方法', '心态']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: stable
 summary: 微信、邮件、见面、群聊和线上表达的具体做法，以及背后那条"尊重"的线。
 sidebar:

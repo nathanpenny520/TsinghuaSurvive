@@ -3,7 +3,7 @@ title: 文献管理与引用
 description: Zotero 和 EndNote 怎么二选一、中文文献与 GB/T 7714 的现实做法、写论文时的引用流程。
 stage: ['全阶段', '本科高年级']
 tags: ['科研', '工具', '资料']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: stable
 summary: 选一个文献管理工具、把引用交给它生成，中文文献要额外核对。
 sidebar:

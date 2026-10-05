@@ -3,7 +3,7 @@ title: 宿舍、校园网与一卡通
 description: 到校第一周要办的三件基础设施，以及宿舍关系里最容易出问题的地方。
 stage: ['本科新生']
 tags: ['新生', '宿舍', '网络', '生活']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: draft
 summary: 网络、一卡通、宿舍相处的具体做法和踩坑点。
 banner:

@@ -3,7 +3,7 @@ title: 校园网进阶：认证、命令行与服务器
 description: 准入与准出是怎么回事、命令行怎么认证、Linux 连 Tsinghua-Secure 与校内 VPN、服务器掉线怎么排查，以及那些「玄学」问题的成因。
 stage: ['本科高年级', '研究生', '全阶段']
 tags: ['网络', '工具', '命令行', '科研']
-authors: ['本站编辑整理']
+authors: ['Nathan Penny']
 status: draft
 summary: 给要跑服务器、用 Linux 或想搞清校园网机制的人：认证原理、命令行工具、常见疑难与边界。
 banner:

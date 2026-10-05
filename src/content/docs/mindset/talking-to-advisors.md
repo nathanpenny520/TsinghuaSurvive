@@ -3,7 +3,7 @@ title: 怎么和老师、导师、辅导员沟通
 description: 三类人各管什么、邮件怎么写、什么时候该问，以及为什么"不敢问"是最贵的成本。
 stage: ['全阶段']
 tags: ['沟通', '导师', '辅导员', '心态']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: stable
 summary: 三类求助对象的分工，以及一套可以直接套用的沟通方式。
 sidebar:

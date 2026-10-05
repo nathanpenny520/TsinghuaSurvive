@@ -3,7 +3,7 @@ title: 校园网、流量与镜像加速
 description: 连不上校园网时的排查顺序、国际流量是怎么算的、以及把 pip/npm/conda 换到国内镜像把下载速度提上去。
 stage: ['本科新生', '本科低年级', '全阶段']
 tags: ['网络', '工具', '生活', '新生']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: draft
 summary: 校园网接入、WebVPN、国际流量的概念，以及换镜像源把下载速度提上去的具体做法。
 banner:

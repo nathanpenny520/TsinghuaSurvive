@@ -3,7 +3,7 @@ title: 时间与精力管理
 description: 不是教你做计划表，而是讲清楚为什么"很忙但没产出"，以及怎么改。
 stage: ['全阶段']
 tags: ['时间管理', '心态', '方法']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: stable
 summary: 精力比时间更稀缺，学期节奏比每日计划更重要。
 sidebar:

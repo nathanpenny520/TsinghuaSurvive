@@ -3,7 +3,7 @@ title: 版本管理与校内 GitLab
 description: 为什么大学生一定会用到 Git、十条命令的最小集合、校内 GitLab 和 GitHub 各自适合放什么。
 stage: ['全阶段', '本科低年级']
 tags: ['工具', '协作', '方法']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: draft
 summary: Git 到底解决什么问题、最少要会哪几条命令、代码放校内还是放 GitHub。
 banner:

@@ -3,7 +3,7 @@ title: 数据处理与画图
 description: Excel 什么时候够用、Python 和 MATLAB 怎么分工，以及实验报告和论文里画图的硬规则。
 stage: ['全阶段', '本科低年级']
 tags: ['科研', '工具', '方法']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: stable
 summary: 什么时候用 Excel、什么时候换工具，以及一张能被看懂的图要满足什么。
 sidebar:

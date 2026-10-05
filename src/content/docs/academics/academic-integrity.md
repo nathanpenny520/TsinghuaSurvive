@@ -3,7 +3,7 @@ title: 作业、引用与 AI：学术规范的边界
 description: 引用和抄袭差在哪、实验报告与代码作业的红线、AI 工具能做什么不能做什么，以及一份提交前的自查清单。
 stage: ['全阶段']
 tags: ['学术规范', '引用', 'AI', '方法']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: stable
 summary: 三类作业场景的能做与不能做、AI 的使用边界，和一份提交前自查清单。
 banner:

@@ -3,7 +3,7 @@ title: 军训生存指南
 description: 防晒、脚、喝水、中暑信号，以及军训其实是认识同学最好的窗口期。
 stage: ['本科新生']
 tags: ['新生', '军训', '生活']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: draft
 summary: 防晒、护脚、补水和中暑信号，以及别在军训期间硬撑。
 banner:

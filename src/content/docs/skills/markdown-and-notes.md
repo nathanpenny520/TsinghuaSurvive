@@ -3,7 +3,7 @@ title: Markdown 与笔记系统
 description: 语法最小集、笔记工具怎么选、上课记笔记的实际做法，以及导出与备份的硬规矩。
 stage: ['全阶段', '本科低年级']
 tags: ['工具', '方法', '学习']
-authors: ['待补充']
+authors: ['Nathan Penny']
 status: stable
 summary: Markdown 该学哪几条语法、笔记工具怎么选、怎么保证五年后还打得开。
 sidebar:
