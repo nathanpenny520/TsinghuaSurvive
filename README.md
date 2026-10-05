@@ -97,7 +97,7 @@ Tsinghua-guide/
 ├─ content-policy.json     ★ 时效阈值（看门狗与检查脚本共用，避免两边漂移）
 ├─ src/
 │  ├─ content.config.ts    ★ 内容模型（frontmatter 校验规则）
-│  ├─ content/docs/        ★ 全部文章，一个文件一页（start / freshman / academics / courses / research / campus / mindset / guides）
+│  ├─ content/docs/        ★ 全部文章，一个文件一页（start / freshman / academics / courses / research / campus / mindset / skills / publicity / guides）
 │  ├─ pages/               自定义路由：stages、tags、courses（索引 + 书目）、changelog、contributors、rss.xml
 │  ├─ components/          ★ Banner（时效看门狗）、Head（JSON-LD）、LinkGrid、ToolDirectory、CourseExplorer、Checklist、CreditPlanner、SelectionWorkbench…
 │  ├─ data/                ★ 手改的数据：links.ts、resources.ts、tools.ts、archives.ts；脚本产物：link-status.json、course-index.json

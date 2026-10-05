@@ -275,6 +275,14 @@ collections:
     slug: *doc-slug
     fields: *doc-fields
 
+  - name: publicity
+    label: 宣传与传播
+    label_singular: 宣传与传播文章
+    folder: src/content/docs/publicity
+    extension: md
+    slug: *doc-slug
+    fields: *doc-fields
+
   # ── 含组件的页面（.mdx）──────────────────────────────────────────────
   #
   # 为什么单独列出来：一个集合只能对应一种扩展名（官方文档明确：CMS 只列出配置里那一种扩展名
@@ -306,6 +314,15 @@ collections:
     extension: mdx
     slug: *doc-slug
     description: ⚠️ 板块索引页，含组件。
+    fields: *doc-fields
+
+  - name: publicity-mdx
+    label: 宣传与传播（板块首页）
+    label_singular: 宣传与传播（组件页）
+    folder: src/content/docs/publicity
+    extension: mdx
+    slug: *doc-slug
+    description: ⚠️ 板块索引页。这一板块不通往个人署名与素材出处，别在正文里补上分享者姓名。
     fields: *doc-fields
 
   - name: courses-mdx

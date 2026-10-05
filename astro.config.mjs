@@ -99,6 +99,10 @@ export default defineConfig({
           items: [{ autogenerate: { directory: 'skills' } }],
         },
         {
+          label: '宣传与传播',
+          items: [{ autogenerate: { directory: 'publicity' } }],
+        },
+        {
           label: '科研与深造',
           items: [{ autogenerate: { directory: 'research' } }],
         },
