@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>AI 问答配置 · 清华生存指南</title>
+    <!--
+      AI 问答的**密钥与运行时配置**后台。
+
+      为什么单独开一个页面，而不放进 Sveltia CMS（/admin/）：
+        这个页面要填第三方大模型的 API Key。CMS 的每一次保存都是往 public 仓库推一个 commit，
+        密钥一旦进去就等于公开，永远删不干净（历史的 blob 会被 fork、被缓存）。
+        所以密钥完全不走 git：这里的表单直接调 Worker 的 /api/admin/key，
+        Worker 加密后存进 Durable Object，浏览器只拿得到一个指纹。
+
+      保护方式：ADMIN_TOKEN（Worker Secret），用定长时间比较校验。
+        ⚠️ 强烈建议再叠一层 Cloudflare Access（Zero Trust，免费档 50 席），
+           把 /admin/ai/ 限制到自己的邮箱。口令能防爆破，防不住被钓鱼。
+
+      页面本身是公开的静态文件——这不重要，因为它不含任何密钥，
+      而每一条接口调用都需要口令。真正的秘密只在 Worker Secret 与 Durable Object 的密文里。
+    -->
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #16171d;
+        --panel: #1c1d24;
+        --line: #33363f;
+        --accent: #c17ae8;
+        --text: #e5e5e5;
+        --muted: #9a9aa5;
+        --ok: #6ee7a8;
+        --warn: #f0b46b;
+        --err: #f08a8a;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 2rem 1.25rem 4rem;
+        background: var(--bg);
+        color: var(--text);
+        font: 15px/1.7 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
+      }
+      main { max-width: 46rem; margin: 0 auto; }
+      h1 { font-size: 1.4rem; margin: 0 0 0.25rem; }
+      h2 { font-size: 1.05rem; margin: 2rem 0 0.6rem; }
+      p.lead { color: var(--muted); margin-top: 0; }
+      section {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 0.7rem;
+        padding: 1.1rem 1.2rem;
+        margin-top: 1rem;
+      }
+      label { display: block; margin-top: 0.85rem; font-size: 0.9rem; color: var(--muted); }
+      input, select, textarea {
+        width: 100%;
+        margin-top: 0.3rem;
+        padding: 0.55rem 0.7rem;
+        background: #12131a;
+        color: var(--text);
+        border: 1px solid var(--line);
+        border-radius: 0.45rem;
+        font: inherit;
+      }
+      textarea { min-height: 4.5rem; resize: vertical; }
+      button {
+        margin-top: 1rem;
+        padding: 0.6rem 1.1rem;
+        font: inherit;
+        font-weight: 600;
+        color: #16171d;
+        background: var(--accent);
+        border: 0;
+        border-radius: 0.5rem;
+        cursor: pointer;
+      }
+      button.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+      button:disabled { opacity: 0.5; cursor: progress; }
+      .row { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: flex-end; }
+      .row > * { flex: 1 1 12rem; }
+      .status { margin-top: 1rem; padding: 0.7rem 0.85rem; border-radius: 0.5rem; border: 1px solid var(--line); font-size: 0.9rem; white-space: pre-wrap; }
+      .status[data-kind='ok'] { border-color: var(--ok); color: var(--ok); }
+      .status[data-kind='warn'] { border-color: var(--warn); color: var(--warn); }
+      .status[data-kind='err'] { border-color: var(--err); color: var(--err); }
+      .hint { color: var(--muted); font-size: 0.85rem; margin: 0.4rem 0 0; }
+      code { background: #12131a; padding: 0.1rem 0.35rem; border-radius: 0.25rem; font-size: 0.9em; }
+      .kv { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 0.9rem; font-size: 0.9rem; }
+      .kv dt { color: var(--muted); }
+      .kv dd { margin: 0; }
+      a { color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>AI 问答配置</h1>
+      <p class="lead">
+        这里填的是<strong>不能进仓库</strong>的东西：第三方大模型的 API Key，以及临时覆盖用的运行时配置。
+        密钥由 Worker 用 AES-GCM 加密后存进 Durable Object，页面只能看到指纹。
+      </p>
+
+      <section>
+        <h2 style="margin-top: 0">1. 口令</h2>
+        <label>
+          管理口令（Worker Secret <code>ADMIN_TOKEN</code>）
+          <input type="password" id="token" autocomplete="current-password" placeholder="粘贴口令后点连接" />
+        </label>
+        <div class="row">
+          <button id="connect" type="button">连接并读取当前状态</button>
+          <button id="forget" class="ghost" type="button">清除本机保存的口令</button>
+        </div>
+        <p class="hint">
+          口令只存在这台浏览器的 localStorage，不会写进仓库。换设备需要重新粘贴。
+        </p>
+        <div class="status" id="status" data-kind="warn">未连接。</div>
+      </section>
+
+      <section>
+        <h2 style="margin-top: 0">2. 第三方模型</h2>
+        <p class="hint">
+          想用第三方模型时：先在后台「站点配置 → AI 问答」里把 <code>provider</code> 改成
+          <code>openai-compatible</code>，再来这里填地址、模型名和 Key。<br />
+          只选一个供应商的话，直接改下面的下拉框即可——它会作为运行时覆盖立即生效，不需要重新部署。
+        </p>
+        <div class="row">
+          <div>
+            <label>供应商预设
+              <select id="preset"></select>
+            </label>
+          </div>
+          <div>
+            <label>接口地址（写到 /v1 为止）
+              <input id="base_url" placeholder="https://api.deepseek.com/v1" />
+            </label>
+          </div>
+          <div>
+            <label>模型名
+              <input id="model_external" placeholder="deepseek-chat" />
+            </label>
+          </div>
+        </div>
+        <label>
+          API Key（只写不回显；留空表示不改动已保存的 Key）
+          <input type="password" id="apiKey" placeholder="sk-…" autocomplete="off" />
+        </label>
+        <label>
+          要启用的供应商
+          <select id="provider">
+            <option value="workers-ai">Cloudflare Workers AI（免费额度，不需要 Key）</option>
+            <option value="openai-compatible">第三方 OpenAI 兼容接口（需要 Key）</option>
+          </select>
+        </label>
+        <div class="row">
+          <div>
+            <label>温度（0.2 = 照材料回答）
+              <input id="temperature" type="number" min="0" max="1" step="0.1" value="0.2" />
+            </label>
+          </div>
+          <div>
+            <label>回答最长 tokens
+              <input id="max_tokens" type="number" min="100" max="2000" value="700" />
+            </label>
+          </div>
+        </div>
+        <label>
+          系统提示词追加（可选）
+          <textarea id="system_prompt_extra" placeholder="留空即可。主体提示词不允许在这里改。"></textarea>
+        </label>
+        <div class="row">
+          <button id="save" type="button">保存</button>
+          <button id="test" class="ghost" type="button">测试连接</button>
+          <button id="reset" class="ghost" type="button">清空运行时覆盖（回到 YAML 配置）</button>
+        </div>
+        <p class="hint">
+          这里保存的值会<strong>覆盖</strong> <code>ai.config.yml</code>，适合临时试模型；
+          确定下来之后请改 YAML 并提交，让配置有版本、有评审、有预览。
+        </p>
+      </section>
+
+      <section>
+        <h2 style="margin-top: 0">3. 当前状态</h2>
+        <dl class="kv" id="state"><dt>—</dt><dd>尚未读取</dd></dl>
+        <p class="hint">
+          每日回答额度按 UTC 日期归零（与 Cloudflare 免费额度的重置时间一致）。
+          额度用尽后站点会降级成「只给相关文章链接」。
+        </p>
+      </section>
+
+      <p class="hint">
+        返回 <a href="/admin/">内容后台</a> · <a href="/ask/">站内问答</a>
+      </p>
+    </main>
+
+    <script>
+      /**
+       * 供应商预设。放在前端而不是 Worker 里：它纯粹是这个表单的便利选项，
+       * 任何 OpenAI 兼容接口都能用（选「自定义」自己填）。放前端就不必让 Worker 认识这些名字。
+       */
+      const PRESETS = [
+        { label: '选择预设…', base_url: '', model: '' },
+        { label: 'DeepSeek', base_url: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
+        { label: '智谱 GLM', base_url: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4-flash' },
+        { label: 'Moonshot Kimi', base_url: 'https://api.moonshot.cn/v1', model: 'moonshot-v1-8k' },
+        { label: '阿里云百炼（通义）', base_url: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-plus' },
+        { label: 'OpenRouter', base_url: 'https://openrouter.ai/api/v1', model: 'deepseek/deepseek-chat' },
+      ];
+
+      const TOKEN_KEY = 'tsinghua-guide.ai-admin-token';
+      const $ = (id) => document.getElementById(id);
+      const statusBox = $('status');
+
+      function setStatus(text, kind) {
+        statusBox.textContent = text;
+        statusBox.dataset.kind = kind || 'warn';
+      }
+
+      function token() {
+        return localStorage.getItem(TOKEN_KEY) || $('token').value.trim();
+      }
+
+      async function api(path, options = {}) {
+        const response = await fetch(path, {
+          ...options,
+          headers: {
+            'content-type': 'application/json',
+            authorization: `Bearer ${token()}`,
+            ...(options.headers || {}),
+          },
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || payload.message || `HTTP ${response.status}`);
+        return payload;
+      }
+
+      function fill(payload) {
+        const { config, status } = payload;
+        const overrides = status?.overrides || {};
+        $('provider').value = overrides.provider || config.answer.provider;
+        $('base_url').value = overrides.base_url || config.answer.base_url || '';
+        $('model_external').value = overrides.model_external || config.answer.model_external || '';
+        $('temperature').value = overrides.temperature ?? config.answer.temperature;
+        $('max_tokens').value = overrides.max_tokens ?? config.answer.max_tokens;
+        $('system_prompt_extra').value = overrides.system_prompt_extra || '';
+
+        const rows = [
+          ['YAML 里的供应商', config.answer.provider],
+          ['YAML 里的模型', config.answer.model || config.answer.model_external || '—'],
+          ['运行时覆盖', Object.keys(overrides).length ? Object.entries(overrides).map(([k, v]) => `${k}=${v}`).join('，') : '（无）'],
+          ['第三方 Key', status?.hasKey ? `已配置（指纹 ${status.keyFingerprint}）` : '未配置'],
+          ['能否保存 Key', status?.canStoreKey ? '可以（CONFIG_ENC_KEY 已设置）' : '不可以：Worker 缺 CONFIG_ENC_KEY'],
+          ['今日已用额度', `${status?.budgetUsedToday ?? 0} / ${config.limits.daily_answers}`],
+          ['人机校验', `${config.turnstile.mode}${config.turnstile.sitekey ? '' : '（sitekey 未配置）'}`],
+        ];
+        $('state').innerHTML = rows
+          .map(([key, value]) => `<dt>${key}</dt><dd>${String(value).replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c])}</dd>`)
+          .join('');
+      }
+
+      async function refresh() {
+        setStatus('正在读取…', 'warn');
+        try {
+          const payload = await api('/api/admin/status');
+          fill(payload);
+          setStatus('已连接。', 'ok');
+          $('save').disabled = false;
+          $('test').disabled = false;
+          $('reset').disabled = false;
+        } catch (error) {
+          setStatus(`连接失败：${error.message}`, 'err');
+        }
+      }
+
+      async function save() {
+        setStatus('正在保存…', 'warn');
+        try {
+          const apiKey = $('apiKey').value.trim();
+          if (apiKey) await api('/api/admin/key', { method: 'PUT', body: JSON.stringify({ apiKey }) });
+          $('apiKey').value = '';
+          await api('/api/admin/config', {
+            method: 'PUT',
+            body: JSON.stringify({
+              provider: $('provider').value,
+              base_url: $('base_url').value.trim(),
+              model_external: $('model_external').value.trim(),
+              temperature: Number($('temperature').value),
+              max_tokens: Number($('max_tokens').value),
+              system_prompt_extra: $('system_prompt_extra').value.trim(),
+            }),
+          });
+          await refresh();
+          setStatus('已保存。' + (apiKey ? '（密钥已加密存储）' : '（密钥未改动）'), 'ok');
+        } catch (error) {
+          setStatus(`保存失败：${error.message}`, 'err');
+        }
+      }
+
+      async function reset() {
+        setStatus('正在清空…', 'warn');
+        try {
+          await api('/api/admin/config', { method: 'PUT', body: JSON.stringify({}) });
+          await refresh();
+          setStatus('已清空运行时覆盖，回到 YAML 里的配置。', 'ok');
+        } catch (error) {
+          setStatus(`清空失败：${error.message}`, 'err');
+        }
+      }
+
+      async function test() {
+        setStatus('正在测试（最长 60 秒）…', 'warn');
+        try {
+          const result = await api('/api/admin/test', { method: 'POST', body: '{}' });
+          setStatus(result.ok ? `连接正常，模型回复：${result.reply}` : `连接失败：${result.message}`, result.ok ? 'ok' : 'err');
+        } catch (error) {
+          setStatus(`连接失败：${error.message}`, 'err');
+        }
+      }
+
+      // 预设下拉：只填地址和模型名，不覆盖已填的 Key
+      const presetSelect = $('preset');
+      presetSelect.innerHTML = PRESETS.map((preset, index) => `<option value="${index}">${preset.label}</option>`).join('');
+      presetSelect.addEventListener('change', () => {
+        const preset = PRESETS[Number(presetSelect.value)];
+        if (!preset || !preset.base_url) return;
+        $('base_url').value = preset.base_url;
+        $('model_external').value = preset.model;
+        $('provider').value = 'openai-compatible';
+      });
+
+      $('connect').addEventListener('click', () => {
+        const value = $('token').value.trim();
+        if (value) localStorage.setItem(TOKEN_KEY, value);
+        refresh();
+      });
+      $('forget').addEventListener('click', () => {
+        localStorage.removeItem(TOKEN_KEY);
+        $('token').value = '';
+        setStatus('已清除本机保存的口令。', 'warn');
+      });
+      $('save').addEventListener('click', save);
+      $('test').addEventListener('click', test);
+      $('reset').addEventListener('click', reset);
+
+      ['save', 'test', 'reset'].forEach((id) => {
+        $(id).disabled = true;
+      });
+      if (localStorage.getItem(TOKEN_KEY)) refresh();
+    </script>
+  </body>
+</html>

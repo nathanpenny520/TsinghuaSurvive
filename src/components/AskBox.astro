@@ -1,0 +1,408 @@
+---
+/**
+ * 站内 AI 问答的界面。
+ *
+ * 三件事刻意写在这里，而不是散在页面里：
+ *   1. **服务端渲染的只是外壳**：配置（示例问题、字数上限、Turnstile sitekey）在加载时
+ *      从 /api/ai-config 取。这样后台改了配置不需要重新构建页面。
+ *   2. **人机校验的挂件用显式渲染**（不是 `.cf-turnstile` 自动渲染）：
+ *      Turnstile 的 token 是**一次性的**，答完一次必须 reset，否则用户问第二个问题时
+ *      会一直收到 403。显式渲染才能拿到 widgetId 去 reset。
+ *   3. **回答是按行 JSON（NDJSON）**流式读回来的，不是 SSE：
+ *      浏览器按行 split 就行，出错时也能在流中间收到一条 error 而不是断流。
+ *
+ * 安全：模型输出**一律当成不可信文本**——先转义，再只对我们自己生成的引用角标插 HTML。
+ * 回答里出现 HTML 标签或 Markdown 标记时，它只会被原样显示成文字。
+ *
+ * ⚠️ 脚本里的闭合标签写成 `<\/a>` 这种形式（JS 里 `\/` 就是 `/`，运行时完全等价）：
+ *    Astro 的编译器扫描脚本边界时会被字面的 `</a>` 之类的序列干扰，把脚本截断，
+ *    然后报出「unterminated regex literal」这种看不出所以然的错。脚本里一律用转义写法。
+ */
+---
+
+<section class="askbox" data-askbox aria-label="站内 AI 问答">
+  <form class="askbox__form" data-askbox-form>
+    <label class="sr-only" for="askbox-input">你的问题</label>
+    <input
+      id="askbox-input"
+      class="askbox__input"
+      data-askbox-input
+      type="text"
+      autocomplete="off"
+      enterkeyhint="send"
+      placeholder="例如：绩点是怎么算的？"
+      disabled
+    />
+    <button class="askbox__submit" data-askbox-submit type="submit" disabled>提问</button>
+  </form>
+
+  <div class="askbox__examples" data-askbox-examples hidden></div>
+  <div class="askbox__turnstile" data-askbox-turnstile></div>
+  <p class="askbox__status" data-askbox-status role="status" aria-live="polite">正在加载…</p>
+
+  <div class="askbox__result" data-askbox-result hidden>
+    <p class="askbox__badge">AI 生成 · 依据站内文章，可能出错，请对照原文</p>
+    <div class="askbox__answer" data-askbox-answer></div>
+    <div class="askbox__sources" data-askbox-sources></div>
+  </div>
+
+  <noscript>
+    <p>问答需要 JavaScript。站内搜索（按 <kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>K</kbd>）不需要。</p>
+  </noscript>
+</section>
+
+<script>
+  /** 后端 /api/ai-config 的返回形状 */
+  interface AiConfig {
+    enabled: boolean;
+    turnstileSiteKey: string;
+    turnstileMode: 'enforce' | 'off';
+    turnstileAction: string;
+    maxQuestionChars: number;
+    ui?: { title?: string; placeholder?: string; examples?: string[] };
+  }
+
+  /** 引用卡片 */
+  interface Source {
+    n: number;
+    title: string;
+    path: string;
+    url: string;
+    anchor: string | null;
+    status: string;
+  }
+
+  /** NDJSON 里的每一行 */
+  interface AskEvent {
+    type: string;
+    text?: string;
+    message?: string;
+    sources?: Source[];
+  }
+
+  /** Turnstile 的全局对象。官方没有提供类型包，这里只声明用到的那两个方法。 */
+  interface TurnstileApi {
+    render: (element: Element, options: Record<string, unknown>) => string;
+    reset: (widgetId: string) => void;
+  }
+
+  const root = document.querySelector<HTMLElement>('[data-askbox]');
+
+  if (root) {
+    const form = root.querySelector<HTMLFormElement>('[data-askbox-form]');
+    const input = root.querySelector<HTMLInputElement>('[data-askbox-input]');
+    const submit = root.querySelector<HTMLButtonElement>('[data-askbox-submit]');
+    const examples = root.querySelector<HTMLElement>('[data-askbox-examples]');
+    const turnstileSlot = root.querySelector<HTMLElement>('[data-askbox-turnstile]');
+    const status = root.querySelector<HTMLElement>('[data-askbox-status]');
+    const result = root.querySelector<HTMLElement>('[data-askbox-result]');
+    const answer = root.querySelector<HTMLElement>('[data-askbox-answer]');
+    const sourcesBox = root.querySelector<HTMLElement>('[data-askbox-sources]');
+
+    const turnstile = (): TurnstileApi | undefined =>
+      (window as unknown as { turnstile?: TurnstileApi }).turnstile;
+
+    let config: AiConfig | null = null;
+    let token: string | null = null;
+    let widgetId: string | null = null;
+    let busy = false;
+    let sources: Source[] = [];
+
+    const setStatus = (text: string, kind = '') => {
+      if (!status) return;
+      status.textContent = text || '';
+      status.hidden = !text;
+      status.dataset.kind = kind;
+    };
+
+    const escapeHtml = (text: string) =>
+      text.replace(/[&<>"']/g, (char) => {
+        const map: Record<string, string> = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;',
+        };
+        return map[char] ?? char;
+      });
+
+    /** 引用卡片与正文角标的链接。锚点是中文 id，做一次 percent-encode 才能在 href 里安全使用。 */
+    const hrefOf = (source: Source) =>
+      `${source.url}${source.anchor ? `#${encodeURIComponent(source.anchor)}` : ''}`;
+
+    /**
+     * 把模型输出的纯文本渲染成 HTML。
+     * 顺序很重要：**先转义整段文本，再把 `[n]` 换成我们生成的链接**。
+     * 反过来做就等于把模型输出当 HTML 执行了。
+     */
+    function renderAnswer(text: string) {
+      if (!answer) return;
+      const byNumber = new Map(sources.map((source) => [String(source.n), source]));
+      answer.innerHTML = escapeHtml(text).replace(/\[(\d{1,2})\]/g, (match, number: string) => {
+        const source = byNumber.get(number);
+        if (!source) return match;
+        return `<a class="askbox__cite" href="${hrefOf(source)}" title="${escapeHtml(source.title)}">[${number}]<\/a>`;
+      });
+    }
+
+    function renderSources(list: Source[] | undefined) {
+      sources = Array.isArray(list) ? list : [];
+      if (!sourcesBox) return;
+      if (!sources.length) {
+        sourcesBox.hidden = true;
+        return;
+      }
+      sourcesBox.hidden = false;
+      sourcesBox.innerHTML = sources
+        .map((source) => {
+          const badge =
+            source.status === 'outdated'
+              ? '<span class="guide-tag guide-tag--warn">可能已过期<\/span>'
+              : source.status === 'draft'
+                ? '<span class="guide-tag">待核对<\/span>'
+                : '';
+          const where = source.path ? `<span class="askbox__where">${escapeHtml(source.path)}<\/span>` : '';
+          return `<a class="askbox__source" href="${hrefOf(source)}">
+            <span class="askbox__source-n">[${source.n}]<\/span>
+            <span class="askbox__source-title">${escapeHtml(source.title)}<\/span>
+            ${where}
+            ${badge}
+          <\/a>`;
+        })
+        .join('');
+    }
+
+    function renderExamples(list: string[] | undefined) {
+      if (!examples) return;
+      if (!Array.isArray(list) || !list.length) {
+        examples.hidden = true;
+        return;
+      }
+      examples.hidden = false;
+      examples.innerHTML = list
+        .map(
+          (item) =>
+            `<button type="button" class="askbox__example" data-askbox-example>${escapeHtml(item)}<\/button>`,
+        )
+        .join('');
+    }
+
+    function setBusy(value: boolean) {
+      busy = value;
+      if (submit) {
+        submit.disabled = value;
+        submit.textContent = value ? '回答中…' : '提问';
+      }
+      if (input) input.disabled = value;
+    }
+
+    /**
+     * 加载 Turnstile 的 api.js（只加载一次）。
+     * 用 render=explicit：需要拿到 widgetId 才能在一次提问之后 reset——
+     * token 是一次性的，不 reset 的话第二个问题必然 403。
+     */
+    function loadTurnstile(): Promise<void> {
+      if (turnstile()) return Promise.resolve();
+      return new Promise((resolve, reject) => {
+        const element = document.createElement('script');
+        element.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+        element.async = true;
+        element.defer = true;
+        element.onload = () => resolve();
+        element.onerror = () => reject(new Error('turnstile script failed'));
+        document.head.append(element);
+      });
+    }
+
+    async function init() {
+      if (!input || !submit) return;
+      try {
+        const response = await fetch('/api/ai-config', { headers: { accept: 'application/json' } });
+        config = (await response.json()) as AiConfig;
+      } catch {
+        setStatus('问答服务暂时连不上。可以先试试站内搜索（⌘/Ctrl + K）。', 'error');
+        return;
+      }
+
+      if (!config.enabled) {
+        setStatus('站内问答当前未开放。', 'error');
+        return;
+      }
+
+      input.maxLength = config.maxQuestionChars || 200;
+      if (config.ui?.placeholder) input.placeholder = config.ui.placeholder;
+      // 这里用可选调用：`root` 的非空收窄不会穿透到函数声明内部（函数声明会被提升）
+      if (config.ui?.title) root?.setAttribute('aria-label', config.ui.title);
+      renderExamples(config.ui?.examples);
+
+      if (config.turnstileMode === 'enforce') {
+        if (!config.turnstileSiteKey) {
+          // fail-closed 的前端表现：界面里说清楚，后端同样会拒绝（见 src/worker/turnstile.js）
+          setStatus('问答还没配置好人机校验，暂时不可用。', 'error');
+          return;
+        }
+        try {
+          await loadTurnstile();
+        } catch {
+          setStatus('人机校验加载失败（可能是网络受限）。可以先试试站内搜索（⌘/Ctrl + K）。', 'error');
+          return;
+        }
+        const api = turnstile();
+        if (!api || !turnstileSlot) {
+          setStatus('人机校验初始化失败，请刷新页面重试。', 'error');
+          return;
+        }
+        widgetId = api.render(turnstileSlot, {
+          sitekey: config.turnstileSiteKey,
+          action: config.turnstileAction || 'ask',
+          // managed 模式默认会渲染一个「成功!」的小方框，白占约 65px 高 ——
+          // 在首页那种「首屏寸土寸金」的地方会把三张卡片挤到折叠线以下。
+          // interaction-only：只有真的需要用户点一下时才显示，正常访问完全隐形。
+          appearance: 'interaction-only',
+          callback: (value: string) => {
+            token = value;
+          },
+          'expired-callback': () => {
+            token = null;
+          },
+          'error-callback': () => {
+            token = null;
+          },
+        });
+      }
+
+      setStatus('');
+      input.disabled = false;
+      submit.disabled = false;
+    }
+
+    /** 逐行读 NDJSON 并分发 */
+    async function consume(response: Response) {
+      const reader = response.body?.getReader();
+      if (!reader) {
+        setStatus('浏览器不支持流式读取，请换个浏览器再试。', 'error');
+        return;
+      }
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let text = '';
+
+      const handle = (line: string) => {
+        if (!line) return;
+        let payload: AskEvent;
+        try {
+          payload = JSON.parse(line) as AskEvent;
+        } catch {
+          return;
+        }
+        switch (payload.type) {
+          case 'sources':
+            renderSources(payload.sources);
+            if (result) result.hidden = false;
+            break;
+          case 'delta':
+            text += payload.text ?? '';
+            renderAnswer(text);
+            break;
+          case 'notice':
+            // 降级：不做生成，只给最相关的几篇。仍然是有用的结果，所以按正常结果展示
+            renderSources(payload.sources);
+            if (result) result.hidden = false;
+            if (answer) answer.innerHTML = `<em>${escapeHtml(payload.message ?? '')}<\/em>`;
+            setStatus('');
+            break;
+          case 'error':
+            setStatus(payload.message || '出错了，请稍后再试。', 'error');
+            break;
+          case 'done':
+            setStatus('');
+            break;
+          default:
+            break; // ping 等心跳忽略
+        }
+      };
+
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let index = buffer.indexOf('\n');
+        while (index >= 0) {
+          handle(buffer.slice(0, index).trim());
+          buffer = buffer.slice(index + 1);
+          index = buffer.indexOf('\n');
+        }
+      }
+      handle(buffer.trim());
+    }
+
+    async function ask(question: string) {
+      if (busy || !question || !config) return;
+      if (config.turnstileMode === 'enforce' && !token) {
+        setStatus('人机校验还没完成，稍等一下再点一次。', 'error');
+        return;
+      }
+
+      setBusy(true);
+      setStatus('正在检索站内文章…');
+      if (answer) answer.textContent = '';
+      if (sourcesBox) sourcesBox.innerHTML = '';
+      if (result) result.hidden = false;
+
+      try {
+        const response = await fetch('/api/ask', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ question, token }),
+        });
+        const type = response.headers.get('content-type') ?? '';
+        if (!type.includes('ndjson')) {
+          // 非流式（参数错误、风控拒绝、服务异常）也返回 JSON，直接当一行处理
+          const payload = (await response.json().catch(() => null)) as AskEvent | null;
+          if (payload?.type === 'notice') {
+            renderSources(payload.sources);
+            if (result) result.hidden = false;
+            if (answer) answer.innerHTML = `<em>${escapeHtml(payload.message ?? '')}<\/em>`;
+            setStatus('');
+          } else {
+            setStatus(payload?.message || '出错了，请稍后再试。', 'error');
+          }
+          return;
+        }
+        await consume(response);
+      } catch {
+        setStatus('网络出错了，请稍后再试。', 'error');
+      } finally {
+        setBusy(false);
+        // token 一次性：无论成功失败都要换一个新的，否则下一次提交必然 403
+        token = null;
+        const api = turnstile();
+        if (widgetId !== null && api) {
+          try {
+            api.reset(widgetId);
+          } catch {
+            /* 挂件可能已经被移除，忽略 */
+          }
+        }
+      }
+    }
+
+    form?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!input) return;
+      const question = input.value.trim();
+      if (!question) return;
+      void ask(question);
+    });
+
+    examples?.addEventListener('click', (event) => {
+      const button = (event.target as HTMLElement | null)?.closest<HTMLElement>('[data-askbox-example]');
+      if (!button || !input) return;
+      input.value = button.textContent ?? '';
+      void ask(input.value.trim());
+    });
+
+    void init();
+  }
+</script>

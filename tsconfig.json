@@ -10,6 +10,11 @@
     ".npm-cache",
     ".wrangler",
     ".wrangler-logs",
+    // 本地参考资料库（十几 GB，已在 .gitignore 里，CI 上没有）。
+    // 2026-10-05 从 reference/ 改名为 materials/ 时这里漏改了，
+    // 结果是本地 `npm run check` 会被里面几千个无关的 .ts 文件刷爆，
+    // 而 CI 上一切正常 —— 本地和 CI 的检查结果不一致比不检查更糟。
+    "materials",
     "reference",
     "scripts/gen"
   ]

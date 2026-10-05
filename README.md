@@ -53,10 +53,20 @@
 | **加一份可下载资料** | `src/data/resources.ts` | `url` 填网盘链接、`code` 填提取码；**文件本体不要进仓库**，只放外链 |
 | **加一个第三方工具** | `src/data/tools.ts` | `status`（活跃 / 不活跃 / 已停止 / 未核实）+ `access`（公网 / 校园网 / 需代理 / 未实测）。**状态栏抄上游项目页**，别凭印象写「活跃」——那一个字会被读成「可以放心用」 |
 | **加一门课 / 一个资料库** | `scripts/build-course-index.mjs` | 资料库目录变了就 `npm run courses` 重新生成并提交 `course-index.json` |
-| **改站内互动工具** | `src/components/` 的 `Checklist` / `CreditPlanner` / `SelectionWorkbench` | 数据只存浏览器 localStorage，**没有后端、不上传**。用 JS 二次渲染的组件**必须用 `is:global` 样式 + 前缀**，否则样式静默失效（见 HANDOVER §4） |
+| **改站内互动工具** | `src/components/` 的 `Checklist` / `CreditPlanner` / `SelectionWorkbench` | 数据只存浏览器 localStorage，**不上传**（站上唯一的后端是 AI 问答的 `/api/*`，与这些工具无关）。用 JS 二次渲染的组件**必须用 `is:global` 样式 + 前缀**，否则样式静默失效（见 HANDOVER §4） |
 | **课程书目 / 课程↔技能映射** | 自动派生 | `/courses/books/` 与技能页映射表都从 `course-index.json` 读，不用手写 |
 
-### 3. 检查与运维
+### 3. 站内问答与首页
+
+| 我想…… | 改哪里 | 怎么做 |
+| --- | --- | --- |
+| **换 AI 模型 / 改限额** | `src/data/ai.config.yml` | 后台「站点配置 → AI 问答」也能直接改。默认用 Workers AI（免费额度，不需要 Key）；改用第三方要先在 `/admin/ai/` 填 Key |
+| **临时试第三方模型** | `/admin/ai/` | 选预设、填 Key、保存——运行时覆盖**立即生效，不用重新部署**。口令是 Worker Secret `ADMIN_TOKEN` |
+| **改首页的入口卡片** | `src/content/docs/index.mdx` | 首屏是「三张处境大卡」+「按板块找」六组；信任条的数字是实时算的，不用手改 |
+| **改问答页的说明文字** | `src/content/docs/ask.mdx` | 正文里的 `<AskBox />` 是问答组件本身，**别删掉 import 那一行**（删了不报错，只是问答框消失） |
+| **调检索/提示词** | `src/worker/retrieval.js`、`ai-tokenize.mjs` | 改完**必须跑 `npm run check:ai`**：里面固化了 19 个真实提问的期望排序与拒答行为 |
+
+### 4. 检查与运维
 
 | 我想…… | 跑什么 | 说明 |
 | --- | --- | --- |
@@ -75,6 +85,7 @@
 | **日常开发** | `npm run dev` ｜ `npm run build` ｜ `npm run preview` ｜ `npm run check` | 本地写内容；`check` 是 `astro check` 类型检查 |
 | **最全自查** | `npm run verify` | **提 PR 前跑这个**（等于 `check:all` + 构建 + 四项产物校验） |
 | **内容检查** | `npm run check:content` ｜ `check:content:strict` | `strict` 连债务警告也当错误（发布前用） |
+| **AI 问答** | `npm run check:ai` ｜ `check:ai:worker` | 索引体积 / 覆盖度 / 锚点 + 19 个真实提问的排序自测；后者直接跑 Worker 入口（闸门、鉴权、流式、fail-closed，43 项） |
 | **后台与媒体** | `npm run check:admin` ｜ `check:media` ｜ `check:media:dist` ｜ `check:markup` | 字段漏声明、视频语法糖、产物与源码容器数是否一致、`**加粗**` 有没有被原样印到页面上 |
 | **课程索引** | `npm run courses` ｜ `courses:check` | 前者扫本地资料库（`materials/`，取不到回落 `reference/`）重新生成，后者只校验（CI 用） |
 | **链接** | `check:links` ｜ `verify:links [-- --apply]` ｜ `review:links [-- --open]` ｜ `review:links:apply -- <文件> [--write]` | 实测 → 语义核对 → 人工核对 |
@@ -93,7 +104,7 @@
 ```
 Tsinghua-guide/
 ├─ astro.config.mjs        站点配置：标题、侧边栏、SEO、视频语法糖处理器
-├─ wrangler.jsonc          正式站（Cloudflare Workers 静态资源）｜ wrangler.preview.jsonc 预览站
+├─ wrangler.jsonc          正式站（静态资源 + /api/* 问答接口）｜ wrangler.preview.jsonc 预览站
 ├─ content-policy.json     ★ 时效阈值（看门狗与检查脚本共用，避免两边漂移）
 ├─ src/
 │  ├─ content.config.ts    ★ 内容模型（frontmatter 校验规则）
@@ -101,14 +112,17 @@ Tsinghua-guide/
 │  ├─ pages/               自定义路由：stages、tags、courses（索引 + 书目）、changelog、contributors、rss.xml
 │  ├─ components/          ★ Banner（时效看门狗）、Head（JSON-LD）、LinkGrid、ToolDirectory、CourseExplorer、Checklist、CreditPlanner、SelectionWorkbench…
 │  ├─ data/                ★ 手改的数据：links.ts、resources.ts、tools.ts、archives.ts；脚本产物：link-status.json、course-index.json
-│  ├─ utils/               media-embed.mjs（`::bilibili` / `::video`）、card-text.ts（`**加粗**` → `<strong>`）
+│  ├─ worker/              ★ 唯一的后端：/api/ask（检索+生成+流式）、/api/ai-config、/api/admin/*
+│  ├─ utils/               media-embed.mjs（`::bilibili` / `::video`）、card-text.ts（`**加粗**` → `<strong>`）、ai-tokenize.mjs（构建期与运行时共用的分词）
 │  └─ styles/custom.css    清华紫主题 + 中文排版
 ├─ scripts/                检查与生成脚本（见上一节；每个脚本头部都写了「为什么存在」）
 ├─ public/admin/           ★ 站内后台（Sveltia CMS，纯静态；`config.yml` 是公开配置，不放任何密钥）
+│  └─ ai/                  ★ 第三方 API Key 的填写页（密钥不进 git，加密后存 Durable Object）
 ├─ materials/              ⚠️ 本地资料库：6 个公开资料库整理后的分类版本（约 13 GB，已删各库 .git），**已在 .gitignore 里，不进仓库**
 ├─ reference/              ⚠️ 整理前的旧位置（现已清空；脚本仍认它作兜底）
-├─ auth-worker/            OAuth 中转（第三个 Worker，不随主站 CI 部署）
+├─ auth-worker/            OAuth 中转（独立 Worker，不随主站 CI 部署）
 └─ 文档：HANDOVER / OUTLINE / REFERENCE-NOTES / CONTENT-EDITING-PLAN（见文末地图）
+                             AI 问答与首页改版的细节都在 HANDOVER 第 10、11 节
 ```
 
 日常写作只需要碰 `src/content/docs/`，加链接只碰 `src/data/`。
@@ -120,7 +134,7 @@ Tsinghua-guide/
 ```mermaid
 flowchart LR
   A["后台 / 本地 / 网页"] --> B["提交到分支 → PR"]
-  B --> C{"CI 十步<br/>check → content → admin → media<br/>→ courses:check → build<br/>→ jsonld → assets → markup<br/>→ feeds/media"}
+  B --> C{"CI 十二步<br/>check → content → admin → media<br/>→ courses:check → build<br/>→ ai → ai:worker<br/>→ jsonld → assets → markup<br/>→ feeds/media"}
   C -- "失败" --> D["PR 上留下注解：哪个文件、哪一行"]
   C -- "通过" --> E["预览站 preview.nathanpenny.fun"]
   E --> F["合并到 main"]
@@ -136,6 +150,8 @@ flowchart LR
 | `check:media` | 视频语法糖写错、外链图床、空 alt |
 | `courses:check` | `course-index.json` 与 `materials/`（或旧的 `reference/`）里的资料库不一致（两处都没有时自动跳过） |
 | `build` | frontmatter 字段错误（报错会指出文件名） |
+| `check:ai` | AI 索引体积超标（冷启动会吃掉免费档的 CPU 预算）、有页面漏进索引、引用锚点在页面里不存在、19 个真实提问的排序退步或该拒答的没拒 |
+| `check:ai:worker` | 闸门顺序（先限流后校验、都不消耗额度）、问题过长过短、无关提问不去问模型、流式分帧、后台鉴权、密钥不以明文落盘、Turnstile 六种 fail-closed 分支 |
 | `check:jsonld` | JSON-LD 语法、同页重复 `@type`、面包屑 position 不连续、署名是占位符 |
 | `check:assets` | 分享卡片尺寸不是 1200×630、文件为空、页面引用的图不存在 |
 | `check:markup` | `**加粗**` 紧贴全角标点（`**「图库」**`）导致标记不生效、星号被原样印在页面上；banner 里写 Markdown 加粗；卡片文案漏调 `descHtml()` |

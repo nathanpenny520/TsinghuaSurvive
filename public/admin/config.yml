@@ -398,3 +398,91 @@ collections:
         label: 怎么贡献一篇经验帖
         file: src/content/docs/contribute.mdx
         fields: *doc-fields
+
+      # ⚠️ 这一页的正文里嵌着问答组件（import 了 AskBox），文字随便改，
+      #    但不要删掉 import 那一行 —— 删了页面上的问答框就没了，而且构建不会报错。
+      #    （这里不能写 description：Sveltia 的官方 schema 不认单文件条目上的 description，
+      #      写了会被静默忽略，`check:admin` 会当成错误拦下来。）
+      - name: ask
+        label: 站内问答页
+        file: src/content/docs/ask.mdx
+        fields: *doc-fields
+
+  # ── 站点配置（单文件，非密钥）─────────────────────────────────────────
+  #
+  # 为什么单独一组：这一组改的不是文章，是**站点的行为开关**（用哪个模型、限流多少）。
+  #
+  # ⚠️ 这里**只能放非密钥配置**：仓库是 public，构建产物 ai-config.json 也是公开的。
+  #    `npm run build` 会扫描这个文件，出现 key / secret / token 这类字段名就直接失败
+  #    （见 scripts/build-ai-config.mjs 的密钥守卫）。
+  #    第三方 API Key 在 /admin/ai/ 那个页面里填，加密后存在 Durable Object 里，不进仓库。
+  #
+  # ⚠️ 字段必须**完整覆盖** ai.config.yml 里的每一个键（包括对象里的子键）：
+  #    后台保存时只会写回声明过的字段，漏一个就会在保存后悄悄消失。
+  #    `npm run check:admin` 会校验这一点。
+  - name: site-config
+    label: 站点配置
+    description: AI 问答的开关与限额。改完会走 PR + 预览 + CI，合并后 Worker 下次请求就读到新值。
+    files:
+      - name: ai
+        label: AI 问答
+        file: src/data/ai.config.yml
+        fields:
+          - { name: enabled, label: 启用站内问答, widget: boolean, default: true }
+
+          - name: answer
+            label: 模型
+            widget: object
+            fields:
+              - name: provider
+                label: 供应商
+                widget: select
+                options:
+                  - { label: 'Cloudflare Workers AI（免费额度，不需要 Key）', value: workers-ai }
+                  - { label: '第三方 OpenAI 兼容接口（Key 在 /admin/ai/ 填）', value: openai-compatible }
+              - { name: model, label: 'Workers AI 的模型名', widget: string }
+              - { name: base_url, label: '第三方接口地址（写到 /v1 为止）', widget: string, required: false }
+              - { name: model_external, label: '第三方模型名', widget: string, required: false }
+              - { name: temperature, label: 温度, widget: number, required: false, value_type: float, min: 0, max: 1, step: 0.1, hint: '0.2 = 照材料回答；调高会让它更爱自由发挥。' }
+              - { name: max_tokens, label: '回答最长 tokens', widget: number, required: false, min: 100, max: 2000 }
+              - { name: system_prompt_extra, label: '系统提示词追加（可选）', widget: text, required: false, hint: '主体提示词不在配置里：「只依据给定片段、不许编制度、必须给出处」是产品红线。' }
+              - { name: fallback_models, label: '兜底模型（依次尝试）', widget: list, required: false, default: [] }
+
+          - name: retrieval
+            label: 检索
+            widget: object
+            fields:
+              - { name: top_k, label: '交给模型的片段数', widget: number, min: 1, max: 10 }
+              - { name: max_per_url, label: '同一页最多取几块', widget: number, min: 1, max: 5 }
+              - { name: min_score, label: '最低相关度分（低于它直接拒答）', widget: number, min: 0, hint: '改动前先跑 npm run check:ai：里面有一组真实提问的排序自测。' }
+
+          - name: turnstile
+            label: 人机校验
+            widget: object
+            fields:
+              - name: mode
+                label: 模式
+                widget: select
+                options:
+                  - { label: 'enforce（必须校验，正式站用这个）', value: enforce }
+                  - { label: 'off（关闭，仅限本地开发）', value: off }
+              - { name: sitekey, label: 'Sitekey（公开值，可以进仓库）', widget: string, required: false }
+              - { name: action, label: '挂件 action', widget: string, required: false }
+              - { name: hostnames, label: '允许的前端域名', widget: list, required: false, default: [], hint: '留空则用 Worker 变量 TURNSTILE_HOSTNAMES。正式名单里绝不能有 localhost。' }
+
+          - name: limits
+            label: 额度与限流
+            widget: object
+            fields:
+              - { name: max_question_chars, label: '提问字数上限', widget: number, min: 10, max: 1000 }
+              - { name: per_ip_per_hour, label: '单 IP 每小时次数', widget: number, min: 1, max: 200 }
+              - { name: daily_answers, label: '全站每天回答上限', widget: number, min: 1, max: 5000, hint: '免费额度约 250 次/天，留余量后默认 200。' }
+              - { name: degrade_to_search, label: '额度用尽后降级为只给文章链接', widget: boolean, default: true }
+
+          - name: ui
+            label: 前端文案
+            widget: object
+            fields:
+              - { name: title, label: 标题, widget: string, required: false }
+              - { name: placeholder, label: '输入框提示文字', widget: string, required: false }
+              - { name: examples, label: 示例问题, widget: list, required: false, default: [], hint: '写真实的、有人真会问的问题，点一下就提问。' }

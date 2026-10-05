@@ -1,0 +1,57 @@
+---
+/**
+ * 首页的信任条：篇数 · 贡献者 · 最近核对日期 · 免责一行。
+ *
+ * 为什么单独做成组件、而不是把数字写死在首页的 Markdown 里：
+ *   首页上最容易变成谎话的就是这几个数字。写死之后，加十篇文章、换一批作者，
+ *   首页仍然写着「58 篇」——而没有任何检查会发现，因为构建不会因此失败。
+ *   这里全部从内容集合实时算出来，数字随内容自己变。
+ *
+ * 「最近核对」取所有文章 reviewedAt 的最大值：这是本站唯一能自证「有人在维护」的证据。
+ * 一篇文章都没标 reviewedAt 时不显示这一项，而不是编一个日期。
+ */
+import { publishedDocs } from '../data/browse';
+import { formatISODate } from '../data/policy';
+
+/** 这些是占位署名，不能算进贡献者数（与 Head.astro 的 JSON-LD 用同一套判断） */
+const PLACEHOLDER_AUTHORS = new Set(['待补充', 'TODO', '匿名', '']);
+
+const docs = await publishedDocs();
+
+const authors = new Set<string>();
+for (const doc of docs) {
+  for (const name of doc.data.authors ?? []) {
+    const trimmed = name.trim();
+    if (trimmed && !PLACEHOLDER_AUTHORS.has(trimmed)) authors.add(trimmed);
+  }
+}
+
+const latestReview = docs
+  .map((doc) => doc.data.reviewedAt)
+  .filter((date): date is Date => date instanceof Date)
+  .sort((a, b) => b.valueOf() - a.valueOf())[0];
+
+/**
+ * 贡献者数低于这个值就不展示。
+ *
+ * 为什么：目前的署名统一成了一个人，首页上写「1 位学长学姐」不但不是社会证明，
+ * 反而在强调「这是一个人的站」。**不展示不等于造假**——/contributors/ 页面照旧列全，
+ * 这里只是不把一个不是长处的数字放到首屏。人多了自然会出现。
+ */
+const MIN_AUTHORS_TO_SHOW = 3;
+---
+
+<p class="home-stats">
+  <span class="home-stats__item"><strong>{docs.length}</strong> 篇经验</span>
+  {
+    authors.size >= MIN_AUTHORS_TO_SHOW && (
+      <span class="home-stats__item"><strong>{authors.size}</strong> 位学长学姐</span>
+    )
+  }
+  {
+    latestReview && (
+      <span class="home-stats__item">最近核对 <strong>{formatISODate(latestReview)}</strong></span>
+    )
+  }
+  <span class="home-stats__note">学生自发分享，不是官方材料 · 制度性内容以教务、院系通知为准</span>
+</p>

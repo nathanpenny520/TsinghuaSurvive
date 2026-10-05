@@ -7,14 +7,46 @@
   // 预览就失去了意义。用独立 Worker + 自定义域名才能真的看到效果。
   //
   // 注意：这个预览地址是**公开可访问**的。不要往预览分支里放未脱敏的内容。
+  //
+  // 这里的 AI 相关配置与正式站一致（预览环境也要能测问答），但有两处刻意的不同：
+  //   1. TURNSTILE_HOSTNAMES 只放预览域名——Turnstile 的 token 是按域名签发的，
+  //      如果预览站接受正式域的 token，就等于把预览站变成了绕过正式站风控的入口；
+  //   2. 额度闸门是独立的 Durable Object（不同 Worker = 不同实例），预览环境刷额度
+  //      不会吃掉正式站的每日预算。
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "tsinghua-guide-preview",
   "compatibility_date": "2026-09-30",
+  "main": "./src/worker/index.js",
 
   "assets": {
     "directory": "./dist",
     "not_found_handling": "404-page",
-    "html_handling": "auto-trailing-slash"
+    "html_handling": "auto-trailing-slash",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+
+  "ai": {
+    "binding": "AI"
+  },
+
+  "durable_objects": {
+    "bindings": [{ "name": "ASK_GATE", "class_name": "AskGate" }]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["AskGate"]
+    }
+  ],
+
+  "observability": {
+    "enabled": true,
+    "traces": { "enabled": true }
+  },
+
+  "vars": {
+    "TURNSTILE_HOSTNAMES": "preview.nathanpenny.fun"
   },
 
   "routes": [
@@ -23,4 +55,7 @@
       "custom_domain": true
     }
   ]
+
+  // 预览环境同样需要这些 Secret（由 GitHub Actions 在部署时注入，见 .github/workflows/preview.yml）：
+  //   TURNSTILE_SECRET_KEY / ADMIN_TOKEN / CONFIG_ENC_KEY
 }

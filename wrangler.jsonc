@@ -1,10 +1,17 @@
 {
-  // Cloudflare Workers 静态资源托管配置。
-  // 这个站点没有后端代码：构建产物 dist/ 直接作为 Worker 的静态资源上传，
-  // 因此不需要 main 入口，也就没有运行时费用和冷启动问题。
+  // Cloudflare Workers 配置。
+  //
+  // 这个站点原本是「纯静态资源」形态（没有 main，dist/ 直接作为静态资源上传）。
+  // 现在多了一个 /api/* —— 站内 AI 问答需要有个地方**藏住第三方 API Key**，
+  // 也必须有一个服务端来做检索、限流与人机校验，所以引入了 Worker 脚本。
+  //
+  // 静态站点的优势没有被牺牲：`run_worker_first` 只把 /api/* 交给 Worker，
+  // 其余请求仍是「静态资源优先」，从离用户最近的节点直接返回，不进 Worker，
+  // 也就没有冷启动与 CPU 消耗（免费档的 100,000 请求/天只对真正进 Worker 的请求计数）。
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "tsinghua-guide",
   "compatibility_date": "2026-09-30",
+  "main": "./src/worker/index.js",
 
   "assets": {
     // Astro 的构建输出目录
@@ -12,7 +19,44 @@
     // 找不到的路径返回 404 页面（Astro 会生成 dist/404.html）
     "not_found_handling": "404-page",
     // URL 统一带结尾斜杠，与 astro.config.mjs 的 trailingSlash: 'always' 保持一致
-    "html_handling": "auto-trailing-slash"
+    "html_handling": "auto-trailing-slash",
+    // Worker 脚本要能读到 dist/ai-index.json 与 dist/ai-corpus.txt（AI 检索索引）
+    "binding": "ASSETS",
+    // 只有 /api/* 走 Worker 脚本；页面、图片、Pagefind 索引仍然是纯静态直出。
+    // 这是「加了后端但不拖慢站点」的关键。
+    "run_worker_first": ["/api/*"]
+  },
+
+  // Workers AI 绑定：默认模型走它，**不需要 API Key**，也不需要额外创建任何资源。
+  "ai": {
+    "binding": "AI"
+  },
+
+  // 额度闸门（限流 + 每日总预算 + 后台配置与密钥的存放）。
+  // 用 Durable Object 而不是 KV：每日预算是硬闸门，必须强一致；
+  // 顺带少创建一个 KV namespace。详见 src/worker/gate.js 顶部注释。
+  "durable_objects": {
+    "bindings": [{ "name": "ASK_GATE", "class_name": "AskGate" }]
+  },
+  "migrations": [
+    {
+      // SQLite 存储后端：免费档只支持这种
+      "tag": "v1",
+      "new_sqlite_classes": ["AskGate"]
+    }
+  ],
+
+  "observability": {
+    // 问答是会花钱的接口，必须看得见用在哪一步失败
+    "enabled": true,
+    "traces": { "enabled": true }
+  },
+
+  "vars": {
+    // Turnstile 的允许域名（siteverify 返回的 hostname 必须在这里面）。
+    // ⚠️ 正式环境**绝不能**包含 localhost / 127.0.0.1。本地开发用 .dev.vars 覆盖
+    //    这一项（.dev.vars 已在 .gitignore 里），两份名单物理隔离，不会手滑带到线上。
+    "TURNSTILE_HOSTNAMES": "tsinghua.nathanpenny.fun"
   },
 
   // 自定义域名。部署时 Wrangler 会自动创建 DNS 记录并绑定到本 Worker。
@@ -23,4 +67,11 @@
       "custom_domain": true
     }
   ]
+
+  // 需要的 Worker Secret（用 `npx wrangler secret put <名字>` 写入，不要写进这个文件）：
+  //   TURNSTILE_SECRET_KEY —— Turnstile 挂件的 secret，siteverify 用。
+  //                           没配时 /api/ask 一律 503（fail-closed，见 src/worker/turnstile.js）
+  //   ADMIN_TOKEN          —— 后台 /admin/ai/ 的口令，也是第三方 API Key 写入接口的凭证
+  //   CONFIG_ENC_KEY       —— 后台填的第三方 API Key 的加密主密钥（换掉会让已存的 Key 失效，需重填）
+  //   TURNSTILE_HOSTNAMES  —— 本地开发时在 .dev.vars 里覆盖为 localhost,127.0.0.1
 }

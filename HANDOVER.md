@@ -16,16 +16,20 @@ flowchart TB
     MAIN["main 分支"]; PRB["PR"]
   end
   subgraph CF["Cloudflare（全部在免费额度内）"]
-    W1["Worker tsinghua-guide<br/>静态资源，无 main 入口"]
+    W1["Worker tsinghua-guide<br/>静态资源 + /api/*（AI 问答）"]
     W2["Worker tsinghua-guide-preview"]
     W3["Worker tsinghua-guide-auth<br/>授权码 → 访问令牌"]
     R2B["R2 tsinghua-guide-media"]
+    DO["Durable Object AskGate<br/>限流 / 日额度 / 配置"]
   end
   MAIN -- "GitHub Actions：9 步校验 → wrangler deploy" --> W1 --> SITE["tsinghua.nathanpenny.fun"]
   PRB -- "preview.yml" --> W2 --> PRE["preview.nathanpenny.fun"]
   ADM["/admin/ 内容后台（浏览器）"] -- "登录一次，需代理" --> W3
   ADM -- "之后读写内容：api.github.com" --> GH
   ADM -- "图片 / 视频" --> R2B --> MEDIA["media.nathanpenny.fun"]
+  ASK["/ask/ 站内问答（浏览器）"] -- "POST /api/ask（Turnstile 校验）" --> W1 --> DO
+  W1 -- "默认模型，无需 Key" --> WAI["Workers AI"]
+  ADMIN["/admin/ai/ 密钥后台"] -- "加密后存 Durable Object" --> DO
 ```
 
 | 组件 | 名字 | 状态（2026-10-03） |
@@ -34,15 +38,19 @@ flowchart TB
 | PR 预览 Worker | `tsinghua-guide-preview` → `preview.nathanpenny.fun` | ✅ 线上 200 |
 | OAuth 中转 Worker | `tsinghua-guide-auth` → `auth.nathanpenny.fun` | ✅ 已部署且两个 secret 都已配好 |
 | R2 桶 | `tsinghua-guide-media` → `media.nathanpenny.fun` | ✅ 桶 / 域名 / CORS / access_key_id 全绿 |
-| KV / D1 / Durable Object | —— | 没有，一个都不用 |
+| KV / D1 | —— | 没有，一个都不用 |
+| Durable Object | `AskGate`（正式站与预览站各一个） | ✅ 随 `wrangler deploy` 的迁移创建，见第 10 节 |
 | 内容后台 | `/admin/`（Sveltia CMS，纯静态） | ✅ 随站点部署，见第 9 节 |
 
 ---
 
 ## 1. 一句话现状
 
-纯静态经验分享站：Markdown 写在 GitHub，构建产物托管在 Cloudflare Workers，主域名 <https://tsinghua.nathanpenny.fun>。
-**没有后端、没有数据库、没有用户系统**，所以运维面极小：改 Markdown → 提交 → 自动部署。
+经验分享站：Markdown 写在 GitHub，构建产物托管在 Cloudflare Workers，主域名 <https://tsinghua.nathanpenny.fun>。
+**2026-10-05 起多了一个后端**：`/api/*` 提供站内 AI 问答（检索 + 生成 + 人机校验）。页面、图片、
+Pagefind 索引仍然是纯静态直出——`run_worker_first` 只把 `/api/*` 交给 Worker，静态请求不进 Worker，
+所以「改了 Markdown → 提交 → 自动部署」这条主线没有变。
+**没有用户系统、没有数据库**；唯一的持久化是一个 Durable Object（限流计数 + 加密后的第三方 API Key）。
 
 ---
 
@@ -65,7 +73,7 @@ flowchart TB
 | GitHub 仓库 | <https://github.com/nathanpenny520/TsinghuaSurvive>（public，`main`） |
 | 本地路径 | `TsinghuaSurvive/Tsinghua-guide/` |
 
-站点能力一览 —— **全部在构建期完成，没有任何运行时**：
+站点能力一览 —— 除了最后一行，**其余全部在构建期完成**：
 
 | 能力 | 实现位置 |
 | --- | --- |
@@ -76,8 +84,17 @@ flowchart TB
 | 分享卡片图 | `public/og.png` + `public/og/*.png`，由 `scripts/generate-og.mjs` 生成 |
 | RSS / sitemap / robots | `src/pages/rss.xml.ts`、`@astrojs/sitemap`、`public/robots.txt` |
 | 内容后台 + 视频语法糖 | `public/admin/`、`src/utils/media-embed.mjs`（见第 9 节） |
+| **站内 AI 问答** | `src/worker/`（运行时，`/api/*`）+ `src/components/AskBox.astro`（见第 10 节） |
 
 仓库 Secrets（**两个都已配好，CI 已实测跑通**）：`CLOUDFLARE_ACCOUNT_ID` ✅、`CLOUDFLARE_API_TOKEN` ✅（权限最小集合见第 5 节）。
+
+**Worker 侧的 Secret（不属于仓库 Secrets，用 `wrangler secret put` 写入，见第 10.2 节）**：
+
+| 名字 | 用途 | 缺了会怎样 |
+| --- | --- | --- |
+| `TURNSTILE_SECRET_KEY` | 人机校验的 siteverify | `/api/ask` 一律 503（fail-closed） |
+| `ADMIN_TOKEN` | `/admin/ai/` 的口令 | 后台接口 503，密钥改不了 |
+| `CONFIG_ENC_KEY` | 加密后台填的第三方 API Key | 后台存不了 Key（仍可用 Workers AI） |
 CI 验证记录：`workflow_dispatch` 运行 34 s 全绿，Cloudflare 侧生成新版本 `2166042b-d87d-4c0a-9292-b5a95e0602dd`（02:51:52Z），站点 HTTP 200。
 
 > ⚠️ token 被吊销或过期时，工作流**不会红叉**：凭证守卫分支会给出 `::warning::` 注解并只构建不部署。
@@ -91,7 +108,7 @@ CI 验证记录：`workflow_dispatch` 运行 34 s 全绿，Cloudflare 侧生成�
 | 框架 | Astro 7，`output: 'static'` | 默认零 JS；VitePress 加自定义排版要写 Vue，Docusaurus / Next.js 对这个体量是纯负担 |
 | 主题 | Starlight | 侧边导航、目录、深色模式、搜索、i18n 全部内置 |
 | 搜索 | Pagefind（Starlight 内置） | 构建时生成静态索引，不需要服务端 |
-| 托管 | Cloudflare Workers **静态资源** | `wrangler.jsonc` 里**没有 `main` 入口** —— 这个 Worker 不执行代码，只发文件：不产生请求计费、无冷启动、几乎无攻击面 |
+| 托管 | Cloudflare Workers：静态资源 + 一个 `/api/*` 入口 | 页面仍然是纯静态直出（`run_worker_first` 只管 `/api/*`），静态请求不计费、无冷启动；**加后端只加在问答接口上**，不牺牲站点其余的零运行时特性 |
 | 内容 | Markdown / MDX + zod 强校验 | frontmatter 写错**构建直接失败并指出文件**，不会静默生成坏页面 |
 
 **决策一：必须用自定义域名。** 实测 `tsinghua-guide.nathanpenny520.workers.dev` 在校园网被 DNS 污染（解析到美国 IP `208.101.21.43` 后超时）；绑定自定义域名后 **HTTP 200、TLS 0.17 s、整页 0.5–0.9 s**。所以 `wrangler.jsonc` 里写的是
@@ -450,3 +467,241 @@ npm run r2:setup              # 建桶 + 接公开域名 + 应用 CORS（可重�
 | 12 | `auth_scope` 只接受 `repo` / `public_repo` | 写成 `public_repo,user` 这类列表会被 schema 拒绝（见 9.2） |
 | 13 | `auth-worker` 是第三个 Worker，**不随主站 CI 部署** | 改动很少，手动 `npm run auth:deploy`；改前先 `npm run auth:dry`；`ALLOWED_DOMAINS` 不要写 `*` |
 | 14 | 内联的上游代码要保留来源注释与 LICENSE | `auth-worker/src/index.js` 来自 MIT 的 `sveltia/sveltia-cms-auth`，文件头记了 commit 与 sha256，升级方式在 `auth-worker/README.md`；`check:admin` 会检查这些还在不在 |
+| 15 | **横向按钮条里「第一颗按钮更高」** | `Starlight` 给 `.sl-markdown-content` 里「后一个元素」加 `margin-top: var(--sl-content-gap-y)`（1rem）。一排 flex 按钮里第 2..n 颗各带 16px 上边距，而 flex 默认 `align-items: stretch` 会把没有边距的第一颗拉到「最高外框」——表现为第一颗 53px、其余 37px（实测 /ask/ 与 /academics/course-decision/）。修法见 `src/styles/custom.css` 末尾：把站内那几个按钮条容器的段落间距清零。**新增按钮条要把容器类名加进那个列表** |
+| 16 | **自定义页面（`StarlightPage`）的右侧目录只有「概述」** | 目录来自 `headings` prop，默认是空数组，读不到 `.astro` 里手写的 `<h2>`。要么显式传 `headings`（会和正文漂移），要么**把页面写成 `src/content/docs/*.mdx`** —— 走 Markdown 管线之后目录、侧栏分组、后台可编辑都自动成立。`/ask/` 就是为此从 `src/pages/ask.astro` 改成 `src/content/docs/ask.mdx` 的 |
+
+---
+
+## 10. 站内 AI 问答（2026-10-05 上线）
+
+站内问答是本站唯一的运行时功能：`/ask/` 页面问一句，系统在站内文章里检索相关段落，
+交给大模型**只依据这些段落**作答，并标出每一句的出处。
+
+### 10.1 它由四块组成
+
+| 块 | 位置 | 什么时候跑 |
+| --- | --- | --- |
+| 索引构建 | `scripts/build-ai-index.mjs` | **构建期**（`npm run build` 的一部分） |
+| 检索 + 生成 | `src/worker/index.js`、`retrieval.js`、`providers.js`、`turnstile.js`、`gate.js` | 请求时（只有 `/api/*` 会进 Worker） |
+| 前端 | `src/components/AskBox.astro` + `src/pages/ask.astro` | 浏览器 |
+| 密钥后台 | `public/admin/ai/index.html` | 浏览器（改模型/Key 时用） |
+| 配置 | `src/data/ai.config.yml` → `dist/ai-config.json` | 构建期生成，后台可编辑 |
+
+**请求链路**（`POST /api/ask`）：
+
+```
+校验入参 → 限流（不扣额度）→ Turnstile 校验 → 检索 → 相关度闸门 → 扣额度 → 流式生成
+```
+
+两处刻意设计：
+
+- **两道闸门都在生成之前**。免费额度（10,000 Neurons/天 ≈ 250 次问答）是真正的稀缺资源：
+  相关度闸门挡掉「站里根本没有的问题」，额度闸门挡掉「今天问得太多了」。
+  两者都返回 **200 + 说明 + 最相关的几篇文章**，而不是报错——用户仍然拿到了有用的东西。
+- **相关度闸门会拒答**。站里没有的内容（例如站内 26 万字里「四级」出现 0 次）不会去问模型，
+  而是直接说「站内没有找到」。这既省额度，也避免模型拿不相干的材料硬答。
+
+### 10.2 首次启用要做的四件事
+
+**① 建 Turnstile 挂件**（密钥不能进仓库，所以必须手工建一次）：
+
+```bash
+# wrangler ≥ 4.109。domain 里必须包含 localhost / 127.0.0.1，否则本地开发渲染不出挂件。
+npx wrangler turnstile widget create "tsinghua-guide-ask" \
+  --domain tsinghua.nathanpenny.fun \
+  --domain preview.nathanpenny.fun \
+  --domain localhost \
+  --domain 127.0.0.1 \
+  --mode managed --json
+```
+
+把返回的 **sitekey** 填进 `src/data/ai.config.yml` 的 `turnstile.sitekey`
+（也可以在后台「站点配置 → AI 问答」里填），**secret 不要写进任何文件**。
+
+**② 写三个 Worker Secret**（正式站与预览站各一次）：
+
+```bash
+npx wrangler secret put TURNSTILE_SECRET_KEY          # ① 里拿到的挂件 secret
+npx wrangler secret put ADMIN_TOKEN                   # 自己生成一串长的随机口令
+npx wrangler secret put CONFIG_ENC_KEY                # 加密第三方 Key 的主密钥，越长越好
+
+# 预览站（另一个 Worker，密钥是独立的）
+npx wrangler secret put TURNSTILE_SECRET_KEY --config wrangler.preview.jsonc
+npx wrangler secret put ADMIN_TOKEN --config wrangler.preview.jsonc
+npx wrangler secret put CONFIG_ENC_KEY --config wrangler.preview.jsonc
+```
+
+> `TURNSTILE_SECRET_KEY` 缺失时 `/api/ask` **一律 503**（fail-closed）。
+> 这是有意的：宁可问答暂时不可用并在日志里喊出来，也不要因为忘了配 secret 而敞开一个烧额度的接口。
+
+**③ 本地开发**：复制 `.dev.vars.example` 为 `.dev.vars`（已在 `.gitignore` 里）并填上测试用的
+Turnstile 官方测试密钥。注意 `.dev.vars` 会把 `TURNSTILE_HOSTNAMES` 覆盖成
+`localhost,127.0.0.1,example.com`——**正式名单里绝不能有 localhost**，两份物理隔离。
+
+**④ 验证**：
+
+```bash
+npm run verify            # 含 check:ai（索引+检索自测）与 check:ai:worker（43 项端到端）
+npm run deploy:dry        # 校验 Worker 配置与绑定
+# 部署后
+curl -s https://tsinghua.nathanpenny.fun/api/ai-config | head -c 300
+```
+
+### 10.3 日常操作
+
+| 想做什么 | 怎么做 |
+| --- | --- |
+| 换模型 | 后台「站点配置 → AI 问答」改 `answer.provider` / `model`，走 PR → 合并 → 部署 |
+| 临时试第三方模型 | `/admin/ai/` 页面：选预设、填 Key、点保存。**运行时覆盖立即生效，不用重新部署** |
+| 改限额 / 提示词补充 | 同上，`limits` 与 `answer.system_prompt_extra` |
+| 看今天用了多少额度 | `/admin/ai/` 的「当前状态」面板 |
+| 关掉整个功能 | `ai.config.yml` 里 `enabled: false` |
+
+**为什么默认用 Workers AI**：它走 Worker 的 AI 绑定，**不需要 API Key**，
+免费额度 10,000 Neurons/天。按「4K 输入 + 600 输出」估算：
+
+| 模型 | 单次消耗 | 免费额度下每天可答 |
+| --- | --- | --- |
+| `@cf/meta/llama-3.1-8b-instruct-fp8-fast` | ≈39 Neurons | ≈250 次 |
+| `@cf/qwen/qwen3-30b-a3b-fp8` | ≈38 Neurons | ≈260 次 |
+| `@cf/zai-org/glm-4.7-flash` | ≈44 Neurons | ≈225 次 |
+| `@cf/deepseek-ai/deepseek-v4-flash-0731` ⚠️ 需付费档或 AI Gateway 预付额度 | ≈232 Neurons | ≈43 次 |
+
+`daily_answers` 默认 200，就是照着这个留的余量。
+
+**为什么不用 Cloudflare 的托管 RAG（AI Search）**：它的免费档每月只含 1,000 次语义查询
+（≈33 次/天）+ 1,000 次全文查询 + 5M 摄入 tokens，而且 2026-11-01 起开始计费
+（超出后 $0.75 / 1,000 次语义查询）。自建这条路受限的是 Workers AI 的 Neurons（≈250 次/天）。
+省下的那点维护成本，换来的是**日额度少一个数量级**。等日问答量稳定超过 200 次再评估。
+
+**也评估过语义检索（Vectorize）**：官方两处说法互相矛盾——Workers 定价页写「Vectorize 仅付费档可用」，
+Vectorize 定价页却写免费档含 3,000 万查询维度。这个不适合当地基；而在 872 个块的语料下，
+BM25 + 标题加权已经把 19 个真实提问全部排对，所以**没做**。真要加，改 `retrieval.js` 时
+把 `search()` 的召回并上向量结果即可，`check:ai` 的自测能立刻告诉你有没有变差。
+
+### 10.4 检索是怎么做的（改之前先读）
+
+**索引从渲染产物构建，不是从 Markdown 构建**（`dist/**/index.html` 里带 `data-pagefind-body` 的页面）。
+理由：① 锚点 id 是 Astro 渲染时生成的，自己再实现一遍 slug 规则迟早和渲染结果漂移，
+表现为「引用卡片点进去跳不到那一节」；② `.mdx` 里的 JSX 组件在产物里已经是正文；
+③ 和站内搜索（Pagefind）用同一套可见性口径——搜得到的，AI 也检索得到。
+
+**分词**（`src/utils/ai-tokenize.mjs`，构建期与运行时**共用同一份**）：中文双字组 + 英文按词。
+配两条过滤，都是被实测的坏排序逼出来的：虚词字符构成的 bigram 丢掉；索引里丢掉
+全文词频 < 3 的碎片。**改动这张表或任何权重之后必须跑 `npm run check:ai`**——
+里面固化了 19 个真实提问的期望结果（该答什么、该拒什么、该排第一的是哪篇）。
+
+**排序**：BM25（词频按二值处理）+ 标题命中加权 + `status` 加权（`outdated` 降到一半）。
+idf 用的是「正文与标题合并后的 df」——用标题自身的 df 会让「准备」这类泛词权重虚高。
+
+**相对下限**（`RELATIVE_FLOOR`）：只保留分数达到第一名 35% 的片段。提问「绩点是怎么算的？」
+只有一个实词，于是任何提到过「绩点」的块都会被召回，包括首页的卡片文案；实测分差有断层
+（前两名 100% / 94%，后面直接掉到 33%），加了下限之后上下文从 8 条收到 2 条，
+模型不再拿不相干的材料凑答案。第一名永远保留，所以不会因此答不出来。
+
+**产物两个文件**，`dist/ai-index.json`（512 KB，要 JSON.parse）+ `dist/ai-corpus.txt`（556 KB，只做字符串切分）。
+必须压到这个量级：免费档每次调用只有 10 ms CPU，而 1.4 MB 的索引光 `JSON.parse` 就要 8 ms。
+
+### 10.5 踩过的坑（这份功能开发过程中真实踩到的）
+
+| # | 坑 | 表现与规避 |
+| --- | --- | --- |
+| 1 | **HTML 抽取漏了最后一次 flush** | 每个页面的**最后一段正文**静默丢失，没有标题的页面整页丢失。检索结果少一段，没人看得出来。`check-ai-index` 的「可搜索页面是否都被索引」就是为这类问题加的 |
+| 2 | **`data-pagefind-ignore` 是布尔属性**（无 `=`） | 只按 `key="value"` 解析属性会漏判，Starlight 给标题锚点加的屏幕阅读器文案（`本节：…`）被当成正文收进索引，每块开头都多一行。布尔属性要单独判 |
+| 3 | **跨词边界的碎片 bigram，idf 反而最高** | 提问「军训要准备什么」被切出「要准」「备什」，它们罕见所以 idf 5.55，比「军训」的 4.21 还高，把《你需要准备什么》顶到《军训生存指南》前面。用「全文词频 < 3」筛掉 |
+| 4 | **标题权重用的是标题自身的 df** | 「准备」只出现在 4 个标题里，按标题 df 算出的 idf 高达 4.96，再乘标题权重就压过了正文里的专有词。改用正文+标题合并后的 df |
+| 5 | **1.4 MB 的索引 JSON.parse 要 8 ms** | 贴着免费档 10 ms/次的 CPU 上限，表现为随机 500。拆成两个文件 + 倒排表只存块号（不存词频）压到 512 KB |
+| 6 | **Astro 会被脚本里的字面 `</a>` 截断** | 报错是「unterminated regex literal」这种看不出所以然的话。脚本里构造 HTML 时闭合标签写成 `<\/a>`（JS 里等价） |
+| 7 | **模块级缓存污染测试** | 配置按 isolate memoize 在生产是对的，但同一个 Node 进程里跑多组配置的测试会互相污染（表现为「改了配置不生效」）。为此导出了 `resetConfigCache()`，**只给测试用** |
+| 8 | **`tsconfig.json` 的 `exclude` 里 `reference` 是旧名字** | 资料库改名 `materials/` 时漏改，本地 `npm run check` 被里面几千个无关 `.ts` 刷爆，而 CI 上一切正常（CI 没有这个目录）。本地与 CI 检查结果不一致比不检查更糟 |
+| 9 | **密钥永远不进 git** | `scripts/build-ai-config.mjs` 会扫描 `ai.config.yml`，出现 `key`/`secret`/`token` 这类字段名直接让构建失败。第三方 Key 只经 `/admin/ai/` → Worker → AES-GCM 加密 → Durable Object，浏览器只能看到指纹 |
+
+### 10.6 验证到什么程度了
+
+自动化检查（`npm run check:ai` + `check:ai:worker`）跑的是真实入口函数、真实检索、真实提示词，
+桩掉的只有 AI 绑定与 Durable Object 存储。**真环境的三项已于 2026-10-05 在预览站验证**：
+
+| 项目 | 怎么验的 | 结果 |
+| --- | --- | --- |
+| 真实 Turnstile 令牌 | 无头 Chrome 打开 `preview.nathanpenny.fun/ask/`，走完真实挂件 | ✅ 拿到 794 字符令牌，问答成功 |
+| 令牌不可重放 | 同一个令牌连打两次 `/api/ask` | ✅ 第一次 200、第二次 403 `challenge_failed` |
+| Workers AI 真实推理 | 页面上问「绩点是怎么算的」「军训要准备什么」「保研需要什么条件」 | ✅ 答案有出处、角标指向正确锚点 |
+| 后台配置页 | `/admin/ai/` 输口令 → 状态面板 → 「测试连接」 | ✅ 返回真实模型回复「可用」 |
+
+> ⚠️ 无头 Chrome 会被 Turnstile 判成自动化（UA 里带 `HeadlessChrome`，挂件不发令牌）。
+> 复现这套验证时需要 `--disable-blink-features=AutomationControlled` 并覆盖 UA。
+
+**还没验证的只剩一件**：真实 Neuron 消耗曲线。上线几天后去 Cloudflare 控制台的
+Workers AI 面板看真实用量，和 10.3 的估算对一下，再决定 `daily_answers` 要不要调。
+
+**正式站首次上线后请再手测一次**（两个 Worker 的 `TURNSTILE_HOSTNAMES` 不同，
+正式站是 `tsinghua.nathanpenny.fun`）：打开 <https://tsinghua.nathanpenny.fun/ask/> 问一句，
+确认挂件能渲染、能答出来、**连续问两次都成功**（第二次依赖 `turnstile.reset`，是最容易漏的一步）。
+
+
+---
+
+## 11. 首页（splash 版式）改版（2026-10-05）
+
+### 11.1 改版前的实测问题
+
+用无头 Chrome 实拍 1440×900 与 390×844。改版前后的截图留在本地 `.review/`
+目录（该目录已在 `.gitignore` 里，只对本机有意义）：
+改版前在 `homepage-audit/`，改版后在 `homepage-after/`，问答页修复前后在 `ask-page-fixes/`。**核心问题不是"不好看"，是首屏根本没有可点的东西**：
+
+| 问题 | 实测 |
+| --- | --- |
+| 首屏信息密度极低 | 1440×900 里 hero 占 260px、hero 与正文之间还有约 130px 纯空白，第一行卡片只露出约 75px 顶部 —— **首屏 0 张完整卡片** |
+| 手机更糟 | 390×844 下第一张卡片出现在 y≈575 且被裁一半，**首屏 0 张完整卡片**；17 张卡等权平铺，要滑约 6 屏 |
+| 两套并行的信息架构 | 卡片标题是"处境描述"，左侧导航是"分类"，两者不重合，用户要在两套体系里各找一遍 |
+| 最贵的位置用来泼冷水 | 免责声明 Aside 占了桌面首屏约 1/7、手机约 1/4，位置在 hero 正下方 |
+| 主题色几乎不可见 | 清华紫只出现在两个小按钮上；没有数字、没有色块、没有视觉锚点 |
+| 手机按钮贴边 | 第二个 hero 按钮的右边缘只剩几 px（无溢出，但很紧） |
+
+### 11.2 改成了什么
+
+```
+首屏：H1 + 一句话副标题 + 两个按钮
+      → 「不知道从哪看起？直接问一句」+ 问答框（主 CTA，所有人适用）
+      → 三条最常走的路（三张大卡，紫色顶边）
+      → 信任条（60 篇经验 · 最近核对 2026-10-05 · 学生自发分享，非官方材料…）
+页中：按板块找 —— 与左侧导航同名的六组（学业 / 课程与资料 / 科研与深造 /
+      校园生活 / 心态与避坑 / 技能与工具），原来的 17 张卡片一张没丢
+页底：这个站是怎么组织内容的 / 你应该怎么用这个站 / 免责声明 Aside（原样保留，只是下沉）
+```
+
+具体手法：
+
+- **砍掉 splash 自带的大留白**。Starlight 在宽屏下给 `.hero` 的是
+  `padding-block: clamp(2.5rem, 1rem + 10vmin, 10rem)`——900px 高的窗口上就是上下各 106px；
+  外面那层 `.content-panel` 还有 1.5rem 上内边距，一起收掉。
+- **副标题缩短成一句**（"没有官方口径，只有过来人踩过的坑。"），颜色从 `gray-2` 提到 `gray-1`
+  ——深色底上原来的灰字偏暗，是首屏可读性差的一部分原因。
+- **信任条的数字实时算**（`src/components/HomeStats.astro`），不写死：加一篇文章数字自己变。
+  贡献者数**少于 3 人不展示**——署名人只有 1 个时，"1 位学长学姐"不是社会证明，反而在强调
+  "这是一个人的站"（`/contributors/` 照旧列全，只是不放到首屏）。
+- **问答框用了 `appearance: 'interaction-only'`**：Turnstile 默认会渲染一个"成功!"的小方框
+  （约 65px 高），在首屏寸土寸金的地方会把三张卡片挤到折叠线以下。
+  只有真的需要用户点一下时它才出现。
+- **手机上示例问题单行横滑**（原来换行成两排吃 45px）；"提问"按钮回到与输入框同一行
+  （原来独占一行吃 52px，而它只有两个字，输入框仍有约 250px 宽）。
+
+### 11.3 量化验收（改版前 → 改版后，实测）
+
+| 指标 | 改版前 | 目标 | 改版后 |
+| --- | --- | --- | --- |
+| 1440×900 首屏内完整卡片数 | 0 | ≥ 3 | **3** ✅ |
+| 390×844 首屏内完整卡片数 | 0 | ≥ 1 | **2** ✅ |
+| H1 顶部偏移 | ≈180px | ≤ 80px | **76px / 手机 68px** ✅ |
+| 问答框底边 | 无问答框 | ≤ 420px | **409px / 手机 394px** ✅ |
+| 手机横向溢出 | 疑似 | 0 | **0** ✅ |
+| 首屏主 CTA 是否对所有人成立 | 否（"从新生报到开始"只对新生） | 是 | 问答框 ✅ |
+
+> 手机上那个"≤ 420px"的实测值是在**普通访客**条件下量的（掩盖自动化指纹）。
+> 如果 Turnstile 判定需要人工交互，它会显示出来、把下方内容推下去约 85px——这是预期行为，
+> 且只影响被挑战的那部分流量。
+
+### 11.4 这一节相关的坑
+
+坑表（第 9.6 节）里的第 15、16 条就是这轮踩到的：**横向按钮条里第一颗按钮被拉高 16px**、
+**自定义页面（`StarlightPage`）的目录只有"概述"**。两条都记了根因与修法。

@@ -1,0 +1,26 @@
+# 本地开发用的环境变量 —— **复制成 .dev.vars 之后才生效**（.dev.vars 已在 .gitignore 里）
+#
+#   cp .dev.vars.example .dev.vars
+#
+# wrangler dev 会自动读同目录下的 .dev.vars，并且**覆盖 wrangler.jsonc 里的 vars**。
+# 这正好用来把 Turnstile 的允许域名在本地改成 localhost —— 正式环境那份名单里
+# 绝不能出现 localhost（否则任何人本机伪造的请求都能打正式接口）。
+
+# ── Turnstile ─────────────────────────────────────────────────────────────
+# 下面两个是 Cloudflare 官方公布的「测试专用」值，任何人都可以用，不是密钥：
+#   通过版 sitekey: 1x00000000000000000000AA
+#   通过版 secret : 1x0000000000000000000000000000000AA
+#   失败版 secret : 2x0000000000000000000000000000000AA（想测「校验失败」时换成它）
+#
+# 测试密钥的 siteverify 一定会返回 hostname=example.com，且不带 action，
+# 所以下面的名单里要有 example.com；真实挂件签发的 token 才会带 action。
+TURNSTILE_HOSTNAMES=localhost,127.0.0.1,example.com
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+
+# ── 后台 /admin/ai/ 的口令 ────────────────────────────────────────────────
+# 本地随便填，但**不能是空的**：为空时后台接口一律 503。
+ADMIN_TOKEN=local-dev-token
+
+# ── 加密第三方 API Key 的主密钥 ───────────────────────────────────────────
+# 本地随便填；正式环境换掉之后，已存的第三方 Key 会解不开（后台重新填一次即可）。
+CONFIG_ENC_KEY=local-dev-encryption-key

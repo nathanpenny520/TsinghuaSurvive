@@ -71,6 +71,12 @@ export default defineConfig({
       },
       sidebar: [
         {
+          // 站内问答放在最前面：它是「不知道该看哪篇」时唯一的入口，
+          // 而左侧导航的其它分组都要求读者已经知道自己在找什么。
+          label: '站内问答',
+          items: [{ label: '问一句（AI）', link: '/ask/' }],
+        },
+        {
           label: '开始之前',
           items: [
             { label: '如何使用本站', slug: 'start/how-to-use' },

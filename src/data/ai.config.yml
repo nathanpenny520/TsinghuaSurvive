@@ -1,0 +1,95 @@
+# ==========================================================================
+# 站内 AI 问答 —— **非密钥**配置
+# ==========================================================================
+#
+# 这个文件是公开的（仓库是 public，构建产物 ai-config.json 也是公开的）：
+#   ⚠️ 任何密钥、令牌、密码都**不允许**写在这里。
+#   API Key 只有两个去处：Worker Secret（推荐），或后台页面填写后加密存进
+#   Durable Object（见 src/worker/config.js 的说明）。`npm run check:ai` 会扫描本文件，
+#   出现 key / secret / token 这类字段名就直接让构建失败——这是为了拦住「手滑把密钥贴进来」。
+#
+# 改这个文件之后要跑 `npm run build`（会重新生成 dist/ai-config.json）。
+# 这个文件在后台「站点配置 → AI 问答」里可以直接编辑（见 public/admin/config.yml），
+# 保存后走 PR + 预览 + CI，和改文章是同一条流程。
+
+# 总开关。false 时 /api/ask 直接返回「未启用」，前端问答框也不出现。
+enabled: true
+
+# ── 生成用的模型 ──────────────────────────────────────────────────────────
+answer:
+  # workers-ai          —— Cloudflare Workers AI，走 Worker 的 AI 绑定，**不需要 API Key**
+  # openai-compatible   —— 任何 OpenAI Chat Completions 兼容的接口（DeepSeek / 智谱 / Kimi / OpenRouter…）
+  # 切换供应商只改这一行和后两行，不需要改代码、不需要重新发版。
+  provider: workers-ai
+
+  # Workers AI 的模型名。免费档是 10,000 Neurons/天，按 4K 输入 + 600 输出估算：
+  #   llama-3.1-8b-instruct-fp8-fast  ≈39 Neurons/次 → 约 250 次/天
+  #   qwen3-30b-a3b-fp8               ≈38 Neurons/次 → 约 260 次/天
+  #   注意 deepseek-v4-flash-0731 这类要付费档或 AI Gateway 预付额度，免费档调不通。
+  model: '@cf/meta/llama-3.1-8b-instruct-fp8-fast'
+
+  # provider 选 openai-compatible 时必填（到 /v1 为止，不要带 /chat/completions）。
+  # 用哪家的 Key，由 Worker 的环境变量决定（AI_API_KEY_DEEPSEEK 等），这里只写地址和模型。
+  base_url: ''
+  model_external: ''
+
+  # 0.2 是「照材料回答」的档位：再高容易自由发挥，再低容易把材料里的原话抄成生硬的答案。
+  temperature: 0.2
+  max_tokens: 700
+
+  # 追加到系统提示词末尾。系统提示词的**主体不允许在这里改**：
+  # 「只依据给定片段回答、不许编制度、必须给出处」是产品红线，改坏了会直接毁掉本站的可信度。
+  system_prompt_extra: ''
+
+  # 主模型失败（限流/超时/报错）时依次尝试。留空表示不兜底。
+  # 例：['@cf/meta/llama-3.1-8b-instruct-fp8-fast']
+  fallback_models: []
+
+# ── 检索 ──────────────────────────────────────────────────────────────────
+retrieval:
+  # 交给模型的片段数。多了挤上下文且更贵，少了答不全。5 是这套语料下的平衡点。
+  top_k: 5
+  # 同一个页面最多取几块：避免 5 块全来自同一篇，答案的视角会太窄。
+  max_per_url: 2
+  # 相关度过低时**不生成**，直接回「站内没有找到相关内容」+ 最接近的几篇。
+  # 这是"不许编"的第一道闸门：与其让模型硬答，不如老实说没有。
+  min_score: 6
+
+# ── 人机校验（Turnstile）──────────────────────────────────────────────────
+# 公开接口必须有人机校验，否则会被脚本刷光免费额度（见 HANDOVER.md「AI 问答」一节）。
+turnstile:
+  # enforce —— 必须带有效 token，校验失败直接 403
+  # off     —— 关闭校验。**只允许在本地开发和预览环境用**，正式站不能用。
+  mode: enforce
+  # sitekey 是公开值，可以进仓库。secret 由 `wrangler secret put TURNSTILE_SECRET_KEY` 写入。
+  # 挂件名 tsinghua-guide-ask，域名：tsinghua.nathanpenny.fun / preview.nathanpenny.fun / localhost / 127.0.0.1
+  sitekey: '0x4AAAAAAFOWNfKN0LO7Up_K'
+  # 与前端挂件的 data-action 一致，siteverify 会核对这个值
+  action: ask
+  # 允许的前端域名（siteverify 返回的 hostname 必须在这里面）。
+  # 留空则用 Worker 变量 TURNSTILE_HOSTNAMES（正式环境不含 localhost，本地开发用 .dev.vars 覆盖）。
+  hostnames: []
+
+# ── 额度与限流 ────────────────────────────────────────────────────────────
+limits:
+  # 提问长度上限（字符）。太长的问题既没意义又浪费额度。
+  max_question_chars: 200
+  # 单 IP 每小时的提问次数
+  per_ip_per_hour: 12
+  # 全站每天最多生成多少次回答。**这是防爆额度的硬闸门**：
+  # 免费档 10,000 Neurons/天 ≈ 250 次问答，留出余量后默认 200。
+  daily_answers: 200
+  # 额度用尽后的行为：true = 降级成「只给相关文章链接，不做生成」；
+  # false = 直接回「今天问得太多了」。降级比拒绝友好，默认开。
+  degrade_to_search: true
+
+# ── 前端文案 ──────────────────────────────────────────────────────────────
+ui:
+  title: 站内问答
+  placeholder: 例如：绩点是怎么算的？
+  # 首屏示例问题，点一下直接问。写真实的、有人真会问的问题，别写「介绍一下本站」。
+  examples:
+    - 绩点是怎么算的？
+    - 保研需要什么条件？
+    - 军训要准备什么？
+    - 怎么找导师进实验室？

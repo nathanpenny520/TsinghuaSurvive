@@ -138,11 +138,169 @@
   color: var(--sl-color-accent-high);
 }
 
-/* ── 首页 Hero 的补充样式 ─────────────────────────────────────────────── */
+/* ── 首页（splash 版式）─────────────────────────────────────────────────
+   目标：1440×900 的首屏里必须出现「一个能立刻用的入口 + 至少三张完整卡片」。
+   原来是「标题 + 副标题 + 两个按钮 + 一个警告框 + 半张卡片」，重点完全不突出。 */
+
+/* 1) 砍掉 splash 自带的大留白。
+      Starlight 在宽屏下给 .hero 的是 padding-block: clamp(2.5rem, 1rem + 10vmin, 10rem)，
+      900px 高的窗口上就是上下各 106px —— 首屏有近四分之一是纯空白。
+      外面那层 .content-panel 还有 1.5rem 上内边距，一起收掉。 */
+.content-panel:has(.hero) {
+  padding-block-start: 0.5rem;
+}
+
+.hero {
+  padding-block: 0.25rem 0;
+}
+
+.hero .stack {
+  gap: 0.75rem;
+}
+
+.hero .copy {
+  gap: 0.5rem;
+}
+
+.hero h1 {
+  font-size: clamp(1.9rem, 4.5vw, 2.9rem);
+}
+
+/* 副标题原来用的是 gray-2，在深色底上偏暗；字号也偏大，两行就把首屏吃掉一截 */
 .hero .tagline {
-  max-width: 42rem;
-  margin-inline: auto;
-  line-height: 1.8;
+  max-width: 34rem;
+  margin-inline: 0;
+  font-size: clamp(var(--sl-text-base), 1rem + 0.6vw, var(--sl-text-lg));
+  color: var(--sl-color-gray-1);
+  line-height: 1.7;
+}
+
+/* 2) 首屏的问答入口 */
+.home-ask {
+  margin: 0 auto 1.5rem;
+}
+
+.home-ask__prompt {
+  margin: 0 0 0.4rem;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-2);
+}
+
+.home-ask__prompt strong {
+  color: var(--sl-color-white);
+}
+
+/* 问答框在首页不占那么大上下间距（它下面还跟着三张卡） */
+.home-ask .askbox {
+  margin: 0;
+}
+
+.home-ask .askbox__examples {
+  margin-top: 0.5rem;
+}
+
+.home-ask .askbox__status {
+  margin-top: 0.5rem;
+}
+
+/* 3) 信任条：数字从内容集合实时算出来，见 HomeStats.astro */
+.home-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 1.25rem;
+  margin: 0 0 2.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--sl-color-gray-6, var(--sl-color-gray-5));
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-2);
+}
+
+.home-stats__item strong {
+  font-size: 1.1em;
+  color: var(--sl-color-white);
+}
+
+.home-stats__note {
+  color: var(--sl-color-gray-3);
+}
+
+/* 4) 三张「处境入口」大卡：比普通卡片高一档，这是首页唯一需要抢注意力的东西 */
+.home-featured {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.9rem;
+  margin: 1rem 0 2rem;
+}
+
+.home-featured__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1.05rem 1.15rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-top: 3px solid var(--sl-color-accent);
+  border-radius: 0.6rem;
+  background: var(--sl-color-black);
+  text-decoration: none;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.home-featured__card:hover {
+  border-color: var(--sl-color-accent);
+  transform: translateY(-2px);
+}
+
+.home-featured__kicker {
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-accent-high);
+}
+
+.home-featured__title {
+  font-size: var(--sl-text-lg);
+  font-weight: 600;
+  color: var(--sl-color-white);
+  line-height: 1.4;
+}
+
+.home-featured__desc {
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-2);
+  line-height: 1.6;
+}
+
+/* 5) 「按板块找」下面的 h3 分组之间留够空气，免得六组卡片糊成一片 */
+.sl-markdown-content h3:not(:where(.not-content *)) {
+  margin-top: 1.75rem;
+}
+
+@media (max-width: 40rem) {
+  /* 手机上首屏只保证「问一句 + 第一张大卡」露出来，其余靠滑动 */
+  .home-featured {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .hero {
+    padding-block: 0.25rem 0;
+  }
+
+  /* 示例问题在手机上一行放不下：原来换行成两排要吃掉 ~45px，
+     改成单行横滑，首屏因此能多露出一张完整卡片。 */
+  .home-ask .askbox__examples {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+
+  .home-ask .askbox__examples::-webkit-scrollbar {
+    display: none;
+  }
+
+  .home-ask .askbox__example {
+    flex: 0 0 auto;
+  }
 }
 
 /* ── 手机端 ──────────────────────────────────────────────────────────── */
@@ -220,4 +378,191 @@ main select:focus-visible {
   font-size: 0.875rem;
   color: var(--sl-color-gray-3);
   text-align: center;
+}
+
+/* ── 站内 AI 问答（AskBox.astro）─────────────────────────────────────────── */
+/* 放在这个文件里，和站上其它自定义样式同一处：只加类，不动 Starlight 的结构。 */
+.askbox {
+  margin: 1.5rem 0 2.5rem;
+}
+
+.askbox__form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.askbox__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.7rem 0.9rem;
+  font-size: var(--sl-text-body);
+  color: var(--sl-color-white);
+  background: var(--sl-color-black);
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.6rem;
+}
+
+.askbox__input:focus-visible {
+  border-color: var(--sl-color-accent);
+}
+
+.askbox__submit {
+  flex: 0 0 auto;
+  padding: 0.7rem 1.2rem;
+  font-size: var(--sl-text-body);
+  font-weight: 600;
+  color: var(--sl-color-black);
+  background: var(--sl-color-accent);
+  border: none;
+  border-radius: 0.6rem;
+  cursor: pointer;
+}
+
+.askbox__submit:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.askbox__examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.askbox__example {
+  padding: 0.3rem 0.7rem;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-1);
+  background: transparent;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.askbox__example:hover {
+  border-color: var(--sl-color-accent);
+  color: var(--sl-color-accent-high);
+}
+
+.askbox__status {
+  margin: 0.75rem 0 0;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-2);
+}
+
+.askbox__status[data-kind='error'] {
+  color: var(--sl-color-orange-high);
+}
+
+/* 人机校验的挂件：正常情况下它几乎是隐形的（managed 模式大多数访问不会弹交互） */
+.askbox__turnstile {
+  margin-top: 0.75rem;
+}
+
+.askbox__result {
+  margin-top: 1.25rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-left: 3px solid var(--sl-color-accent);
+  border-radius: 0.6rem;
+  background: var(--sl-color-black);
+}
+
+.askbox__badge {
+  margin: 0 0 0.6rem;
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-3);
+}
+
+/* 模型输出是纯文本：保留换行，不解析 Markdown（避免它编出链接或标题结构） */
+.askbox__answer {
+  font-size: var(--sl-text-body);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.askbox__cite {
+  padding: 0 0.15rem;
+  font-size: 0.85em;
+  vertical-align: super;
+  color: var(--sl-color-accent-high);
+  text-decoration: none;
+}
+
+.askbox__cite:hover {
+  text-decoration: underline;
+}
+
+.askbox__sources {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--sl-color-gray-6, var(--sl-color-gray-5));
+}
+
+.askbox__source {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-1);
+  text-decoration: none;
+}
+
+.askbox__source:hover .askbox__source-title {
+  color: var(--sl-color-accent-high);
+  text-decoration: underline;
+}
+
+.askbox__source-n {
+  color: var(--sl-color-accent-high);
+  font-variant-numeric: tabular-nums;
+}
+
+.askbox__source-title {
+  font-weight: 600;
+}
+
+.askbox__where {
+  color: var(--sl-color-gray-3);
+}
+
+/* 手机上「提问」保持和输入框同一行。
+   早先的写法是让按钮 width:100% 独占一行（怕输入框被挤窄），
+   但按钮只有两个字，独占一行要白吃 52px 高 —— 而首页首屏的高度很贵。
+   实测 390px 宽下输入框仍有约 250px，够用。 */
+@media (max-width: 30rem) {
+  .askbox__form {
+    gap: 0.4rem;
+  }
+
+  .askbox__submit {
+    padding-inline: 1rem;
+  }
+}
+
+/* ── 修正：横向按钮条里「第一颗按钮莫名更高」──────────────────────────────
+   现象：一排按钮 / 筛选项里，第一颗比其余高出 16px。全量审计（132 个页面）发现的受影响处：
+     /ask/ 示例问题 53 vs 37 ・ /academics/course-decision/ 53 vs 37
+     /courses/ 筛选 chip 48 vs 32 ・ /academics/credit-planner/ ・ /freshman/arrival-checklist/
+
+   原因（用 CDP 逐条比对「匹配到的 CSS 规则」定位到，不是猜的）：
+     Starlight 会给 `.sl-markdown-content` 里「紧随其他元素之后的元素」加
+     `margin-top: var(--sl-content-gap-y)`，而它是 1rem = 16px
+     （见 node_modules/@astrojs/starlight/dist/style/props.css）。
+     一排 flex 控件里，第 2..n 颗各带 16px 上边距、第一颗没有；
+     而 flex 默认 `align-items: stretch` 会把同一行的项目拉到「最高外框」齐平 ——
+     于是**没有边距的第一颗被拉伸成 37+16=53px**，其余保持 37px。
+
+   修法：站内组件的内部间距一律由组件自己用 gap / margin-bottom 控制，
+   所以把控件上的这层「正文段落间距」清零即可。
+   这里用**控件选择器**而不是逐个列容器类名：早期版本列了 5 个容器，
+   结果漏掉 `.explorer__chips`，/courses/ 上又冒出来了 —— 通用规则不会漏。 */
+.sl-markdown-content :is(button, select, textarea) {
+  margin-top: 0;
 }

@@ -61,6 +61,16 @@ jobs:
       - name: 结构化数据检查
         run: npm run check:jsonld
 
+      # 站内 AI 问答的两个检查（见 HANDOVER.md 第 10 节）：
+      #   check:ai        —— 索引体积/覆盖度/锚点，外加 19 个真实提问的排序自测
+      #   check:ai:worker —— 直接跑 Worker 入口，43 项端到端（闸门、鉴权、流式、fail-closed）
+      # 失败方式全是静默的：少一篇、排序退化、闸门顺序错、密钥被回显，页面都照开。
+      - name: AI 索引与检索质量检查
+        run: npm run check:ai
+
+      - name: AI 问答端到端检查（Worker）
+        run: npm run check:ai:worker
+
       - name: 静态资源检查（分享卡片 / favicon / robots）
         run: npm run check:assets
 

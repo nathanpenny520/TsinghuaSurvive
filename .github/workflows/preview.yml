@@ -72,6 +72,14 @@ jobs:
       - name: 渲染文本检查（加粗标记有没有泄漏）
         run: npm run check:markup
 
+      # 站内 AI 问答的检查：索引与检索质量 + Worker 端到端（见 HANDOVER.md 第 10 节）。
+      # 预览环境同样要跑——问答的改动最容易在「检索排序」和「闸门」上静默出错。
+      - name: AI 索引与检索质量检查
+        run: npm run check:ai
+
+      - name: AI 问答端到端检查（Worker）
+        run: npm run check:ai:worker
+
       # 判断能不能拿到凭证。fork PR 与未配置 token 的仓库都会走到这里。
       - name: 检查预览凭证
         id: creds
