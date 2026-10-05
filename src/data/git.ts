@@ -73,6 +73,9 @@ function plainText(raw: string): string {
   return raw
     .replace(/\*\*/g, '')
     .replace(/__/g, '')
+    // 去掉标记后可能在汉字和全角标点之间留下一个空格（「印出来的 **，」→「印出来的 ，」）
+    .replace(/([\u4e00-\u9fa5])\s+([，。、；：？！）】》」’”])/g, '$1$2')
+    .replace(/([（【《「‘“])\s+([\u4e00-\u9fa5])/g, '$1$2')
     .replace(/\s{2,}/g, ' ')
     .trim();
 }
