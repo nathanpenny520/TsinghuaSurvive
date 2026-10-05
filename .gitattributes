@@ -1,0 +1,30 @@
+# Git 属性配置（2026-10-05 加入）
+#
+# 为什么需要：仓库目前全部是 LF，但贡献者里不排除用 Windows 的同学
+# （Git for Windows 默认 core.autocrlf=true，clone 出来会把 LF 变成 CRLF，
+# 于是出现「整文件都被改了」的假 diff）。这里把行尾一次定死，本地/CI 行为一致。
+#
+# 注意：本文件不改变任何文件内容，加入时不会产生「重新规范化」的提交。
+# 如果哪天行尾真的乱了，用 `git add --renormalize .` 修正。
+
+# 统一行尾：仓库内一律 LF
+* text=auto eol=lf
+
+# 生成物：GitHub 默认会折叠它们的 diff，免得 PR 评审被大 JSON 淹没。
+# course-index.json 由 scripts/build-course-index.mjs 从本地 materials/ 生成，请勿手工编辑。
+src/data/course-index.json linguist-generated=true
+src/data/link-status.json linguist-generated=true
+package-lock.json -diff linguist-generated=true
+
+# 二进制：显式声明，避免被当成文本参与 diff / merge
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+*.zip binary
