@@ -63,6 +63,20 @@ const TYPES: Record<string, string> = {
 
 let commitCache: Commit[] | null = null;
 
+/**
+ * 提交标题是**纯文本**渲染的（更新日志页用 <span> 直接印），不解析 Markdown。
+ * 所以标题里写了 `**加粗**` 的话，星号会原样显示在页面上——`npm run check:markup`
+ * 会把它当成缺陷拦下来（它数的是产物里的可见文本，认不出这行字其实来自 git log）。
+ * 提交信息不受作者之外的人控制、也不该让整站部署失败，所以在这里统一去掉强调标记。
+ */
+function plainText(raw: string): string {
+  return raw
+    .replace(/\*\*/g, '')
+    .replace(/__/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 /** 最近提交（按时间倒序）。拿不到 git 历史时返回空数组。 */
 export function recentCommits(limit = 200): Commit[] {
   if (!commitCache) {
@@ -79,9 +93,9 @@ export function recentCommits(limit = 200): Commit[] {
               hash: hash.slice(0, 7),
               date,
               author,
-              subject,
+              subject: plainText(subject),
               type,
-              text: match ? match[3]! : subject,
+              text: plainText(match ? match[3]! : subject),
             };
           })
       : [];
