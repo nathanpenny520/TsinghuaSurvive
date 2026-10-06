@@ -437,6 +437,15 @@ collections:
         file: src/content/docs/ask.mdx
         fields: *doc-fields
 
+      # 纯内容页：只有介绍、教程和外链，**没有组件、没有运行时依赖**。
+      # ⚠️ 改这一页时别顺手把外链改成本站代理的入口 —— 页内「本站不代它提供入口」
+      #    那一段是有依据的（清小搭《用户协议》4.3 / 3.3 条），原因见 HANDOVER §12。
+      # ⚠️ 同样不能写 description（单文件条目上会被静默忽略，`check:admin` 会拦）。
+      - name: qingxiaoda
+        label: 清小搭（学校自己的 AI 助手）
+        file: src/content/docs/qingxiaoda.md
+        fields: *doc-fields
+
   # ── 站点配置（单文件，非密钥）─────────────────────────────────────────
   #
   # 为什么单独一组：这一组改的不是文章，是**站点的行为开关**（用哪个模型、限流多少）。

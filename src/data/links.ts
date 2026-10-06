@@ -522,6 +522,16 @@ export const campusLinks: CampusLink[] = [
 
   // ── 校内平台与 AI ───────────────────────────────────────────
   {
+    name: '清小搭（学校官方的学生 AI 助手）',
+    url: 'https://www.xiaoda.tsinghua.edu.cn/',
+    desc: '清华大学研发的学生 AI 助手：智能问答、智能伴学工具箱、个人成长云盘、智能体广场。**答的是学校官方口径**，和本站问答（只依据站内经验帖）分工不同——规定和手续问它，踩过的坑问本站。',
+    group: '校内平台与 AI',
+    reach: '公网',
+    note: '入口本身公网可开，但**登录要清华统一身份认证**。本站只做介绍与跳转，不代它提供入口；介绍与智能体搭建教程见 /qingxiaoda/',
+    origin: '学校官方',
+    reviewedAt: '2026-10-06',
+  },
+  {
     name: '清华 AI 素养学习中心',
     url: 'https://yuketang.tsinghua.edu.cn/ai/learning-center',
     desc: '学校的人工智能素养课程入口（雨课堂平台）。想系统了解 AI 从这开始。',

@@ -56,7 +56,7 @@
 | **改站内互动工具** | `src/components/` 的 `Checklist` / `CreditPlanner` / `SelectionWorkbench` | 数据只存浏览器 localStorage，**不上传**（站上唯一的后端是 AI 问答的 `/api/*`，与这些工具无关）。用 JS 二次渲染的组件**必须用 `is:global` 样式 + 前缀**，否则样式静默失效（见 HANDOVER §4） |
 | **课程书目 / 课程↔技能映射** | 自动派生 | `/courses/books/` 与技能页映射表都从 `course-index.json` 读，不用手写 |
 
-### 3. 站内问答与首页
+### 3. AI 功能（站内问答 / 清小搭）与首页
 
 | 我想…… | 改哪里 | 怎么做 |
 | --- | --- | --- |
@@ -64,6 +64,7 @@
 | **临时试第三方模型** | `/admin/ai/` | 选预设、填 Key、保存——运行时覆盖**立即生效，不用重新部署**。口令是 Worker Secret `ADMIN_TOKEN` |
 | **改首页的入口卡片** | `src/content/docs/index.mdx` | 首屏是「三张处境大卡」+「按板块找」六组；信任条的数字是实时算的，不用手改 |
 | **改问答页的说明文字** | `src/content/docs/ask.mdx` | 正文里的 `<AskBox />` 是问答组件本身，**别删掉 import 那一行**（删了不报错，只是问答框消失） |
+| **改「清小搭」那一页** | `src/content/docs/qingxiaoda.md` | **纯内容页，没有运行时依赖**（是介绍 + 外链，不代清小搭提供入口，原因见页内）。左侧导航的分组名与条目在 `astro.config.mjs` 的 `sidebar` 里，分组名是 `AI 功能` |
 | **调检索/提示词** | `src/worker/retrieval.js`、`ai-tokenize.mjs` | 改完**必须跑 `npm run check:ai`**：里面固化了 19 个真实提问的期望排序与拒答行为 |
 
 ### 4. 检查与运维
