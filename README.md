@@ -40,6 +40,7 @@
 | **加一篇骨架（结构就位、事实留空）** | `src/content/docs/<分类>/` | `status: draft` + `banner` 写明「未核实」，**不要填 `reviewedAt`** |
 | **标一篇内容过期** | frontmatter | `status: outdated`（红色警告）或更新 `reviewedAt`（超过 6 个月自动橙色提醒） |
 | **加一个新分类** | `astro.config.mjs` 的 `sidebar` | 建目录 → `sidebar` 加一项 `{ autogenerate: { directory: '目录名' } }` |
+| **加一个根目录独立页**（`/ask/`、`/qingxiaoda/` 这类） | `src/content/docs/` + **`public/admin/config.yml`** | ⚠️ **两处都要改**：正文照常写，但**后台不会自动发现根目录的单文件页**，必须在 `config.yml` 里手工加一条单文件集合（`file:` + `fields: *doc-fields`）。**漏了构建照样绿、页面照样上线**，只是后台看不到它、以后只能改代码 —— 加完**必须跑 `npm run check:admin`**（见 HANDOVER §12） |
 | **调侧边栏顺序** | 文章的 `sidebar.order` | 数字小的在前；**同目录内不要重复**，否则内容检查报错 |
 | **改站点标题 / 描述 / 联系方式** | `astro.config.mjs` | 顶部有 `SITE`、`REPO` 等常量 |
 | **改分享卡片图** | `scripts/generate-og.mjs` 顶部文案 | 改完跑 `npm run og`，生成 4 张（全站 + 课程 / 技能 / 链接），**记得一起提交** |

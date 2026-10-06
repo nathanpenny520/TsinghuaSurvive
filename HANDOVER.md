@@ -431,6 +431,7 @@ npm run r2:setup              # 建桶 + 接公开域名 + 应用 CORS（可重�
 | 加一个字段 | 先在 `src/content.config.ts` 加 schema，再在 `config.yml` 的字段表里加，然后 `npm run check:admin` |
 | 加一个集合（新目录） | `astro.config.mjs` 的 sidebar 加一项（autogenerate）+ `config.yml` 加集合；`check:admin` 会查有没有文件漏在后台外面 |
 | 加一篇文章能在后台创建 | 集合默认 `create: true`，不用改配置 |
+| 加一个**根目录单文件页**（`/ask/`、`/qingxiaoda/` 这类） | ⚠️ **后台不会自动发现**。两类集合行为不同：目录集合（`folder:`）会自动收录目录里的新文件；**单文件集合必须手工加一条** `- name: xxx / file: src/content/docs/xxx.md / fields: *doc-fields`（`.md` 和 `.mdx` 都要写明扩展名）。**漏了不会让构建失败**，只有 `check:admin` 一条提醒「不在任何后台集合里 —— 这篇内容在后台看不到，只能改代码」。所以**别只看构建绿不绿，加完必须跑 `npm run check:admin`**。`qingxiaoda.md` 就是这么补上的（见 §12） |
 | 改字段说明 / 提示 | 直接改 `config.yml` 里的 `hint`、`description`（支持简单 Markdown） |
 | 升级 Sveltia CMS | **两处一起改**：`public/admin/index.html` 的 `VERSION` 与 `package.json` 的 `@sveltia/cms`（必须锁同一版本，前者提供运行时、后者提供官方 schema）；改完 `npm install && npm run check:admin`，再打开后台点一遍 |
 | 校园网里 unpkg 不通、后台打不开 | `npm run admin:vendor`：把编辑器脚本放进 `public/admin/vendor/`（约 2.1 MB / gzip 650 KB），后台页面「本地优先、CDN 兜底」，不用改代码。**目前 `vendor/` 目录不存在，这个兜底还没启用过** |
@@ -469,6 +470,7 @@ npm run r2:setup              # 建桶 + 接公开域名 + 应用 CORS（可重�
 | 14 | 内联的上游代码要保留来源注释与 LICENSE | `auth-worker/src/index.js` 来自 MIT 的 `sveltia/sveltia-cms-auth`，文件头记了 commit 与 sha256，升级方式在 `auth-worker/README.md`；`check:admin` 会检查这些还在不在 |
 | 15 | **横向按钮条里「第一颗按钮更高」** | `Starlight` 给 `.sl-markdown-content` 里「后一个元素」加 `margin-top: var(--sl-content-gap-y)`（1rem）。一排 flex 按钮里第 2..n 颗各带 16px 上边距，而 flex 默认 `align-items: stretch` 会把没有边距的第一颗拉到「最高外框」——表现为第一颗 53px、其余 37px（实测 /ask/ 与 /academics/course-decision/）。修法见 `src/styles/custom.css` 末尾：把站内那几个按钮条容器的段落间距清零。**新增按钮条要把容器类名加进那个列表** |
 | 16 | **自定义页面（`StarlightPage`）的右侧目录只有「概述」** | 目录来自 `headings` prop，默认是空数组，读不到 `.astro` 里手写的 `<h2>`。要么显式传 `headings`（会和正文漂移），要么**把页面写成 `src/content/docs/*.mdx`** —— 走 Markdown 管线之后目录、侧栏分组、后台可编辑都自动成立。`/ask/` 就是为此从 `src/pages/ask.astro` 改成 `src/content/docs/ask.mdx` 的 |
+| 17 | **新增根目录单文件页时，后台不会自动收录** —— 目录集合（`folder:`）会自动发现目录里的新文件，但**单文件集合必须手工加一条** `- name / file / fields: *doc-fields`。**漏了构建照样绿、页面照样上线**，只是后台看不到、以后只能改代码；这条错误的静默程度和第 1 条一样危险 | `check:admin` 会报「不在任何后台集合里 —— 这篇内容在后台看不到，只能改代码」。**所以加页之后必须跑它，不能只看 CI 绿不绿**。`qingxiaoda.md` 第一次就漏了（见 §12）。另注意 `.md` 与 `.mdx` 要分别成集合（见第 3 条） |
 
 ---
 
@@ -719,6 +721,13 @@ Workers AI 面板看真实用量，和 10.3 的估算对一下，再决定 `dail
 - `/ask/` 页尾加了一段指向新页的说明；`guides/frequent-questions.md` 开头加了回链。
 - `src/data/links.ts` 的「校内平台与 AI」组新增一条清小搭入口（`reach: '公网'`，
   **入口公网可开但登录需统一身份认证**，note 里写清了）。
+- **登记进后台**：`public/admin/config.yml` 加了单文件集合 `qingxiaoda`（`fields: *doc-fields`）。
+  ⚠️ 这一步一开始**漏了**，是 `check:admin` 报「不在任何后台集合里」才补的 ——
+  构建照样绿、页面照样上线，只有那一条提醒。**通用规矩见 §4 的「加一个根目录单文件页」。**
+
+**上线方式**：提交 `1b0a0c6` → push `main` → `deploy.yml` 自动部署（12 步 CI 全过）。
+线上验证：`/qingxiaoda/` 200、普通文章页侧边栏显示「AI 功能」。
+注意**首页查不到「AI 功能」是正常的**——`template: splash` 不渲染侧边栏。
 
 ### 12.2 这一页是纯内容，但有两条硬约束
 
