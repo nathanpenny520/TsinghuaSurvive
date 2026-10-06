@@ -81,11 +81,18 @@ export default defineConfig({
           items: [
             { label: '如何使用本站', slug: 'start/how-to-use' },
             { label: '免责声明与内容边界', slug: 'start/disclaimer' },
+            { label: '清华黑话：简称与俚语', slug: 'start/tsinghua-slang' },
           ],
         },
         {
           label: '新生入学',
           items: [{ autogenerate: { directory: 'freshman' } }],
+        },
+        {
+          // 国际学生、港澳台学生与交换生单独成块：他们的支付、证件、语言、
+          // 住宿与就医路径和本地同学不一样，混在「校园生活」里没人找得到。
+          label: '国际学生',
+          items: [{ autogenerate: { directory: 'international' } }],
         },
         {
           label: '学业',
@@ -98,6 +105,7 @@ export default defineConfig({
             { label: '每种资料怎么用', slug: 'courses/materials' },
             { label: '课程参考书目', link: '/courses/books/' },
             { label: '外部资料库地图', slug: 'guides/archives' },
+            { label: '课程编号与专业设置', slug: 'guides/course-codes-and-majors' },
           ],
         },
         {
@@ -126,6 +134,9 @@ export default defineConfig({
             { label: '按阶段浏览', link: '/stages/' },
             { label: '按标签浏览', link: '/tags/' },
             { label: '校内常用链接', slug: 'guides/links' },
+            { label: '常见问题速查', slug: 'guides/frequent-questions' },
+            { label: '官方学习手册与学习咨询', slug: 'guides/study-skill-handbooks' },
+            { label: '校外经验站怎么用', slug: 'guides/external-guides' },
             { label: '资料下载', slug: 'guides/resources' },
             { label: '学生自建工具与脚本', slug: 'guides/tools' },
             { label: '论文与演示模板', slug: 'guides/templates' },

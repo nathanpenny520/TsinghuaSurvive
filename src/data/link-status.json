@@ -1,10 +1,14 @@
 {
   "$comment": "由 npm run check:links 生成，请勿手工编辑。只证明网址当前可访问（HTTP < 400），不代表页面内容已人工核对。",
-  "checkedAt": "2026-10-03",
-  "network": "清华校园网（无线 183.173.x，DNS 166.111.8.28）",
-  "total": 60,
-  "reachable": 60,
+  "checkedAt": "2026-10-06",
+  "network": "未标注（本地网络）",
+  "total": 64,
+  "reachable": 63,
   "results": {
+    "https://cet-bm.neea.edu.cn/": {
+      "ok": false,
+      "status": 412
+    },
     "https://zhjw.cic.tsinghua.edu.cn/": {
       "ok": true,
       "status": 200
@@ -26,10 +30,6 @@
       "status": 200
     },
     "https://szsj.tsinghua.edu.cn/": {
-      "ok": true,
-      "status": 200
-    },
-    "https://cet-bm.neea.edu.cn/": {
       "ok": true,
       "status": 200
     },
@@ -98,6 +98,10 @@
       "status": 200
     },
     "https://workshop.learning.tsinghua.edu.cn/web/index.php/materials/index": {
+      "ok": true,
+      "status": 200
+    },
+    "https://mathloveyou.github.io/": {
       "ok": true,
       "status": 200
     },
@@ -185,6 +189,10 @@
       "ok": true,
       "status": 200
     },
+    "https://thubook.help/thubook/": {
+      "ok": true,
+      "status": 200
+    },
     "https://www.toefl.cn/": {
       "ok": true,
       "status": 200
@@ -206,6 +214,14 @@
       "status": 200
     },
     "https://www.chsi.com.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://learning.tsinghua.edu.cn/": {
+      "ok": true,
+      "status": 200
+    },
+    "https://feiyue.online/": {
       "ok": true,
       "status": 200
     },

@@ -478,7 +478,27 @@ if (unreviewedLinks.length) {
 }
 
 const uncheckedLinks = campusLinks.filter((link) => !status.results[link.url]);
-const brokenLinks = campusLinks.filter((link) => status.results[link.url]?.ok === false);
+// `scriptBlocked` 的链接按定义就**永远测不过**：这些站对非浏览器请求返回反爬状态码（四六级报名是 412），
+// 而「浏览器里正常」是一次人工判断——已经由上面的「scriptBlocked 必须有 reviewedAt」规则兜住。
+// 所以它们不该再被报成「实测打不开」，否则 `check:content:strict` 会常年红着，
+// 真正的死链反而淹没在这条噪声里。注意：**单独报一条提示**，不是把结果藏起来。
+const brokenLinks = campusLinks.filter(
+  (link) => !link.scriptBlocked && status.results[link.url]?.ok === false,
+);
+const scriptBlockedUnreachable = campusLinks.filter(
+  (link) => link.scriptBlocked && status.results[link.url]?.ok === false,
+);
+
+if (scriptBlockedUnreachable.length) {
+  // 用 console.log 而不是 warn()：`--strict` 会把 warning 当失败，
+  // 而这条是**已知且可接受**的状态（站点对非浏览器请求反爬），不该让发布前检查常年红着。
+  // 同时它必须可见——所以照旧打出来，只是不参与 findings 计数。
+  console.log(
+    `ℹ links.ts：${scriptBlockedUnreachable.length} 条链接实测被反爬拦下（按设计如此，不计入死链）：` +
+      `${scriptBlockedUnreachable.map((l) => l.name).join('、')}；` +
+      '这些站的可用性由 reviewedAt 上的人工判断兜底，页面上标的是「脚本被拦」。',
+  );
+}
 
 if (uncheckedLinks.length) {
   warn(

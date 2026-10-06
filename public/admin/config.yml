@@ -283,6 +283,26 @@ collections:
     slug: *doc-slug
     fields: *doc-fields
 
+  # 2026-10-06 起「实用工具」下有了纯 Markdown 页（课程编号与专业设置、官方学习手册、
+  # 校外经验站），原来那一组全是 .mdx，所以这里补一个 md 集合，两种扩展名各管各的。
+  - name: guides
+    label: 实用工具
+    label_singular: 实用工具文章
+    folder: src/content/docs/guides
+    extension: md
+    slug: *doc-slug
+    description: 本组是纯文字页。含组件的那几页（校内常用链接、资料下载、外部资料库地图等）在下面「实用工具（组件页）」里。
+    fields: *doc-fields
+
+  - name: international
+    label: 国际学生
+    label_singular: 国际学生文章
+    folder: src/content/docs/international
+    extension: md
+    slug: *doc-slug
+    description: ⚠️ 面向国际学生、港澳台学生与交换生。事实来自学校官方手册，改数字（电话、价格、时间）前请回原手册核对。
+    fields: *doc-fields
+
   # ── 含组件的页面（.mdx）──────────────────────────────────────────────
   #
   # 为什么单独列出来：一个集合只能对应一种扩展名（官方文档明确：CMS 只列出配置里那一种扩展名
@@ -335,12 +355,21 @@ collections:
     fields: *doc-fields
 
   - name: guides-mdx
-    label: 实用工具
+    label: 实用工具（组件页）
     label_singular: 实用工具（组件页）
     folder: src/content/docs/guides
     extension: mdx
     slug: *doc-slug
     description: ⚠️ 含链接/工具网格组件；其中「校内常用链接」「学生自建工具」「资料下载」的数据来自 src/data/，不在正文里。
+    fields: *doc-fields
+
+  - name: international-mdx
+    label: 国际学生（板块首页）
+    label_singular: 国际学生（组件页）
+    folder: src/content/docs/international
+    extension: mdx
+    slug: *doc-slug
+    description: ⚠️ 板块索引页。正文里的电话与办事路径来自官方手册，改动请一并核对来源年份。
     fields: *doc-fields
 
   # ── 站点页面（单文件集合）─────────────────────────────────────────────

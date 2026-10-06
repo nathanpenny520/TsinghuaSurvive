@@ -232,7 +232,7 @@ export function search(knowledge, question, options = {}) {
  *   误答的代价是多花一次免费额度，而模型那边还有第一道闸门（系统提示词要求
  *   「资料不足就直说没有」）。所以这里只拦「明显不是本站内容」的情况。
  *
- * 五条，都是被实测的失败案例逼出来的：
+ * 六条，都是被实测的失败案例逼出来的：
  *   1. foundTerms 至少 1 个；提问本身只切出一个词时（「挂科了怎么办」→「挂科」），
  *      这一个词就够了——**不能一刀切要求 2 个**，否则最典型的短提问会被误拒。
  *   2. 排第一的块至少要命中一个提问词。
@@ -240,6 +240,20 @@ export function search(knowledge, question, options = {}) {
  *      （「推荐一部电影」会命中「电影」）。
  *   4. 提问里不到一半的词在站内出现过（「aaaa bbbb 不存在的东西」只命中「东西」）。
  *   5. topScore 绝对下限，兜住「词都出现过但纯属碰巧」。
+ *   6. 提问更长（≥5 个词）、站内覆盖又不到 4 个词时，再抬一档：排第一的块要命中 ≥3 个词。
+ *
+ * 关于第 6 条（2026-10-06 加）：它来自一次**真实的回归**，不是预防性收紧。
+ *   提问「推荐一部电影」切成 推荐/荐一/一部/部电/电影，只有 推荐、一部、电影 在站内出现过；
+ *   原先靠「≥4 个词只命中 1 个」把它拦住。后来《出国申请》补写了「推荐信」一节，
+ *   正文里有一句「收尾也是关系的一部分」，于是那一节同时命中了 推荐 与 一部，
+ *   命中数从 1 变 2，闸门就放行了——纯粹是词面巧合，BM25 分不开这种巧合。
+ *   同一条规则下「宿舍几点熄灯」这类提问**本来就**会被第 4 条拒掉，所以它不是新引入的口径。
+ *
+ * ⚠️ 已知代价（写给以后要调这里的人）：满足「长提问 + 站内覆盖 <4 词 + 命中 2 词」的提问里，
+ *   确实有**语义上问得通**的（实测：『实验室进组之后做什么』，第一名是国际培养页）。
+ *   这两类提问的特征向量完全一样（n=5 / found=3 / matchedInTop=2），没有只靠 BM25 就能分开的规则，
+ *   只能二选一。这里选了保守的一侧，因为误答一个电影推荐是用户直接看得见的错误，
+ *   而误拒还有模型层的「资料不足就说没有」兜底不了——所以，要放宽就**先补一批真实提问的评测集**再动。
  *
  * 反例（**拒答是对的**）：「四级没过怎么办」——站内 26 万字里「四级」出现 0 次，
  * 建索引前实地 grep 确认过。这类问题应该老实说「站内没有」，而不是让模型拿别的材料硬答。
@@ -249,6 +263,7 @@ export function isConfident(result, { minScore = 0 } = {}) {
   if (result.foundTerms.length < MIN_FOUND_TERMS) return false;
   if (result.matchedInTop < 1) return false;
   if (result.terms.length >= 4 && result.matchedInTop < 2) return false;
+  if (result.terms.length >= 5 && result.foundTerms.length < 4 && result.matchedInTop < 3) return false;
   if (result.terms.length >= 3 && result.foundTerms.length / result.terms.length < 0.5) return false;
   return result.topScore >= minScore;
 }
