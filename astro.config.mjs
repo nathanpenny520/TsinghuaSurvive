@@ -15,7 +15,7 @@ const SITE = 'https://tsinghua.nathanpenny.fun';
 /**
  * 仓库地址：用于「编辑此页」链接，其他学长学姐可以直接跳去提 PR。
  */
-const REPO = 'https://github.com/nathanpenny520/TsinghuaSurvive';
+const REPO = 'https://github.com/pan-nie/TsinghuaSurvive';
 
 export default defineConfig({
   site: SITE,

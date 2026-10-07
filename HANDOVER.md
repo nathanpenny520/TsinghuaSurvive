@@ -12,7 +12,7 @@
 
 ```mermaid
 flowchart TB
-  subgraph GH["GitHub · nathanpenny520/TsinghuaSurvive（public）"]
+  subgraph GH["GitHub · pan-nie/TsinghuaSurvive（public）"]
     MAIN["main 分支"]; PRB["PR"]
   end
   subgraph CF["Cloudflare（全部在免费额度内）"]
@@ -70,7 +70,7 @@ Pagefind 索引仍然是纯静态直出——`run_worker_first` 只把 `/api/*` 
 | Worker（预览） | `tsinghua-guide-preview` → `https://preview.nathanpenny.fun` |
 | Worker（OAuth 中转） | `tsinghua-guide-auth` → `https://auth.nathanpenny.fun`，代码在 `auth-worker/`，**不随主站 CI 部署** |
 | R2 桶 | `tsinghua-guide-media` → `https://media.nathanpenny.fun` |
-| GitHub 仓库 | <https://github.com/nathanpenny520/TsinghuaSurvive>（public，`main`） |
+| GitHub 仓库 | <https://github.com/pan-nie/TsinghuaSurvive>（public，`main`） |
 | 本地路径 | `TsinghuaSurvive/Tsinghua-guide/` |
 
 站点能力一览 —— 除了最后一行，**其余全部在构建期完成**：
@@ -111,7 +111,7 @@ CI 验证记录：`workflow_dispatch` 运行 34 s 全绿，Cloudflare 侧生成�
 | 托管 | Cloudflare Workers：静态资源 + 一个 `/api/*` 入口 | 页面仍然是纯静态直出（`run_worker_first` 只管 `/api/*`），静态请求不计费、无冷启动；**加后端只加在问答接口上**，不牺牲站点其余的零运行时特性 |
 | 内容 | Markdown / MDX + zod 强校验 | frontmatter 写错**构建直接失败并指出文件**，不会静默生成坏页面 |
 
-**决策一：必须用自定义域名。** 实测 `tsinghua-guide.nathanpenny520.workers.dev` 在校园网被 DNS 污染（解析到美国 IP `208.101.21.43` 后超时）；绑定自定义域名后 **HTTP 200、TLS 0.17 s、整页 0.5–0.9 s**。所以 `wrangler.jsonc` 里写的是
+**决策一：必须用自定义域名。** 实测 `tsinghua-guide.pan-nie.workers.dev` 在校园网被 DNS 污染（解析到美国 IP `208.101.21.43` 后超时）；绑定自定义域名后 **HTTP 200、TLS 0.17 s、整页 0.5–0.9 s**。所以 `wrangler.jsonc` 里写的是
 `"routes": [{ "pattern": "tsinghua.nathanpenny.fun", "custom_domain": true }]`。
 副作用：声明 `routes` 后 Wrangler **默认关闭 workers.dev 入口与 Preview URL** —— 有意的，避免同一站点两个域名；海外调试可临时加 `"workers_dev": true`。
 
@@ -276,8 +276,8 @@ npx wrangler delete    # 紧急下线（自定义域名的 DNS 记录会一起�
 | Zone · `nathanpenny.fun` | **Zone** · Read | 同上，需要先列出已有域名 |
 
 3. Account Resources 选你的账号；Zone Resources **只选 `nathanpenny.fun`**（不要给 All zones）。
-4. 创建后立刻复制 token 写入仓库 Secret：`gh secret set CLOUDFLARE_API_TOKEN --repo nathanpenny520/TsinghuaSurvive`（或网页 Settings → Secrets → Actions）。
-5. 验证：`gh workflow run deploy.yml --repo nathanpenny520/TsinghuaSurvive`，然后 `gh run watch`。
+4. 创建后立刻复制 token 写入仓库 Secret：`gh secret set CLOUDFLARE_API_TOKEN --repo pan-nie/TsinghuaSurvive`（或网页 Settings → Secrets → Actions）。
+5. 验证：`gh workflow run deploy.yml --repo pan-nie/TsinghuaSurvive`，然后 `gh run watch`。
 
 ---
 
@@ -444,7 +444,7 @@ npm run r2:setup              # 建桶 + 接公开域名 + 应用 CORS（可重�
 保留 `token` 只是为了**中转 Worker 挂掉时不至于谁都进不来**。真要用（例如临时没代理）：
 
 1. GitHub → Settings → Developer settings → **Fine-grained tokens** → Generate new token
-2. Repository access：**Only select repositories** → 只勾 `nathanpenny520/TsinghuaSurvive`
+2. Repository access：**Only select repositories** → 只勾 `pan-nie/TsinghuaSurvive`
 3. Permissions：**Contents: Read and write**、**Pull requests: Read and write**（少了 PR 权限，保存会卡在「开不了 PR」）
 4. 回到 `/admin/` → **Sign In Using Access Token** → 粘贴令牌
 

@@ -200,7 +200,7 @@ if (!cmsPackage) {
 if (config.backend?.name !== 'github') {
   error(`backend.name 应为 github，现在是 ${JSON.stringify(config.backend?.name)}`, 'public/admin/config.yml');
 }
-if (config.backend?.repo !== 'nathanpenny520/TsinghuaSurvive') {
+if (config.backend?.repo !== 'pan-nie/TsinghuaSurvive') {
   error(`backend.repo 指向了别的仓库：${JSON.stringify(config.backend?.repo)}`, 'public/admin/config.yml');
 }
 

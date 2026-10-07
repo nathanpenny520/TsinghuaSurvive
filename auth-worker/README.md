@@ -67,7 +67,7 @@ npx wrangler deploy
 ```yaml
 backend:
   name: github
-  repo: nathanpenny520/TsinghuaSurvive
+  repo: pan-nie/TsinghuaSurvive
   branch: main
   base_url: https://auth.nathanpenny.fun     # 必须与 wrangler.jsonc 的 routes 一致
   auth_methods: [oauth, token]

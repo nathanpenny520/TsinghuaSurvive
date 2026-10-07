@@ -14,7 +14,7 @@
 
 backend:
   name: github
-  repo: nathanpenny520/TsinghuaSurvive
+  repo: pan-nie/TsinghuaSurvive
   branch: main
   # OAuth 中转（auth-worker/，一个 13KB 的 Cloudflare Worker）。
   # 它只做「授权码 → 访问令牌」的交换：client secret 只存在 Worker 的加密环境变量里，

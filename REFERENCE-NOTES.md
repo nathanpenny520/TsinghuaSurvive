@@ -228,7 +228,7 @@ REKCARC 自己写得很直白，原话在 **`大二上/数据结构/readme.md`**
 
 ```bash
 curl -s -o /dev/null -w '%{http_code} %{time_total}s\n' --max-time 20 https://github.com/login/oauth/authorize
-gh api graphql -f query='{repository(owner:"nathanpenny520",name:"TsinghuaSurvive"){hasDiscussionsEnabled}}'
+gh api graphql -f query='{repository(owner:"pan-nie",name:"TsinghuaSurvive"){hasDiscussionsEnabled}}'
 ```
 
 当时三条前置条件**一条都没满足**：仓库虽已是 public，但 giscus App 未安装、Discussions 未开启（`hasDiscussionsEnabled: false`）。

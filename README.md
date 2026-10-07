@@ -2,7 +2,7 @@
 
 面向清华在校学生的经验分享站 —— 不是官方材料，是一群学长学姐把踩过的坑、绕过的路写下来。
 
-**线上** <https://tsinghua.nathanpenny.fun>　｜　**仓库** <https://github.com/nathanpenny520/TsinghuaSurvive>　｜　**最后更新** 2026-10-03
+**线上** <https://tsinghua.nathanpenny.fun>　｜　**仓库** <https://github.com/pan-nie/TsinghuaSurvive>　｜　**最后更新** 2026-10-03
 
 > **本文回答**：我想做 X，该改哪里、跑哪条命令。
 > **不回答**：部署与排障 → [HANDOVER.md](./HANDOVER.md)｜内容还缺什么 → [OUTLINE.md](./OUTLINE.md)｜为什么这么设计 → [REFERENCE-NOTES.md](./REFERENCE-NOTES.md)｜后台方案的决策记录 → [CONTENT-EDITING-PLAN.md](./CONTENT-EDITING-PLAN.md)
@@ -17,7 +17,7 @@
 | --- | --- | --- |
 | **用浏览器** | 站内后台 <https://tsinghua.nathanpenny.fun/admin/>，改文字 / 拖图 / 嵌视频，保存自动开 PR | 登录那一下要能打开 `github.com`（开一次代理），之后全在校园网内完成 |
 | **会 Git** | `npm install && npm run dev` → 改 `src/content/docs/` → push | 装一次 Node 20+ |
-| **只想给素材** | 提 [Issue](https://github.com/nathanpenny520/TsinghuaSurvive/issues/new/choose) | 同样要能打开 `github.com` |
+| **只想给素材** | 提 [Issue](https://github.com/pan-nie/TsinghuaSurvive/issues/new/choose) | 同样要能打开 `github.com` |
 | **改代码 / 批量改** | 见下一节的三张表 | — |
 
 推送到 `main` 会**自动构建部署**，不需要手动做任何部署动作。
